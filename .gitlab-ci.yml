@@ -1,0 +1,48 @@
+stages:
+  - test
+
+.php_setup:
+  image: php:8.4-cli
+  before_script:
+    - apt-get update && apt-get install -y unzip git
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --no-progress
+
+phpunit:
+  extends: .php_setup
+  stage: test
+  script:
+    - composer test
+
+phpstan:
+  extends: .php_setup
+  stage: test
+  script:
+    - composer stan
+
+cs-fixer:
+  extends: .php_setup
+  stage: test
+  script:
+    - composer cs
+
+no-framework:
+  extends: .php_setup
+  stage: test
+  script:
+    - |
+      if php -r '
+        $packages = json_decode(file_get_contents("composer.lock"), true)["packages"] ?? [];
+        $packages = array_merge($packages, json_decode(file_get_contents("composer.lock"), true)["packages-dev"] ?? []);
+        foreach ($packages as $package) {
+            if (preg_match("#^(illuminate|laravel)/#", $package["name"])) {
+                fwrite(STDERR, "Dépendance framework détectée : {$package["name"]}\n");
+                exit(1);
+            }
+        }
+        exit(0);
+      '; then
+        echo "Aucune dépendance illuminate/* ou laravel/* détectée."
+      else
+        exit 1
+      fi
