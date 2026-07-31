@@ -6,6 +6,9 @@ namespace Noneo\Sdk\Pennylane\Tooling\OpenApi;
 
 final class CurlHttpFetcher implements HttpFetcher
 {
+    /**
+     * @param non-empty-string $userAgent
+     */
     public function __construct(
         private readonly int $delayMicroseconds = 300_000,
         private readonly string $userAgent = 'noneo/sdk-pennylane fetch-openapi',
