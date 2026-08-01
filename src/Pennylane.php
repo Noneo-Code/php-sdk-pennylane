@@ -12,7 +12,9 @@ use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
 use Noneo\Sdk\Pennylane\Resource\PaRegistrations;
 use Noneo\Sdk\Pennylane\Resource\Products;
+use Noneo\Sdk\Pennylane\Resource\PurchaseRequests;
 use Noneo\Sdk\Pennylane\Resource\Quotes;
+use Noneo\Sdk\Pennylane\Resource\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Resource\Suppliers;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
@@ -67,6 +69,11 @@ final class Pennylane extends Connector
         return new Products($this);
     }
 
+    public function purchaseRequests(): PurchaseRequests
+    {
+        return new PurchaseRequests($this);
+    }
+
     public function quotes(): Quotes
     {
         return new Quotes($this);
@@ -75,5 +82,10 @@ final class Pennylane extends Connector
     public function suppliers(): Suppliers
     {
         return new Suppliers($this);
+    }
+
+    public function supplierInvoices(): SupplierInvoices
+    {
+        return new SupplierInvoices($this);
     }
 }
