@@ -62,4 +62,24 @@ final class CursorPaginator extends BaseCursorPaginator
     {
         return CursorPage::fromArray($response->json())->nextCursor ?? '';
     }
+
+    /**
+     * Le plugin de pagination type `items()` en `Response|PromiseInterface`
+     * pour couvrir la pagination asynchrone, jamais utilisée par ce SDK.
+     * On surcharge avec un type fidèle à l'usage réel : des items décodés.
+     *
+     * @return iterable<int, mixed>
+     */
+    public function items(): iterable
+    {
+        foreach ($this as $response) {
+            if (!$response instanceof Response) {
+                continue;
+            }
+
+            foreach ($this->getPageItems($response, $response->getRequest()) as $item) {
+                yield $item;
+            }
+        }
+    }
 }
