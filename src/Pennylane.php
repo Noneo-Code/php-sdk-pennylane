@@ -13,6 +13,7 @@ use Noneo\Sdk\Pennylane\Resource\Customers;
 use Noneo\Sdk\Pennylane\Resource\PaRegistrations;
 use Noneo\Sdk\Pennylane\Resource\Products;
 use Noneo\Sdk\Pennylane\Resource\Quotes;
+use Noneo\Sdk\Pennylane\Resource\Suppliers;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
 use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
@@ -69,5 +70,10 @@ final class Pennylane extends Connector
     public function quotes(): Quotes
     {
         return new Quotes($this);
+    }
+
+    public function suppliers(): Suppliers
+    {
+        return new Suppliers($this);
     }
 }
