@@ -8,6 +8,7 @@ use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
 use Noneo\Sdk\Pennylane\Resource\Categories;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
+use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
@@ -45,5 +46,10 @@ final class Pennylane extends Connector
     public function customers(): Customers
     {
         return new Customers($this);
+    }
+
+    public function customerInvoices(): CustomerInvoices
+    {
+        return new CustomerInvoices($this);
     }
 }
