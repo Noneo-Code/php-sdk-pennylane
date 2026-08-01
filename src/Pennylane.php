@@ -6,6 +6,8 @@ namespace Noneo\Sdk\Pennylane;
 
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
+use Noneo\Sdk\Pennylane\Resource\Categories;
+use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
 use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
@@ -27,5 +29,15 @@ final class Pennylane extends Connector
     public function resolveBaseUrl(): string
     {
         return 'https://app.pennylane.com/api/external/v2';
+    }
+
+    public function categories(): Categories
+    {
+        return new Categories($this);
+    }
+
+    public function categoryGroups(): CategoryGroups
+    {
+        return new CategoryGroups($this);
     }
 }
