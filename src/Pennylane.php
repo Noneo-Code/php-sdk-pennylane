@@ -10,6 +10,9 @@ use Noneo\Sdk\Pennylane\Resource\Categories;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
 use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
+use Noneo\Sdk\Pennylane\Resource\FiscalYears;
+use Noneo\Sdk\Pennylane\Resource\Journals;
+use Noneo\Sdk\Pennylane\Resource\LedgerAccounts;
 use Noneo\Sdk\Pennylane\Resource\PaRegistrations;
 use Noneo\Sdk\Pennylane\Resource\Products;
 use Noneo\Sdk\Pennylane\Resource\PurchaseRequests;
@@ -57,6 +60,21 @@ final class Pennylane extends Connector
     public function customerInvoices(): CustomerInvoices
     {
         return new CustomerInvoices($this);
+    }
+
+    public function journals(): Journals
+    {
+        return new Journals($this);
+    }
+
+    public function ledgerAccounts(): LedgerAccounts
+    {
+        return new LedgerAccounts($this);
+    }
+
+    public function fiscalYears(): FiscalYears
+    {
+        return new FiscalYears($this);
     }
 
     public function paRegistrations(): PaRegistrations
