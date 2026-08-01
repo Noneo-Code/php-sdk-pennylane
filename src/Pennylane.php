@@ -11,6 +11,8 @@ use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
 use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
 use Noneo\Sdk\Pennylane\Resource\PaRegistrations;
+use Noneo\Sdk\Pennylane\Resource\Products;
+use Noneo\Sdk\Pennylane\Resource\Quotes;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
 use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
@@ -57,5 +59,15 @@ final class Pennylane extends Connector
     public function paRegistrations(): PaRegistrations
     {
         return new PaRegistrations($this);
+    }
+
+    public function products(): Products
+    {
+        return new Products($this);
+    }
+
+    public function quotes(): Quotes
+    {
+        return new Quotes($this);
     }
 }
