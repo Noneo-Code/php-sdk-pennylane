@@ -13,6 +13,8 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomerInvoiceDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomerInvoiceTemplateDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomHeaderFieldDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Discount;
+use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\EInvoiceImportDto;
+use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\EInvoiceImportOptions;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\ImportedInvoiceLinesPatch;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineSectionDto;
@@ -23,11 +25,14 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\NewInvoiceLineSection;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\NewProductInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\NewStandardInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\NewTransactionReference;
+use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\OverrideInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\PaymentDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceEInvoiceImport;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceFromQuote;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\DeleteCustomerInvoices;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\FinalizeCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\GetCustomerInvoice;
@@ -41,10 +46,13 @@ use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\GetCustomerInvoicePayments;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\GetCustomerInvoices;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\GetCustomerInvoiceTemplates;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\ImportCustomerInvoices;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\LinkCreditNote;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\MarkAsPaidCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\PostCustomerInvoiceAppendices;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\PostCustomerInvoices;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\PutCustomerInvoiceCategories;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\SendByEmailCustomerInvoice;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\SendToPaCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\UpdateCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\UpdateImportedCustomerInvoice;
 use Saloon\Http\BaseResource;
@@ -178,6 +186,33 @@ final class CustomerInvoices extends BaseResource
         return CustomerInvoiceDto::fromArray($this->connector->send($request)->json());
     }
 
+    public function createFromQuote(
+        int $quoteId,
+        bool $draft,
+        ?string $externalReference = null,
+        ?int $customerInvoiceTemplateId = null,
+    ): CustomerInvoiceDto {
+        $request = new CreateCustomerInvoiceFromQuote($quoteId, $draft, $externalReference, $customerInvoiceTemplateId);
+
+        return CustomerInvoiceDto::fromArray($this->connector->send($request)->json());
+    }
+
+    /**
+     * @param resource|string            $fileContents
+     * @param ?list<OverrideInvoiceLine> $overrideInvoiceLines
+     */
+    public function importEInvoice(
+        mixed $fileContents,
+        string $filename,
+        ?bool $sendToPa = null,
+        ?EInvoiceImportOptions $invoiceOptions = null,
+        ?array $overrideInvoiceLines = null,
+    ): EInvoiceImportDto {
+        $request = new CreateCustomerInvoiceEInvoiceImport($fileContents, $filename, $sendToPa, $invoiceOptions, $overrideInvoiceLines);
+
+        return EInvoiceImportDto::fromArray($this->connector->send($request)->json());
+    }
+
     public function update(
         int $id,
         ?string $date = null,
@@ -254,6 +289,11 @@ final class CustomerInvoices extends BaseResource
         return CustomerInvoiceDto::fromArray($this->connector->send($request)->json());
     }
 
+    public function linkCreditNote(int $id, int $creditNoteId): CustomerInvoiceDto
+    {
+        return CustomerInvoiceDto::fromArray($this->connector->send(new LinkCreditNote($id, $creditNoteId))->json());
+    }
+
     public function markAsPaid(int $id): void
     {
         $this->connector->send(new MarkAsPaidCustomerInvoice($id));
@@ -267,6 +307,17 @@ final class CustomerInvoices extends BaseResource
     public function delete(int $id): void
     {
         $this->connector->send(new DeleteCustomerInvoices($id));
+    }
+
+    public function sendToPa(int $id): void
+    {
+        $this->connector->send(new SendToPaCustomerInvoice($id));
+    }
+
+    /** @param ?list<string> $recipients */
+    public function sendByEmail(int $id, ?array $recipients = null): void
+    {
+        $this->connector->send(new SendByEmailCustomerInvoice($id, $recipients));
     }
 
     public function invoiceLineSections(int $customerInvoiceId, ?string $cursor = null, ?int $limit = null, ?Sort $sort = null): CursorPage

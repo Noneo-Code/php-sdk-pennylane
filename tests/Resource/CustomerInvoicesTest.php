@@ -10,6 +10,7 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\AppendixDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomerInvoiceDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomerInvoiceTemplateDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomHeaderFieldDto;
+use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\EInvoiceImportDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineSectionDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\MatchedTransactionDto;
@@ -17,12 +18,17 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\NewProductInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\PaymentDto;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceEInvoiceImport;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceFromQuote;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\DeleteCustomerInvoices;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\ImportCustomerInvoices;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\LinkCreditNote;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\MarkAsPaidCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\PostCustomerInvoiceAppendices;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\PostCustomerInvoices;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\PutCustomerInvoiceCategories;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\SendByEmailCustomerInvoice;
+use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\SendToPaCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\UpdateCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\UpdateImportedCustomerInvoice;
 use PHPUnit\Framework\TestCase;
@@ -115,6 +121,33 @@ final class CustomerInvoicesTest extends TestCase
         $mockClient->assertSent(ImportCustomerInvoices::class);
     }
 
+    public function testCreateFromQuoteReturnsACustomerInvoiceDtoAndSendsTheQuoteId(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload(), 201)]);
+        $pennylane->withMockClient($mockClient);
+
+        $invoice = $pennylane->customerInvoices()->createFromQuote(42, true);
+
+        self::assertInstanceOf(CustomerInvoiceDto::class, $invoice);
+        $mockClient->assertSent(function (CreateCustomerInvoiceFromQuote $sent): bool {
+            return ['quote_id' => 42, 'draft' => true] === $sent->body()->all();
+        });
+    }
+
+    public function testImportEInvoiceReturnsAnEInvoiceImportDtoAndSendsTheFile(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/x'], 201)]);
+        $pennylane->withMockClient($mockClient);
+
+        $result = $pennylane->customerInvoices()->importEInvoice('%PDF-1.4 fake content', 'invoice.pdf');
+
+        self::assertInstanceOf(EInvoiceImportDto::class, $result);
+        self::assertSame(42, $result->id);
+        $mockClient->assertSent(CreateCustomerInvoiceEInvoiceImport::class);
+    }
+
     public function testUpdateReturnsACustomerInvoiceDto(): void
     {
         $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
@@ -139,6 +172,20 @@ final class CustomerInvoicesTest extends TestCase
         $mockClient->assertSent(UpdateImportedCustomerInvoice::class);
     }
 
+    public function testLinkCreditNoteReturnsACustomerInvoiceDtoAndSendsTheCreditNoteId(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload())]);
+        $pennylane->withMockClient($mockClient);
+
+        $invoice = $pennylane->customerInvoices()->linkCreditNote(42, 7);
+
+        self::assertInstanceOf(CustomerInvoiceDto::class, $invoice);
+        $mockClient->assertSent(function (LinkCreditNote $sent): bool {
+            return ['credit_note_id' => 7] === $sent->body()->all();
+        });
+    }
+
     public function testMarkAsPaidSendsTheRequest(): void
     {
         $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
@@ -158,6 +205,30 @@ final class CustomerInvoicesTest extends TestCase
         $invoice = $pennylane->customerInvoices()->finalize(42);
 
         self::assertInstanceOf(CustomerInvoiceDto::class, $invoice);
+    }
+
+    public function testSendByEmailSendsTheRecipients(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([MockResponse::make([], 204)]);
+        $pennylane->withMockClient($mockClient);
+
+        $pennylane->customerInvoices()->sendByEmail(42, ['jane@example.com']);
+
+        $mockClient->assertSent(function (SendByEmailCustomerInvoice $sent): bool {
+            return ['recipients' => ['jane@example.com']] === $sent->body()->all();
+        });
+    }
+
+    public function testSendToPaSendsTheRequest(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([MockResponse::make([], 204)]);
+        $pennylane->withMockClient($mockClient);
+
+        $pennylane->customerInvoices()->sendToPa(42);
+
+        $mockClient->assertSent(SendToPaCustomerInvoice::class);
     }
 
     public function testDeleteSendsTheRequest(): void
