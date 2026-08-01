@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Tests;
 
+use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
@@ -13,6 +14,7 @@ use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
 use Saloon\Http\Response;
+use Saloon\RateLimitPlugin\Stores\MemoryStore;
 
 final class PennylaneTest extends TestCase
 {
@@ -61,5 +63,44 @@ final class PennylaneTest extends TestCase
         $mockClient->assertSent(function (Request $request, Response $response): bool {
             return 'Bearer oauth-access-token' === $response->getPendingRequest()->headers()->get('Authorization');
         });
+    }
+
+    public function testThrowsAPennylaneExceptionOnErrorResponses(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Not Found', 'status' => 404], 404),
+        ]));
+
+        $this->expectException(NotFoundException::class);
+
+        $pennylane->send(new class extends Request {
+            protected Method $method = Method::GET;
+
+            public function resolveEndpoint(): string
+            {
+                return '/ledger_entries/999';
+            }
+        });
+    }
+
+    public function testAcceptsAnInjectedRateLimitStore(): void
+    {
+        MemoryStore::clear();
+
+        $store = new MemoryStore();
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'), $store);
+        $pennylane->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
+
+        $pennylane->send(new class extends Request {
+            protected Method $method = Method::GET;
+
+            public function resolveEndpoint(): string
+            {
+                return '/ledger_entries';
+            }
+        });
+
+        self::assertNotEmpty($store->getStore());
     }
 }
