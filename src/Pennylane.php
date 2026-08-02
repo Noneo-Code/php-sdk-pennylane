@@ -10,6 +10,7 @@ use Noneo\Sdk\Pennylane\Resource\Categories;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
 use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
+use Noneo\Sdk\Pennylane\Resource\Exports;
 use Noneo\Sdk\Pennylane\Resource\FiscalYears;
 use Noneo\Sdk\Pennylane\Resource\Journals;
 use Noneo\Sdk\Pennylane\Resource\LedgerAccounts;
@@ -21,6 +22,7 @@ use Noneo\Sdk\Pennylane\Resource\PurchaseRequests;
 use Noneo\Sdk\Pennylane\Resource\Quotes;
 use Noneo\Sdk\Pennylane\Resource\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Resource\Suppliers;
+use Noneo\Sdk\Pennylane\Resource\TrialBalance;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
 use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
@@ -62,6 +64,11 @@ final class Pennylane extends Connector
     public function customerInvoices(): CustomerInvoices
     {
         return new CustomerInvoices($this);
+    }
+
+    public function exports(): Exports
+    {
+        return new Exports($this);
     }
 
     public function journals(): Journals
@@ -117,5 +124,10 @@ final class Pennylane extends Connector
     public function supplierInvoices(): SupplierInvoices
     {
         return new SupplierInvoices($this);
+    }
+
+    public function trialBalance(): TrialBalance
+    {
+        return new TrialBalance($this);
     }
 }
