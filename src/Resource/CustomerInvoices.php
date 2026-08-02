@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\BillingLanguage;
 use Noneo\Sdk\Pennylane\Dto\Customer\CategoryAllocation;
@@ -29,6 +30,7 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\OverrideInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\PaymentDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceEInvoiceImport;
@@ -59,6 +61,8 @@ use Saloon\Http\BaseResource;
 
 final class CustomerInvoices extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -76,13 +80,14 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, CustomerInvoiceDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
         $paginator = new CursorPaginator(
             $this->connector,
             new GetCustomerInvoices(filters: $filters, sort: $sort),
             filters: $filters,
             sort: $sort,
+            perPage: $perPage,
         );
 
         foreach ($paginator->items() as $item) {
@@ -219,17 +224,17 @@ final class CustomerInvoices extends BaseResource
         ?string $deadline = null,
         ?int $customerId = null,
         ?int $customerInvoiceTemplateId = null,
-        ?string $pdfInvoiceFreeText = null,
-        ?string $pdfInvoiceSubject = null,
-        ?string $pdfDescription = null,
+        string|Clear|null $pdfInvoiceFreeText = null,
+        string|Clear|null $pdfInvoiceSubject = null,
+        string|Clear|null $pdfDescription = null,
         ?Currency $currency = null,
-        ?string $specialMention = null,
+        string|Clear|null $specialMention = null,
         ?Discount $discount = null,
         ?BillingLanguage $language = null,
         ?InvoiceLinesPatch $invoiceLines = null,
-        ?string $label = null,
+        string|Clear|null $label = null,
         ?string $externalReference = null,
-        ?NewTransactionReference $transactionReference = null,
+        NewTransactionReference|Clear|null $transactionReference = null,
     ): CustomerInvoiceDto {
         $request = new UpdateCustomerInvoice(
             id: $id,
@@ -265,7 +270,7 @@ final class CustomerInvoices extends BaseResource
         ?string $amount = null,
         ?string $currencyTax = null,
         ?string $tax = null,
-        ?NewTransactionReference $transactionReference = null,
+        NewTransactionReference|Clear|null $transactionReference = null,
         ?ImportedInvoiceLinesPatch $invoiceLines = null,
         ?string $externalReference = null,
     ): CustomerInvoiceDto {
@@ -333,9 +338,9 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, InvoiceLineSectionDto> */
-    public function paginateInvoiceLineSections(int $customerInvoiceId, ?Sort $sort = null): \Generator
+    public function paginateInvoiceLineSections(int $customerInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceInvoiceLineSections($customerInvoiceId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceInvoiceLineSections($customerInvoiceId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield InvoiceLineSectionDto::fromArray(self::asArray($item));
@@ -355,9 +360,9 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, InvoiceLineDto> */
-    public function paginateInvoiceLines(int $customerInvoiceId, ?Sort $sort = null): \Generator
+    public function paginateInvoiceLines(int $customerInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceInvoiceLines($customerInvoiceId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceInvoiceLines($customerInvoiceId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield InvoiceLineDto::fromArray(self::asArray($item));
@@ -377,9 +382,9 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, PaymentDto> */
-    public function paginatePayments(int $customerInvoiceId, ?Sort $sort = null): \Generator
+    public function paginatePayments(int $customerInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoicePayments($customerInvoiceId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoicePayments($customerInvoiceId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield PaymentDto::fromArray(self::asArray($item));
@@ -399,9 +404,9 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, MatchedTransactionDto> */
-    public function paginateMatchedTransactions(int $customerInvoiceId, ?Sort $sort = null): \Generator
+    public function paginateMatchedTransactions(int $customerInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceMatchedTransactions($customerInvoiceId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceMatchedTransactions($customerInvoiceId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield MatchedTransactionDto::fromArray(self::asArray($item));
@@ -421,9 +426,9 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, AppendixDto> */
-    public function paginateAppendices(int $customerInvoiceId): \Generator
+    public function paginateAppendices(int $customerInvoiceId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceAppendices($customerInvoiceId));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceAppendices($customerInvoiceId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield AppendixDto::fromArray(self::asArray($item));
@@ -451,9 +456,9 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, CategoryDto> */
-    public function paginateCategories(int $customerInvoiceId): \Generator
+    public function paginateCategories(int $customerInvoiceId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceCategories($customerInvoiceId));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceCategories($customerInvoiceId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CategoryDto::fromArray(self::asArray($item));
@@ -488,9 +493,9 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, CustomHeaderFieldDto> */
-    public function paginateCustomHeaderFields(int $customerInvoiceId, ?Sort $sort = null): \Generator
+    public function paginateCustomHeaderFields(int $customerInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceCustomHeaderFields($customerInvoiceId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceCustomHeaderFields($customerInvoiceId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CustomHeaderFieldDto::fromArray(self::asArray($item));
@@ -510,22 +515,12 @@ final class CustomerInvoices extends BaseResource
     }
 
     /** @return \Generator<int, CustomerInvoiceTemplateDto> */
-    public function paginateTemplates(?Sort $sort = null): \Generator
+    public function paginateTemplates(?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceTemplates(sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerInvoiceTemplates(sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CustomerInvoiceTemplateDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Export\AnalyticalGeneralLedgerExportMode;
 use Noneo\Sdk\Pennylane\Dto\Export\ExportDto;
 use Noneo\Sdk\Pennylane\Dto\Export\ExportFileDto;
@@ -17,6 +18,8 @@ use Saloon\Http\BaseResource;
 
 final class Exports extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function exportFec(string $periodStart, string $periodEnd): ExportDto
     {
         $request = new ExportFec($periodStart, $periodEnd);
@@ -56,15 +59,5 @@ final class Exports extends BaseResource
         $request = new GetAnalyticalGeneralLedgerExport($id);
 
         return ExportFileDto::fromArray(self::asArray($this->connector->send($request)->json()));
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

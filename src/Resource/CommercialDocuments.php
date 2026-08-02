@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\CommercialDocument\CommercialDocumentDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\AppendixDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineDto;
@@ -22,6 +23,8 @@ use Saloon\Http\BaseResource;
 
 final class CommercialDocuments extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -39,9 +42,9 @@ final class CommercialDocuments extends BaseResource
     }
 
     /** @return \Generator<int, CommercialDocumentDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new ListCommercialDocuments(filters: $filters, sort: $sort), filters: $filters, sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new ListCommercialDocuments(filters: $filters, sort: $sort), filters: $filters, sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CommercialDocumentDto::fromArray(self::asArray($item));
@@ -66,9 +69,9 @@ final class CommercialDocuments extends BaseResource
     }
 
     /** @return \Generator<int, InvoiceLineSectionDto> */
-    public function paginateInvoiceLineSections(int $commercialDocumentId, ?Sort $sort = null): \Generator
+    public function paginateInvoiceLineSections(int $commercialDocumentId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCommercialDocumentInvoiceLineSections($commercialDocumentId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCommercialDocumentInvoiceLineSections($commercialDocumentId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield InvoiceLineSectionDto::fromArray(self::asArray($item));
@@ -88,9 +91,9 @@ final class CommercialDocuments extends BaseResource
     }
 
     /** @return \Generator<int, InvoiceLineDto> */
-    public function paginateInvoiceLines(int $commercialDocumentId, ?Sort $sort = null): \Generator
+    public function paginateInvoiceLines(int $commercialDocumentId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCommercialDocumentInvoiceLines($commercialDocumentId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetCommercialDocumentInvoiceLines($commercialDocumentId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield InvoiceLineDto::fromArray(self::asArray($item));
@@ -110,9 +113,9 @@ final class CommercialDocuments extends BaseResource
     }
 
     /** @return \Generator<int, AppendixDto> */
-    public function paginateAppendices(int $commercialDocumentId): \Generator
+    public function paginateAppendices(int $commercialDocumentId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCommercialDocumentAppendices($commercialDocumentId));
+        $paginator = new CursorPaginator($this->connector, new GetCommercialDocumentAppendices($commercialDocumentId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield AppendixDto::fromArray(self::asArray($item));
@@ -125,15 +128,5 @@ final class CommercialDocuments extends BaseResource
         $request = new PostCommercialDocumentAppendices($commercialDocumentId, $fileContents, $filename);
 
         return AppendixDto::fromArray($this->connector->send($request)->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

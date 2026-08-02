@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Changelog\ChangelogEntryDto;
 use Noneo\Sdk\Pennylane\Dto\Changelog\LedgerEntryCategoryChangelogEntryDto;
 use Noneo\Sdk\Pennylane\Dto\Changelog\LedgerEntryLineCategoryChangelogEntryDto;
@@ -24,15 +25,17 @@ use Saloon\Http\BaseResource;
 
 final class Changelogs extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function customerInvoices(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
     {
         return $this->uniformPage(new GetCustomerInvoicesChanges($cursor, $limit, $startDate));
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateCustomerInvoices(?string $startDate = null): \Generator
+    public function paginateCustomerInvoices(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetCustomerInvoicesChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetCustomerInvoicesChanges(startDate: $startDate), $perPage);
     }
 
     public function customers(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -41,9 +44,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateCustomers(?string $startDate = null): \Generator
+    public function paginateCustomers(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetCustomerChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetCustomerChanges(startDate: $startDate), $perPage);
     }
 
     public function supplierInvoices(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -52,9 +55,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateSupplierInvoices(?string $startDate = null): \Generator
+    public function paginateSupplierInvoices(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetSupplierInvoicesChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetSupplierInvoicesChanges(startDate: $startDate), $perPage);
     }
 
     public function suppliers(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -63,9 +66,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateSuppliers(?string $startDate = null): \Generator
+    public function paginateSuppliers(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetSupplierChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetSupplierChanges(startDate: $startDate), $perPage);
     }
 
     public function products(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -74,9 +77,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateProducts(?string $startDate = null): \Generator
+    public function paginateProducts(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetProductChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetProductChanges(startDate: $startDate), $perPage);
     }
 
     public function quotes(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -85,9 +88,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateQuotes(?string $startDate = null): \Generator
+    public function paginateQuotes(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetQuoteChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetQuoteChanges(startDate: $startDate), $perPage);
     }
 
     public function ledgerEntryLines(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -96,9 +99,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateLedgerEntryLines(?string $startDate = null): \Generator
+    public function paginateLedgerEntryLines(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetLedgerEntryLineChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetLedgerEntryLineChanges(startDate: $startDate), $perPage);
     }
 
     public function transactions(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -107,9 +110,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    public function paginateTransactions(?string $startDate = null): \Generator
+    public function paginateTransactions(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        yield from $this->paginateUniform(new GetTransactionChanges(startDate: $startDate));
+        yield from $this->paginateUniform(new GetTransactionChanges(startDate: $startDate), $perPage);
     }
 
     public function ledgerEntriesCategories(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
@@ -125,9 +128,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, LedgerEntryCategoryChangelogEntryDto> */
-    public function paginateLedgerEntriesCategories(?string $startDate = null): \Generator
+    public function paginateLedgerEntriesCategories(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        $paginator = new ChangelogPaginator($this->connector, new GetLedgerEntriesCategoryChanges(startDate: $startDate));
+        $paginator = new ChangelogPaginator($this->connector, new GetLedgerEntriesCategoryChanges(startDate: $startDate), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield LedgerEntryCategoryChangelogEntryDto::fromArray(self::asArray($item));
@@ -147,9 +150,9 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, LedgerEntryLineCategoryChangelogEntryDto> */
-    public function paginateLedgerEntryLinesCategories(?string $startDate = null): \Generator
+    public function paginateLedgerEntryLinesCategories(?string $startDate = null, ?int $perPage = null): \Generator
     {
-        $paginator = new ChangelogPaginator($this->connector, new GetLedgerEntryLinesCategoryChanges(startDate: $startDate));
+        $paginator = new ChangelogPaginator($this->connector, new GetLedgerEntryLinesCategoryChanges(startDate: $startDate), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield LedgerEntryLineCategoryChangelogEntryDto::fromArray(self::asArray($item));
@@ -168,22 +171,12 @@ final class Changelogs extends BaseResource
     }
 
     /** @return \Generator<int, ChangelogEntryDto> */
-    private function paginateUniform(ChangelogRequest $request): \Generator
+    private function paginateUniform(ChangelogRequest $request, ?int $perPage = null): \Generator
     {
-        $paginator = new ChangelogPaginator($this->connector, $request);
+        $paginator = new ChangelogPaginator($this->connector, $request, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield ChangelogEntryDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

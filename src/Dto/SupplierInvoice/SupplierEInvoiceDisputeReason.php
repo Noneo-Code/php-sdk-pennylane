@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\SupplierInvoice;
 
-enum SupplierEInvoiceReason: string
+/**
+ * Motifs recevables pour contester une facture fournisseur électronique.
+ * Distincts de ceux d'un refus : voir SupplierEInvoiceRefusalReason.
+ */
+enum SupplierEInvoiceDisputeReason: string
 {
     case IncorrectVatRate = 'incorrect_vat_rate';
     case IncorrectUnitPrices = 'incorrect_unit_prices';
@@ -17,8 +21,4 @@ enum SupplierEInvoiceReason: string
     case MissingLegalNotice = 'missing_legal_notice';
     case MissingContractualReference = 'missing_contractual_reference';
     case RecipientError = 'recipient_error';
-    case ContractCompleted = 'contract_completed';
-    case DuplicateInvoice = 'duplicate_invoice';
-    case IncorrectPrices = 'incorrect_prices';
-    case NonCompliantInvoice = 'non_compliant_invoice';
 }

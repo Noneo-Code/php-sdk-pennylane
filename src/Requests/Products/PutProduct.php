@@ -7,6 +7,7 @@ namespace Noneo\Sdk\Pennylane\Requests\Products;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Substance;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -41,17 +42,17 @@ final class PutProduct extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'label' => $this->label,
             'description' => $this->description,
             'external_reference' => $this->externalReference,
             'price_before_tax' => $this->priceBeforeTax,
-            'vat_rate' => $this->vatRate?->value,
+            'vat_rate' => $this->vatRate,
             'unit' => $this->unit,
-            'currency' => $this->currency?->value,
+            'currency' => $this->currency,
             'reference' => $this->reference,
             'ledger_account_id' => $this->ledgerAccountId,
-            'substance' => $this->substance?->value,
-        ], static fn (mixed $value): bool => null !== $value);
+            'substance' => $this->substance,
+        ]);
     }
 }

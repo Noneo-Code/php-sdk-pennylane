@@ -206,6 +206,22 @@ final class CustomersTest extends TestCase
         self::assertInstanceOf(CompanyCustomerDto::class, $customers[0]);
     }
 
+    public function testPaginateAsksForTheRequestedPageSize(): void
+    {
+        $companyPayload = $this->documentedCompanyCustomerPayload();
+        $companyPayload['customer_type'] = 'company';
+
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([
+            MockResponse::make(['items' => [$companyPayload], 'has_more' => false, 'next_cursor' => null]),
+        ]);
+        $pennylane->withMockClient($mockClient);
+
+        iterator_to_array($pennylane->customers()->paginate(perPage: 100));
+
+        self::assertSame(100, $mockClient->getLastResponse()?->getPendingRequest()->query()->all()['limit'] ?? null);
+    }
+
     public function testGetReturnsTheCorrectlyTypedCustomerDto(): void
     {
         $individualPayload = $this->documentedIndividualCustomerPayload();

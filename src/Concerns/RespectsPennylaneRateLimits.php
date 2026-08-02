@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Concerns;
 
+use Saloon\Contracts\OAuthAuthenticator;
+use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\PendingRequest;
+use Saloon\Http\Request;
 use Saloon\Http\Response;
 use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
 use Saloon\RateLimitPlugin\Helpers\RetryAfterHelper;
@@ -27,9 +30,15 @@ trait RespectsPennylaneRateLimits
     private ?RateLimitStore $configuredRateLimitStore = null;
 
     /**
-     * @var array<int, int>
+     * Nombre de tentatives déjà consommées, par requête. Une `WeakMap` plutôt
+     * qu'un tableau indexé sur `spl_object_id` : PHP recycle ces identifiants
+     * dès qu'un objet est libéré, si bien qu'une nouvelle requête pouvait
+     * hériter du compteur d'une requête morte et perdre son unique nouvelle
+     * tentative. La `WeakMap` se vide d'elle-même quand la requête disparaît.
+     *
+     * @var \WeakMap<Request, int>|null
      */
-    private array $retryAttemptsByRequest = [];
+    private ?\WeakMap $retryAttempts = null;
 
     public function useRateLimitStore(RateLimitStore $store): static
     {
@@ -58,6 +67,22 @@ trait RespectsPennylaneRateLimits
         ];
     }
 
+    /**
+     * Le quota Pennylane est décompté par jeton, et par jeton seulement : la
+     * clé ne porte donc pas le nom du connecteur. Un `PennylaneFirm` et ses
+     * `CompanyScope` tirent sur le même quota — les compter séparément
+     * autoriserait un cabinet suivant trois entreprises à quatre fois le débit
+     * réellement accordé. Symétriquement, sans le jeton dans la clé, deux
+     * entreprises partageant un store — le `PsrStore` recommandé dès qu'un
+     * process est répliqué — se disputeraient un unique compteur.
+     *
+     * Le jeton est haché : il n'a rien à faire en clair dans une clé de cache.
+     */
+    protected function getLimiterPrefix(): ?string
+    {
+        return 'pennylane:'.$this->rateLimitIdentity();
+    }
+
     public function bootRespectsPennylaneRateLimits(PendingRequest $pendingRequest): void
     {
         $this->detectTooManyAttempts = false;
@@ -75,20 +100,23 @@ trait RespectsPennylaneRateLimits
             }
 
             $request = $response->getRequest();
-            $requestId = spl_object_id($request);
-            $attempts = $this->retryAttemptsByRequest[$requestId] ?? 0;
+            $attempts = $this->retryAttempts()[$request] ?? 0;
 
             if ($attempts >= $this->maxRetryAttempts()) {
-                unset($this->retryAttemptsByRequest[$requestId]);
+                unset($this->retryAttempts()[$request]);
 
                 return $response;
             }
 
-            $this->retryAttemptsByRequest[$requestId] = $attempts + 1;
+            $this->retryAttempts()[$request] = $attempts + 1;
 
             $this->wait($retryAfter);
 
-            return $response->getConnector()->send($request);
+            $retried = $response->getConnector()->send($request);
+
+            unset($this->retryAttempts()[$request]);
+
+            return $retried;
         });
     }
 
@@ -102,6 +130,34 @@ trait RespectsPennylaneRateLimits
         if ($seconds > 0) {
             sleep($seconds);
         }
+    }
+
+    protected function countTrackedRetries(): int
+    {
+        return count($this->retryAttempts());
+    }
+
+    /**
+     * @return \WeakMap<Request, int>
+     */
+    private function retryAttempts(): \WeakMap
+    {
+        return $this->retryAttempts ??= new \WeakMap();
+    }
+
+    private function rateLimitIdentity(): string
+    {
+        $authenticator = $this->getAuthenticator();
+
+        $token = match (true) {
+            $authenticator instanceof OAuthAuthenticator => $authenticator->getAccessToken(),
+            $authenticator instanceof TokenAuthenticator => $authenticator->token,
+            default => null,
+        };
+
+        // Un authenticator maison ne laisse aucun jeton à isoler : on retombe
+        // sur un compteur partagé, le comportement d'avant.
+        return null === $token ? 'shared' : substr(hash('xxh128', $token), 0, 12);
     }
 
     private function isRetryableFailure(Response $response): bool

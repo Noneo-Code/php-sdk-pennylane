@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\CategoryAllocation;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
@@ -16,11 +17,13 @@ use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\MatchedTransactionDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\NewSupplierInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\PaymentDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\PaymentStatusUpdate;
-use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceDisputeReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceRefusalReason;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceLinesPatch;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\CreateSupplierInvoiceEInvoiceImport;
@@ -41,6 +44,8 @@ use Saloon\Http\BaseResource;
 
 final class SupplierInvoices extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -58,9 +63,9 @@ final class SupplierInvoices extends BaseResource
     }
 
     /** @return \Generator<int, SupplierInvoiceDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoices(filters: $filters, sort: $sort), filters: $filters, sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoices(filters: $filters, sort: $sort), filters: $filters, sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield SupplierInvoiceDto::fromArray(self::asArray($item));
@@ -85,9 +90,9 @@ final class SupplierInvoices extends BaseResource
     }
 
     /** @return \Generator<int, InvoiceLineDto> */
-    public function paginateInvoiceLines(int $supplierInvoiceId, ?Sort $sort = null): \Generator
+    public function paginateInvoiceLines(int $supplierInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoiceLines($supplierInvoiceId, sort: $sort), sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoiceLines($supplierInvoiceId, sort: $sort), sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield InvoiceLineDto::fromArray(self::asArray($item));
@@ -107,9 +112,9 @@ final class SupplierInvoices extends BaseResource
     }
 
     /** @return \Generator<int, CategoryDto> */
-    public function paginateCategories(int $supplierInvoiceId): \Generator
+    public function paginateCategories(int $supplierInvoiceId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoiceCategories($supplierInvoiceId));
+        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoiceCategories($supplierInvoiceId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CategoryDto::fromArray(self::asArray($item));
@@ -146,9 +151,9 @@ final class SupplierInvoices extends BaseResource
     }
 
     /** @return \Generator<int, PaymentDto> */
-    public function paginatePayments(int $supplierInvoiceId, ?Sort $sort = null): \Generator
+    public function paginatePayments(int $supplierInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoicePayments($supplierInvoiceId, sort: $sort), sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoicePayments($supplierInvoiceId, sort: $sort), sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield PaymentDto::fromArray(self::asArray($item));
@@ -168,9 +173,9 @@ final class SupplierInvoices extends BaseResource
     }
 
     /** @return \Generator<int, MatchedTransactionDto> */
-    public function paginateMatchedTransactions(int $supplierInvoiceId, ?Sort $sort = null): \Generator
+    public function paginateMatchedTransactions(int $supplierInvoiceId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoiceMatchedTransactions($supplierInvoiceId, sort: $sort), sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetSupplierInvoiceMatchedTransactions($supplierInvoiceId, sort: $sort), sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield MatchedTransactionDto::fromArray(self::asArray($item));
@@ -239,7 +244,7 @@ final class SupplierInvoices extends BaseResource
         ?string $amount = null,
         ?string $currencyTax = null,
         ?string $tax = null,
-        ?NewTransactionReference $transactionReference = null,
+        NewTransactionReference|Clear|null $transactionReference = null,
         ?SupplierInvoiceLinesPatch $invoiceLines = null,
         ?string $externalReference = null,
     ): SupplierInvoiceDto {
@@ -279,14 +284,14 @@ final class SupplierInvoices extends BaseResource
         return SupplierInvoiceDto::fromArray($this->connector->send(new ValidateAccountingSupplierInvoice($id))->json());
     }
 
-    public function disputeEInvoice(int $id, SupplierEInvoiceReason $reason): SupplierInvoiceDto
+    public function disputeEInvoice(int $id, SupplierEInvoiceDisputeReason $reason): SupplierInvoiceDto
     {
         $request = new PutSupplierInvoiceEInvoiceStatus($id, EInvoiceStatusTransition::Disputed, $reason);
 
         return SupplierInvoiceDto::fromArray($this->connector->send($request)->json());
     }
 
-    public function refuseEInvoice(int $id, SupplierEInvoiceReason $reason): SupplierInvoiceDto
+    public function refuseEInvoice(int $id, SupplierEInvoiceRefusalReason $reason): SupplierInvoiceDto
     {
         $request = new PutSupplierInvoiceEInvoiceStatus($id, EInvoiceStatusTransition::Refused, $reason);
 
@@ -298,15 +303,5 @@ final class SupplierInvoices extends BaseResource
         $request = new PutSupplierInvoiceEInvoiceStatus($id, EInvoiceStatusTransition::Approved);
 
         return SupplierInvoiceDto::fromArray($this->connector->send($request)->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

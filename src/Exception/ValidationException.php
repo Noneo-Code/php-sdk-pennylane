@@ -4,17 +4,11 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Exception;
 
+/**
+ * Entité refusée par les règles métier (422). Le corps documenté ne porte que
+ * `{error, status}` : errorCode() et details(), hérités, restent donc vides
+ * tant que Pennylane n'enrichit pas la réponse.
+ */
 final class ValidationException extends PennylaneException
 {
-    /**
-     * No structured error code is documented for 422 responses (only free
-     * text), so this reads it from details() — always null today — rather
-     * than guessing a field name that isn't in the spec.
-     */
-    public function errorCode(): ?string
-    {
-        $code = $this->details()['error_code'] ?? null;
-
-        return is_string($code) ? $code : null;
-    }
 }

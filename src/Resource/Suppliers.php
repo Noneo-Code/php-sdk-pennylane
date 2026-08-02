@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\Address;
 use Noneo\Sdk\Pennylane\Dto\Customer\CategoryAllocation;
@@ -12,6 +13,7 @@ use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierDueDateRule;
 use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierPaymentMethod;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\Suppliers\GetSupplier;
@@ -24,6 +26,8 @@ use Saloon\Http\BaseResource;
 
 final class Suppliers extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -41,9 +45,9 @@ final class Suppliers extends BaseResource
     }
 
     /** @return \Generator<int, SupplierDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSuppliers(filters: $filters, sort: $sort), filters: $filters, sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetSuppliers(filters: $filters, sort: $sort), filters: $filters, sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield SupplierDto::fromArray(self::asArray($item));
@@ -92,15 +96,15 @@ final class Suppliers extends BaseResource
     public function update(
         int $id,
         ?string $name = null,
-        ?string $establishmentNo = null,
+        string|Clear|null $establishmentNo = null,
         ?string $regNo = null,
         ?Address $postalAddress = null,
         ?string $vatNumber = null,
         ?array $emails = null,
         ?string $iban = null,
-        ?SupplierPaymentMethod $supplierPaymentMethod = null,
-        ?int $supplierDueDateDelay = null,
-        ?SupplierDueDateRule $supplierDueDateRule = null,
+        SupplierPaymentMethod|Clear|null $supplierPaymentMethod = null,
+        int|Clear|null $supplierDueDateDelay = null,
+        SupplierDueDateRule|Clear|null $supplierDueDateRule = null,
         ?string $externalReference = null,
     ): SupplierDto {
         $request = new PutSupplier(
@@ -135,9 +139,9 @@ final class Suppliers extends BaseResource
     }
 
     /** @return \Generator<int, CategoryDto> */
-    public function paginateCategories(int $supplierId): \Generator
+    public function paginateCategories(int $supplierId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSupplierCategories($supplierId));
+        $paginator = new CursorPaginator($this->connector, new GetSupplierCategories($supplierId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CategoryDto::fromArray(self::asArray($item));
@@ -159,15 +163,5 @@ final class Suppliers extends BaseResource
         }
 
         return $categories;
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

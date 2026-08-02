@@ -7,6 +7,7 @@ namespace Noneo\Sdk\Pennylane\Requests\LedgerEntries;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntry\NewLedgerEntryLine;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntry\UpdateLedgerEntryLine;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -57,14 +58,14 @@ final class PutLedgerEntries extends Request implements HasBody
                 : null,
         ], static fn (mixed $value): bool => null !== $value);
 
-        return array_filter([
+        return Payload::build([
             'date' => $this->date,
             'label' => $this->label,
             'journal_id' => $this->journalId,
             'file_attachment_id' => $this->fileAttachmentId,
-            'currency' => $this->currency?->value,
+            'currency' => $this->currency,
             'piece_number' => $this->pieceNumber,
             'ledger_entry_lines' => [] !== $ledgerEntryLines ? $ledgerEntryLines : null,
-        ], static fn (mixed $value): bool => null !== $value);
+        ]);
     }
 }

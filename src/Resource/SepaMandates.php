@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateDto;
 use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateSequenceType;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\SepaMandates\DeleteSepaMandate;
@@ -19,6 +21,8 @@ use Saloon\Http\BaseResource;
 
 final class SepaMandates extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -36,9 +40,9 @@ final class SepaMandates extends BaseResource
     }
 
     /** @return \Generator<int, SepaMandateDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetSepaMandates(filters: $filters, sort: $sort), filters: $filters, sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetSepaMandates(filters: $filters, sort: $sort), filters: $filters, sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield SepaMandateDto::fromArray(self::asArray($item));
@@ -66,7 +70,7 @@ final class SepaMandates extends BaseResource
 
     public function update(
         int $id,
-        ?string $bank = null,
+        string|Clear|null $bank = null,
         ?string $bic = null,
         ?string $iban = null,
         ?SepaMandateSequenceType $sequenceType = null,
@@ -82,15 +86,5 @@ final class SepaMandates extends BaseResource
     public function delete(int $id): void
     {
         $this->connector->send(new DeleteSepaMandate($id));
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

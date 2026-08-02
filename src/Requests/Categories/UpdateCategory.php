@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Requests\Categories;
 
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDirection;
+use Noneo\Sdk\Pennylane\Http\Clear;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -20,7 +22,7 @@ final class UpdateCategory extends Request implements HasBody
         private readonly int $id,
         private readonly ?string $label = null,
         private readonly ?CategoryDirection $direction = null,
-        private readonly ?string $analyticalCode = null,
+        private readonly string|Clear|null $analyticalCode = null,
     ) {
     }
 
@@ -32,10 +34,10 @@ final class UpdateCategory extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'label' => $this->label,
-            'direction' => $this->direction?->value,
+            'direction' => $this->direction,
             'analytical_code' => $this->analyticalCode,
-        ], static fn (mixed $value): bool => null !== $value);
+        ]);
     }
 }

@@ -18,8 +18,11 @@ final class CursorPaginator extends BaseCursorPaginator
         Request $request,
         private readonly ?FilterSet $filters = null,
         private readonly ?Sort $sort = null,
+        ?int $perPage = null,
     ) {
         parent::__construct($connector, $request);
+
+        $this->setPerPageLimit($perPage);
     }
 
     /**

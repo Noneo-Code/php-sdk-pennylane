@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Requests\LedgerAccounts;
 
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -30,9 +31,9 @@ final class UpdateLedgerAccount extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'label' => $this->label,
             'letterable' => $this->letterable,
-        ], static fn (mixed $value): bool => null !== $value);
+        ]);
     }
 }

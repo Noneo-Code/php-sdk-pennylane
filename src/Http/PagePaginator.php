@@ -21,8 +21,11 @@ final class PagePaginator extends BasePagedPaginator
         Connector $connector,
         Request $request,
         private readonly ?FilterSet $filters = null,
+        ?int $perPage = null,
     ) {
         parent::__construct($connector, $request);
+
+        $this->setPerPageLimit($perPage);
     }
 
     protected function applyPagination(Request $request): Request

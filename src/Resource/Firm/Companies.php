@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource\Firm;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Company\CompanyDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Http\Page;
@@ -14,6 +15,8 @@ use Saloon\Http\BaseResource;
 
 final class Companies extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(?int $page = null, ?int $perPage = null, ?FilterSet $filters = null): Page
     {
         $response = $this->connector->send(new GetCompanies($page, $perPage, $filters));
@@ -29,9 +32,9 @@ final class Companies extends BaseResource
     }
 
     /** @return \Generator<int, CompanyDto> */
-    public function paginate(?FilterSet $filters = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?int $perPage = null): \Generator
     {
-        $paginator = new PagePaginator($this->connector, new GetCompanies(filters: $filters), filters: $filters);
+        $paginator = new PagePaginator($this->connector, new GetCompanies(filters: $filters), filters: $filters, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CompanyDto::fromArray(self::asArray($item));
@@ -41,15 +44,5 @@ final class Companies extends BaseResource
     public function get(int $id): CompanyDto
     {
         return CompanyDto::fromArray($this->connector->send(new GetCompany($id))->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntryLine\CategorizedLedgerEntryLineDto;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntryLine\CategoryAllocation;
@@ -24,6 +25,8 @@ use Saloon\Http\BaseResource;
 
 final class LedgerEntryLines extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -42,13 +45,14 @@ final class LedgerEntryLines extends BaseResource
     }
 
     /** @return \Generator<int, LedgerEntryLineDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
         $paginator = new CursorPaginator(
             $this->connector,
             new GetLedgerEntryLines(filters: $filters, sort: $sort),
             filters: $filters,
             sort: $sort,
+            perPage: $perPage,
         );
 
         foreach ($paginator->items() as $item) {
@@ -75,9 +79,9 @@ final class LedgerEntryLines extends BaseResource
     }
 
     /** @return \Generator<int, CategoryDto> */
-    public function paginateCategories(int $ledgerEntryLineId, ?Sort $sort = null): \Generator
+    public function paginateCategories(int $ledgerEntryLineId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetLedgerEntryLinesCategories($ledgerEntryLineId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetLedgerEntryLinesCategories($ledgerEntryLineId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CategoryDto::fromArray(self::asArray($item));
@@ -146,22 +150,12 @@ final class LedgerEntryLines extends BaseResource
     }
 
     /** @return \Generator<int, LedgerEntryLineDto> */
-    public function paginateLettered(int $ledgerEntryLineId, ?Sort $sort = null): \Generator
+    public function paginateLettered(int $ledgerEntryLineId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetLedgerEntryLinesLetteredLedgerEntryLines($ledgerEntryLineId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetLedgerEntryLinesLetteredLedgerEntryLines($ledgerEntryLineId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield LedgerEntryLineDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

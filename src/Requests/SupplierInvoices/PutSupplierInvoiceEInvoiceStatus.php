@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Requests\SupplierInvoices;
 
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\EInvoiceStatusTransition;
-use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceDisputeReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceRefusalReason;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -20,7 +22,7 @@ final class PutSupplierInvoiceEInvoiceStatus extends Request implements HasBody
     public function __construct(
         private readonly int $supplierInvoiceId,
         private readonly EInvoiceStatusTransition $status,
-        private readonly ?SupplierEInvoiceReason $reason = null,
+        private readonly SupplierEInvoiceDisputeReason|SupplierEInvoiceRefusalReason|null $reason = null,
     ) {
     }
 
@@ -32,9 +34,9 @@ final class PutSupplierInvoiceEInvoiceStatus extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'status' => $this->status->value,
-            'reason' => $this->reason?->value,
-        ], static fn (mixed $value): bool => null !== $value);
+            'reason' => $this->reason,
+        ]);
     }
 }

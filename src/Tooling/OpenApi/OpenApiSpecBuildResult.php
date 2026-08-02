@@ -15,4 +15,26 @@ final class OpenApiSpecBuildResult
         public readonly array $skippedUrls,
     ) {
     }
+
+    /**
+     * Nombre d'opérations HTTP écrites, tous chemins confondus.
+     */
+    public function operationCount(): int
+    {
+        $paths = $this->spec['paths'] ?? [];
+
+        if (!is_array($paths)) {
+            return 0;
+        }
+
+        $count = 0;
+
+        foreach ($paths as $operations) {
+            if (is_array($operations)) {
+                $count += count($operations);
+            }
+        }
+
+        return $count;
+    }
 }
