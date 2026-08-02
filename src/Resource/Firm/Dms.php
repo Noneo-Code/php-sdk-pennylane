@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource\Firm;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Dms\DmsFileDto;
 use Noneo\Sdk\Pennylane\Dto\Dms\DmsFolderDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
@@ -17,6 +18,8 @@ use Saloon\Http\BaseResource;
 
 final class Dms extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function files(?string $cursor = null, ?int $limit = null, ?FilterSet $filters = null): CursorPage
     {
         $response = $this->connector->send(new GetDmsFiles($cursor, $limit, $filters));
@@ -30,9 +33,9 @@ final class Dms extends BaseResource
     }
 
     /** @return \Generator<int, DmsFileDto> */
-    public function paginateFiles(?FilterSet $filters = null): \Generator
+    public function paginateFiles(?FilterSet $filters = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetDmsFiles(filters: $filters), filters: $filters);
+        $paginator = new CursorPaginator($this->connector, new GetDmsFiles(filters: $filters), filters: $filters, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield DmsFileDto::fromArray(self::asArray($item));
@@ -60,9 +63,9 @@ final class Dms extends BaseResource
     }
 
     /** @return \Generator<int, DmsFolderDto> */
-    public function paginateFolders(?FilterSet $filters = null): \Generator
+    public function paginateFolders(?FilterSet $filters = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new ListDmsFolders(filters: $filters), filters: $filters);
+        $paginator = new CursorPaginator($this->connector, new ListDmsFolders(filters: $filters), filters: $filters, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield DmsFolderDto::fromArray(self::asArray($item));
@@ -72,15 +75,5 @@ final class Dms extends BaseResource
     public function createFolder(string $name, ?int $parentFolderId = null): DmsFolderDto
     {
         return DmsFolderDto::fromArray($this->connector->send(new PostDmsFolders($name, $parentFolderId))->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

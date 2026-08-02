@@ -109,7 +109,9 @@ final class CoverageReport
     private static function normalisePath(string $path): string
     {
         $path = preg_replace('#^/api/external/v2#', '', $path) ?? $path;
-        $path = preg_replace('#^/api/external/firm/v1/companies/\{[^}]+\}#', '', $path) ?? $path;
+        // Le préfixe de scope n'en est un que s'il précède une ressource :
+        // `/companies/{id}` seul est l'endpoint « une entreprise du cabinet ».
+        $path = preg_replace('#^/api/external/firm/v1/companies/\{[^}]+\}(?=/)#', '', $path) ?? $path;
         $path = preg_replace('#^/api/external/firm/v1#', '', $path) ?? $path;
         $path = preg_replace('/\{[^}]*\}/', '{}', $path) ?? $path;
 

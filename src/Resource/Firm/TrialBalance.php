@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource\Firm;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\TrialBalance\TrialBalanceLineDto;
 use Noneo\Sdk\Pennylane\Http\Page;
 use Noneo\Sdk\Pennylane\Http\PagePaginator;
@@ -12,6 +13,8 @@ use Saloon\Http\BaseResource;
 
 final class TrialBalance extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         string $periodStart,
         string $periodEnd,
@@ -32,22 +35,12 @@ final class TrialBalance extends BaseResource
     }
 
     /** @return \Generator<int, TrialBalanceLineDto> */
-    public function paginate(string $periodStart, string $periodEnd, ?bool $isAuxiliary = null): \Generator
+    public function paginate(string $periodStart, string $periodEnd, ?bool $isAuxiliary = null, ?int $perPage = null): \Generator
     {
-        $paginator = new PagePaginator($this->connector, new GetTrialBalance($periodStart, $periodEnd, $isAuxiliary));
+        $paginator = new PagePaginator($this->connector, new GetTrialBalance($periodStart, $periodEnd, $isAuxiliary), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield TrialBalanceLineDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

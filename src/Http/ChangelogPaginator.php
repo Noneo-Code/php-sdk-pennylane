@@ -4,12 +4,23 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Http;
 
+use Saloon\Http\Connector;
 use Saloon\Http\Request;
 use Saloon\Http\Response;
 use Saloon\PaginationPlugin\CursorPaginator as BaseCursorPaginator;
 
 final class ChangelogPaginator extends BaseCursorPaginator
 {
+    public function __construct(
+        Connector $connector,
+        Request $request,
+        ?int $perPage = null,
+    ) {
+        parent::__construct($connector, $request);
+
+        $this->setPerPageLimit($perPage);
+    }
+
     /**
      * Pennylane rejette une requête portant à la fois `start_date` et
      * `cursor` (400). `start_date` ne doit donc apparaître que sur la

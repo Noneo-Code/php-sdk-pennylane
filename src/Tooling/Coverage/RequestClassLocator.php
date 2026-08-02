@@ -25,7 +25,7 @@ final class RequestClassLocator
             new \RecursiveDirectoryIterator($requestsDir, \FilesystemIterator::SKIP_DOTS),
         );
 
-        $signatures = [];
+        $sources = [];
 
         foreach ($iterator as $file) {
             assert($file instanceof \SplFileInfo);
@@ -36,13 +36,23 @@ final class RequestClassLocator
 
             $source = file_get_contents($file->getPathname());
 
-            if (false === $source) {
+            if (false !== $source) {
+                $sources[$file->getBasename('.php')] = $source;
+            }
+        }
+
+        $signatures = [];
+
+        foreach ($sources as $basename => $source) {
+            // Une requête abstraite factorise le comportement commun d'un
+            // groupe ; elle n'appelle aucun endpoint par elle-même.
+            if (1 === preg_match('/^abstract class /m', $source)) {
                 continue;
             }
 
             $signatures[] = new RequestSignature(
-                $file->getBasename('.php'),
-                self::readMethod($source),
+                $basename,
+                self::readMethod($source, $sources),
                 self::readEndpoint($source),
             );
         }
@@ -52,10 +62,23 @@ final class RequestClassLocator
         return $signatures;
     }
 
-    private static function readMethod(string $source): string
+    /**
+     * @param array<string, string> $sources nom de classe => source, pour
+     *                                       suivre l'héritage d'une requête
+     *                                       abstraite qui porte la méthode
+     */
+    private static function readMethod(string $source, array $sources): string
     {
         if (1 === preg_match('/Method::(\w+)/', $source, $matches)) {
             return strtoupper($matches[1]);
+        }
+
+        if (1 === preg_match('/^(?:final )?class \w+ extends (\w+)/m', $source, $parent)) {
+            $parentSource = $sources[$parent[1]] ?? null;
+
+            if (is_string($parentSource) && $parentSource !== $source) {
+                return self::readMethod($parentSource, array_diff_key($sources, [$parent[1] => null]));
+            }
         }
 
         return '';

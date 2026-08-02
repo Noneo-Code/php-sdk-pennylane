@@ -71,12 +71,12 @@ final class SepaMandates extends BaseResource
     public function update(
         int $id,
         string|Clear|null $bank = null,
-        string|Clear|null $bic = null,
-        string|Clear|null $iban = null,
-        SepaMandateSequenceType|Clear|null $sequenceType = null,
-        string|Clear|null $signedAt = null,
-        string|Clear|null $identifier = null,
-        int|Clear|null $customerId = null,
+        ?string $bic = null,
+        ?string $iban = null,
+        ?SepaMandateSequenceType $sequenceType = null,
+        ?string $signedAt = null,
+        ?string $identifier = null,
+        ?int $customerId = null,
     ): SepaMandateDto {
         $request = new PutSepaMandate($id, $bank, $bic, $iban, $sequenceType, $signedAt, $identifier, $customerId);
 

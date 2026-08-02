@@ -88,14 +88,14 @@ final class BillingSubscriptions extends BaseResource
 
     public function update(
         int $id,
-        bool|Clear|null $stop = null,
-        NewMode|Clear|null $mode = null,
-        PaymentConditions|Clear|null $paymentConditions = null,
-        BillingSubscriptionPaymentMethod|Clear|null $paymentMethod = null,
+        ?bool $stop = null,
+        ?NewMode $mode = null,
+        ?PaymentConditions $paymentConditions = null,
+        ?BillingSubscriptionPaymentMethod $paymentMethod = null,
         string|Clear|null $label = null,
-        NewRecurringRule|Clear|null $recurringRule = null,
-        int|Clear|null $customerId = null,
-        UpdateInvoiceData|Clear|null $customerInvoiceData = null,
+        ?NewRecurringRule $recurringRule = null,
+        ?int $customerId = null,
+        ?UpdateInvoiceData $customerInvoiceData = null,
     ): BillingSubscriptionDto {
         $request = new PutBillingSubscriptions(
             id: $id,

@@ -87,6 +87,23 @@ final class CoverageReportTest extends TestCase
         self::assertSame(1, $report->coveredCount());
     }
 
+    /**
+     * `/companies/{id}` est un endpoint du cabinet, pas le préfixe de scope
+     * d'une entreprise : le confondre avec ce préfixe le réduirait à la
+     * racine et le laisserait éternellement non couvert.
+     */
+    public function testDoesNotMistakeTheFirmCompanyEndpointForTheCompanyScopePrefix(): void
+    {
+        $operations = [new SpecOperation('GET', '/api/external/firm/v1/companies/{id}', 'company')];
+
+        $report = new CoverageReport($operations, signatures: [
+            new RequestSignature('Company', 'GET', '/companies/{}'),
+        ]);
+
+        self::assertSame(1, $report->coveredCount());
+        self::assertSame([], $report->undocumented());
+    }
+
     public function testMatchesPathParametersRegardlessOfTheirName(): void
     {
         $operations = [

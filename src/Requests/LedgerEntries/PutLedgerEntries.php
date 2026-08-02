@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Requests\LedgerEntries;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntry\NewLedgerEntryLine;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntry\UpdateLedgerEntryLine;
-use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
@@ -27,12 +26,12 @@ final class PutLedgerEntries extends Request implements HasBody
      */
     public function __construct(
         private readonly int $id,
-        private readonly string|Clear|null $date = null,
-        private readonly string|Clear|null $label = null,
-        private readonly int|Clear|null $journalId = null,
-        private readonly int|Clear|null $fileAttachmentId = null,
-        private readonly Currency|Clear|null $currency = null,
-        private readonly string|Clear|null $pieceNumber = null,
+        private readonly ?string $date = null,
+        private readonly ?string $label = null,
+        private readonly ?int $journalId = null,
+        private readonly ?int $fileAttachmentId = null,
+        private readonly ?Currency $currency = null,
+        private readonly ?string $pieceNumber = null,
         private readonly ?array $createLines = null,
         private readonly ?array $updateLines = null,
         private readonly ?array $deleteLineIds = null,

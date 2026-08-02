@@ -21,12 +21,12 @@ final class PutSepaMandate extends Request implements HasBody
     public function __construct(
         private readonly int $id,
         private readonly string|Clear|null $bank = null,
-        private readonly string|Clear|null $bic = null,
-        private readonly string|Clear|null $iban = null,
-        private readonly SepaMandateSequenceType|Clear|null $sequenceType = null,
-        private readonly string|Clear|null $signedAt = null,
-        private readonly string|Clear|null $identifier = null,
-        private readonly int|Clear|null $customerId = null,
+        private readonly ?string $bic = null,
+        private readonly ?string $iban = null,
+        private readonly ?SepaMandateSequenceType $sequenceType = null,
+        private readonly ?string $signedAt = null,
+        private readonly ?string $identifier = null,
+        private readonly ?int $customerId = null,
     ) {
     }
 

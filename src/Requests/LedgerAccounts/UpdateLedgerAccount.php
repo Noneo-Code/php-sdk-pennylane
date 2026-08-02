@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Requests\LedgerAccounts;
 
-use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
@@ -19,8 +18,8 @@ final class UpdateLedgerAccount extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly string|Clear|null $label = null,
-        private readonly bool|Clear|null $letterable = null,
+        private readonly ?string $label = null,
+        private readonly ?bool $letterable = null,
     ) {
     }
 

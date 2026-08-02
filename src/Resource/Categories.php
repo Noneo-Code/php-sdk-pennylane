@@ -73,8 +73,8 @@ final class Categories extends BaseResource
 
     public function update(
         int $id,
-        string|Clear|null $label = null,
-        CategoryDirection|Clear|null $direction = null,
+        ?string $label = null,
+        ?CategoryDirection $direction = null,
         string|Clear|null $analyticalCode = null,
     ): CategoryDto {
         $request = new UpdateCategory($id, $label, $direction, $analyticalCode);

@@ -135,10 +135,10 @@ final class SuppliersTest extends TestCase
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierPayload())]);
         $pennylane->withMockClient($mockClient);
 
-        $pennylane->suppliers()->update(42, externalReference: Clear::value());
+        $pennylane->suppliers()->update(42, establishmentNo: Clear::value());
 
         $mockClient->assertSent(function (PutSupplier $sent): bool {
-            return ['external_reference' => null] === $sent->body()->all();
+            return ['establishment_no' => null] === $sent->body()->all();
         });
     }
 

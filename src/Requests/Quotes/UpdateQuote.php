@@ -23,19 +23,19 @@ final class UpdateQuote extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly string|Clear|null $date = null,
-        private readonly string|Clear|null $deadline = null,
-        private readonly int|Clear|null $customerId = null,
-        private readonly int|Clear|null $quoteTemplateId = null,
+        private readonly ?string $date = null,
+        private readonly ?string $deadline = null,
+        private readonly ?int $customerId = null,
+        private readonly ?int $quoteTemplateId = null,
         private readonly string|Clear|null $pdfInvoiceFreeText = null,
         private readonly string|Clear|null $pdfInvoiceSubject = null,
         private readonly string|Clear|null $pdfDescription = null,
-        private readonly Currency|Clear|null $currency = null,
+        private readonly ?Currency $currency = null,
         private readonly string|Clear|null $specialMention = null,
-        private readonly Discount|Clear|null $discount = null,
-        private readonly BillingLanguage|Clear|null $language = null,
-        private readonly QuoteInvoiceLinesPatch|Clear|null $invoiceLines = null,
-        private readonly string|Clear|null $externalReference = null,
+        private readonly ?Discount $discount = null,
+        private readonly ?BillingLanguage $language = null,
+        private readonly ?QuoteInvoiceLinesPatch $invoiceLines = null,
+        private readonly ?string $externalReference = null,
     ) {
     }
 

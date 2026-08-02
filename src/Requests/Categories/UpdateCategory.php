@@ -20,8 +20,8 @@ final class UpdateCategory extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly string|Clear|null $label = null,
-        private readonly CategoryDirection|Clear|null $direction = null,
+        private readonly ?string $label = null,
+        private readonly ?CategoryDirection $direction = null,
         private readonly string|Clear|null $analyticalCode = null,
     ) {
     }

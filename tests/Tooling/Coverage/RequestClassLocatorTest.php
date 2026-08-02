@@ -61,6 +61,42 @@ final class RequestClassLocatorTest extends TestCase
         self::assertSame('/supplier_invoices/{}/categories', $signatures[0]->endpoint);
     }
 
+    public function testInheritsTheMethodFromAnAbstractParentRequest(): void
+    {
+        $dir = self::makeRequests([
+            'Changelogs/ChangelogRequest.php' => <<<'PHP'
+                <?php
+                abstract class ChangelogRequest extends Request implements Paginatable
+                {
+                    protected Method $method = Method::GET;
+                }
+                PHP,
+            'Changelogs/GetCustomerChanges.php' => <<<'PHP'
+                <?php
+                final class GetCustomerChanges extends ChangelogRequest
+                {
+                    public function resolveEndpoint(): string
+                    {
+                        return '/changelogs/customers';
+                    }
+                }
+                PHP,
+        ]);
+
+        $signatures = RequestClassLocator::signatures($dir);
+
+        self::deleteDirectory($dir);
+
+        $customerChanges = array_values(array_filter(
+            $signatures,
+            static fn ($signature): bool => 'GetCustomerChanges' === $signature->basename,
+        ));
+
+        self::assertCount(1, $customerChanges);
+        self::assertSame('GET', $customerChanges[0]->method);
+        self::assertSame('/changelogs/customers', $customerChanges[0]->endpoint);
+    }
+
     public function testReturnsEmptyArrayWhenDirectoryDoesNotExist(): void
     {
         self::assertSame([], RequestClassLocator::signatures(sys_get_temp_dir().'/pennylane-does-not-exist-'.uniqid()));
@@ -75,7 +111,11 @@ final class RequestClassLocatorTest extends TestCase
 
         foreach ($files as $relativePath => $contents) {
             $path = $dir.'/'.$relativePath;
-            mkdir(dirname($path), recursive: true);
+
+            if (!is_dir(dirname($path))) {
+                mkdir(dirname($path), recursive: true);
+            }
+
             file_put_contents($path, $contents);
         }
 

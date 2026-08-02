@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Requests\WebhookSubscriptions;
 
 use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -33,10 +34,10 @@ final class PutWebhookSubscription extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'callback_url' => $this->callbackUrl,
             'events' => null !== $this->events ? array_map(static fn (WebhookEventType $event): string => $event->value, $this->events) : null,
             'enabled' => $this->enabled,
-        ], static fn (mixed $value): bool => null !== $value);
+        ]);
     }
 }

@@ -95,17 +95,17 @@ final class Suppliers extends BaseResource
     /** @param string[]|null $emails */
     public function update(
         int $id,
-        string|Clear|null $name = null,
+        ?string $name = null,
         string|Clear|null $establishmentNo = null,
-        string|Clear|null $regNo = null,
-        Address|Clear|null $postalAddress = null,
-        string|Clear|null $vatNumber = null,
-        array|Clear|null $emails = null,
-        string|Clear|null $iban = null,
+        ?string $regNo = null,
+        ?Address $postalAddress = null,
+        ?string $vatNumber = null,
+        ?array $emails = null,
+        ?string $iban = null,
         SupplierPaymentMethod|Clear|null $supplierPaymentMethod = null,
         int|Clear|null $supplierDueDateDelay = null,
         SupplierDueDateRule|Clear|null $supplierDueDateRule = null,
-        string|Clear|null $externalReference = null,
+        ?string $externalReference = null,
     ): SupplierDto {
         $request = new PutSupplier(
             id: $id,

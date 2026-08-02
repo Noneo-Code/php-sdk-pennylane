@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Dto\LedgerEntry\NewLedgerEntryLine;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntry\UpdateLedgerEntryLine;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
-use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntries\GetLedgerEntries;
@@ -96,12 +95,12 @@ final class LedgerEntries extends BaseResource
      */
     public function update(
         int $id,
-        string|Clear|null $date = null,
-        string|Clear|null $label = null,
-        int|Clear|null $journalId = null,
-        int|Clear|null $fileAttachmentId = null,
-        Currency|Clear|null $currency = null,
-        string|Clear|null $pieceNumber = null,
+        ?string $date = null,
+        ?string $label = null,
+        ?int $journalId = null,
+        ?int $fileAttachmentId = null,
+        ?Currency $currency = null,
+        ?string $pieceNumber = null,
         ?array $createLines = null,
         ?array $updateLines = null,
         ?array $deleteLineIds = null,

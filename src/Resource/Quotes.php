@@ -111,19 +111,19 @@ final class Quotes extends BaseResource
 
     public function update(
         int $id,
-        string|Clear|null $date = null,
-        string|Clear|null $deadline = null,
-        int|Clear|null $customerId = null,
-        int|Clear|null $quoteTemplateId = null,
+        ?string $date = null,
+        ?string $deadline = null,
+        ?int $customerId = null,
+        ?int $quoteTemplateId = null,
         string|Clear|null $pdfInvoiceFreeText = null,
         string|Clear|null $pdfInvoiceSubject = null,
         string|Clear|null $pdfDescription = null,
-        Currency|Clear|null $currency = null,
+        ?Currency $currency = null,
         string|Clear|null $specialMention = null,
-        Discount|Clear|null $discount = null,
-        BillingLanguage|Clear|null $language = null,
-        QuoteInvoiceLinesPatch|Clear|null $invoiceLines = null,
-        string|Clear|null $externalReference = null,
+        ?Discount $discount = null,
+        ?BillingLanguage $language = null,
+        ?QuoteInvoiceLinesPatch $invoiceLines = null,
+        ?string $externalReference = null,
     ): QuoteDto {
         $request = new UpdateQuote(
             id: $id,

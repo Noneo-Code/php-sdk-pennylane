@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Webhook\CreatedWebhookSubscriptionDto;
 use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
 use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookSubscriptionDto;
@@ -18,6 +19,8 @@ use Saloon\Http\BaseResource;
 
 final class WebhookSubscriptions extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     /** @param list<WebhookEventType> $events */
     public function create(string $callbackUrl, array $events, ?bool $enabled = null): CreatedWebhookSubscriptionDto
     {
@@ -38,9 +41,9 @@ final class WebhookSubscriptions extends BaseResource
     }
 
     /** @return \Generator<int, WebhookSubscriptionDto> */
-    public function paginate(): \Generator
+    public function paginate(?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetWebhookSubscriptions());
+        $paginator = new CursorPaginator($this->connector, new GetWebhookSubscriptions(), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield WebhookSubscriptionDto::fromArray(self::asArray($item));
@@ -63,15 +66,5 @@ final class WebhookSubscriptions extends BaseResource
     public function delete(int $id): void
     {
         $this->connector->send(new DeleteWebhookSubscription($id));
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

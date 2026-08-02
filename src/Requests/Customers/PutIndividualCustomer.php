@@ -23,19 +23,19 @@ final class PutIndividualCustomer extends Request implements HasBody
     /** @param string[]|null $emails */
     public function __construct(
         private readonly int $id,
-        private readonly string|Clear|null $firstName = null,
-        private readonly string|Clear|null $lastName = null,
-        private readonly string|Clear|null $phone = null,
-        private readonly Address|Clear|null $billingAddress = null,
+        private readonly ?string $firstName = null,
+        private readonly ?string $lastName = null,
+        private readonly ?string $phone = null,
+        private readonly ?Address $billingAddress = null,
         private readonly Address|Clear|null $deliveryAddress = null,
-        private readonly PaymentConditions|Clear|null $paymentConditions = null,
+        private readonly ?PaymentConditions $paymentConditions = null,
         private readonly string|Clear|null $billingIban = null,
-        private readonly string|Clear|null $recipient = null,
+        private readonly ?string $recipient = null,
         private readonly string|Clear|null $reference = null,
         private readonly string|Clear|null $notes = null,
-        private readonly array|Clear|null $emails = null,
-        private readonly string|Clear|null $externalReference = null,
-        private readonly BillingLanguage|Clear|null $billingLanguage = null,
+        private readonly ?array $emails = null,
+        private readonly ?string $externalReference = null,
+        private readonly ?BillingLanguage $billingLanguage = null,
     ) {
     }
 

@@ -24,14 +24,14 @@ final class PutBillingSubscriptions extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly bool|Clear|null $stop = null,
-        private readonly NewMode|Clear|null $mode = null,
-        private readonly PaymentConditions|Clear|null $paymentConditions = null,
-        private readonly BillingSubscriptionPaymentMethod|Clear|null $paymentMethod = null,
+        private readonly ?bool $stop = null,
+        private readonly ?NewMode $mode = null,
+        private readonly ?PaymentConditions $paymentConditions = null,
+        private readonly ?BillingSubscriptionPaymentMethod $paymentMethod = null,
         private readonly string|Clear|null $label = null,
-        private readonly NewRecurringRule|Clear|null $recurringRule = null,
-        private readonly int|Clear|null $customerId = null,
-        private readonly UpdateInvoiceData|Clear|null $customerInvoiceData = null,
+        private readonly ?NewRecurringRule $recurringRule = null,
+        private readonly ?int $customerId = null,
+        private readonly ?UpdateInvoiceData $customerInvoiceData = null,
     ) {
     }
 

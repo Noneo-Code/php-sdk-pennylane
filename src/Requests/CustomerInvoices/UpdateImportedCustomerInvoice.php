@@ -22,19 +22,19 @@ final class UpdateImportedCustomerInvoice extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly string|Clear|null $date = null,
-        private readonly string|Clear|null $deadline = null,
-        private readonly int|Clear|null $customerId = null,
-        private readonly string|Clear|null $invoiceNumber = null,
-        private readonly Currency|Clear|null $currency = null,
-        private readonly string|Clear|null $currencyAmountBeforeTax = null,
-        private readonly string|Clear|null $currencyAmount = null,
-        private readonly string|Clear|null $amount = null,
-        private readonly string|Clear|null $currencyTax = null,
-        private readonly string|Clear|null $tax = null,
+        private readonly ?string $date = null,
+        private readonly ?string $deadline = null,
+        private readonly ?int $customerId = null,
+        private readonly ?string $invoiceNumber = null,
+        private readonly ?Currency $currency = null,
+        private readonly ?string $currencyAmountBeforeTax = null,
+        private readonly ?string $currencyAmount = null,
+        private readonly ?string $amount = null,
+        private readonly ?string $currencyTax = null,
+        private readonly ?string $tax = null,
         private readonly NewTransactionReference|Clear|null $transactionReference = null,
-        private readonly ImportedInvoiceLinesPatch|Clear|null $invoiceLines = null,
-        private readonly string|Clear|null $externalReference = null,
+        private readonly ?ImportedInvoiceLinesPatch $invoiceLines = null,
+        private readonly ?string $externalReference = null,
     ) {
     }
 

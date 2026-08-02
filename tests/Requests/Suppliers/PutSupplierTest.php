@@ -66,10 +66,10 @@ final class PutSupplierTest extends TestCase
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
         $pennylane->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplier(id: 42, externalReference: Clear::value()));
+        $pennylane->send(new PutSupplier(id: 42, establishmentNo: Clear::value()));
 
         $mockClient->assertSent(function (PutSupplier $sent): bool {
-            return ['external_reference' => null] === $sent->body()->all();
+            return ['establishment_no' => null] === $sent->body()->all();
         });
     }
 }

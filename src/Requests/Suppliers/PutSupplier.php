@@ -23,17 +23,17 @@ final class PutSupplier extends Request implements HasBody
     /** @param string[]|null $emails */
     public function __construct(
         private readonly int $id,
-        private readonly string|Clear|null $name = null,
+        private readonly ?string $name = null,
         private readonly string|Clear|null $establishmentNo = null,
-        private readonly string|Clear|null $regNo = null,
-        private readonly Address|Clear|null $postalAddress = null,
-        private readonly string|Clear|null $vatNumber = null,
-        private readonly array|Clear|null $emails = null,
-        private readonly string|Clear|null $iban = null,
+        private readonly ?string $regNo = null,
+        private readonly ?Address $postalAddress = null,
+        private readonly ?string $vatNumber = null,
+        private readonly ?array $emails = null,
+        private readonly ?string $iban = null,
         private readonly SupplierPaymentMethod|Clear|null $supplierPaymentMethod = null,
         private readonly int|Clear|null $supplierDueDateDelay = null,
         private readonly SupplierDueDateRule|Clear|null $supplierDueDateRule = null,
-        private readonly string|Clear|null $externalReference = null,
+        private readonly ?string $externalReference = null,
     ) {
     }
 
