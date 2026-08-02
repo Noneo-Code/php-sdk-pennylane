@@ -11,8 +11,8 @@ final readonly class FiscalYearDto
         public string $start,
         public string $finish,
         public FiscalYearStatus $status,
-        public string $createdAt,
-        public string $updatedAt,
+        public ?string $createdAt,
+        public ?string $updatedAt,
     ) {
     }
 
@@ -42,12 +42,12 @@ final readonly class FiscalYearDto
             throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "status" textuel.');
         }
 
-        if (!is_string($createdAt)) {
-            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "created_at" textuel.');
+        if (null !== $createdAt && !is_string($createdAt)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "created_at" textuel ou nul.');
         }
 
-        if (!is_string($updatedAt)) {
-            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "updated_at" textuel.');
+        if (null !== $updatedAt && !is_string($updatedAt)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "updated_at" textuel ou nul.');
         }
 
         return new self(

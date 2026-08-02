@@ -6,6 +6,7 @@ namespace Noneo\Sdk\Pennylane;
 
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
+use Noneo\Sdk\Pennylane\Resource\Firm\Companies;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
 use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
@@ -32,5 +33,10 @@ final class PennylaneFirm extends Connector
     public function company(int $companyId): CompanyScope
     {
         return new CompanyScope($this, $companyId);
+    }
+
+    public function companies(): Companies
+    {
+        return new Companies($this);
     }
 }

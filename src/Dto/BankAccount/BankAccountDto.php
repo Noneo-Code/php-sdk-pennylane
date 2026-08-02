@@ -12,7 +12,7 @@ final readonly class BankAccountDto
         public int $id,
         public string $name,
         public Currency $currency,
-        public string $balance,
+        public ?string $balance,
         public string $createdAt,
         public string $updatedAt,
         public int $bankEstablishmentId,
@@ -48,8 +48,8 @@ final readonly class BankAccountDto
             throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir une "currency" textuelle.');
         }
 
-        if (!is_string($balance)) {
-            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "balance" textuel.');
+        if (null !== $balance && !is_string($balance)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "balance" textuel ou nul.');
         }
 
         if (!is_string($createdAt) || !is_string($updatedAt)) {

@@ -51,4 +51,14 @@ final class BankAccountDtoTest extends TestCase
         self::assertNull($dto->journalId);
         self::assertNull($dto->journalUrl);
     }
+
+    public function testFromArrayAllowsAMissingBalanceAsReturnedByTheFirmApi(): void
+    {
+        $payload = $this->documentedPayload();
+        unset($payload['balance']);
+
+        $dto = BankAccountDto::fromArray($payload);
+
+        self::assertNull($dto->balance);
+    }
 }

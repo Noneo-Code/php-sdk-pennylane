@@ -68,4 +68,14 @@ final class TransactionDtoTest extends TestCase
 
         self::assertNull($dto->currency);
     }
+
+    public function testFromArrayAllowsAMissingMatchedInvoicesAsReturnedByTheFirmApi(): void
+    {
+        $payload = $this->documentedPayload();
+        unset($payload['matched_invoices']);
+
+        $dto = TransactionDto::fromArray($payload);
+
+        self::assertNull($dto->matchedInvoicesUrl);
+    }
 }
