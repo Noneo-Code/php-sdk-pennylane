@@ -21771,6 +21771,532 @@ paths:
                                 required:
                                     - error
                                     - status
+    /api/external/v2/webhook_subscriptions:
+        get:
+            operationId: getWebhookSubscriptions
+            summary: 'List webhook subscriptions'
+            description: |
+                Returns all webhook subscriptions for the authenticated token, paginated.
+                Note that the secret is not included in the response.
+            tags:
+                - Hidden
+            security:
+                -
+                    oauth2: {  }
+            parameters:
+                -
+                    name: cursor
+                    description: 'Opaque cursor from a previous response to retrieve the next page'
+                    in: query
+                    schema:
+                        type: string
+                    required: false
+                -
+                    name: limit
+                    description: 'Number of items to return per page'
+                    in: query
+                    schema:
+                        type: integer
+                        minimum: 1
+                        maximum: 100
+                        default: 20
+                    required: false
+            responses:
+                200:
+                    description: 'A paginated list of webhook subscriptions'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    items: { type: array, items: { type: object, additionalProperties: false, properties: { id: { type: integer, description: 'ID of the webhook subscription', example: 12345 }, callback_url: { description: 'HTTPS URL where webhook events are sent', type: string, format: uri, example: 'https://example.com/webhooks' }, events: { description: "Array of event types to subscribe to.\n- `customer_invoice.e_invoicing_status_updated`: the event is triggered when a customer invoice e-invoicing status is updated.\n- `dms_file.created`: the event is triggered when a dms file is created.\n", type: array, items: { type: string, enum: [customer_invoice.e_invoicing_status_updated, dms_file.created] }, example: [dms_file.created, customer_invoice.e_invoicing_status_updated], minItems: 1 }, enabled: { description: 'Indicates whether the webhook subscription is active', type: boolean, example: true }, disabled_at: { description: 'Timestamp when the subscription was disabled', type: string, format: date-time, nullable: true, example: '2023-08-07T14:23:12.000Z' }, disabled_reason: { description: "Reason the subscription was disabled.\n- `permanent_error`: disabled due to a permanent delivery error (HTTP 401, 403, 404, or 410).\n- `repeated_failure`: disabled after repeated delivery failures over a sustained period.\n- `manual`: disabled manually via the API.\n", type: string, nullable: true, enum: [permanent_error, repeated_failure, manual] }, last_failure_status: { description: 'HTTP status code of the last failed delivery attempt', type: integer, nullable: true, example: 500 }, last_failure_at: { description: 'Timestamp of the last failed delivery attempt', type: string, format: date-time, nullable: true, example: '2023-08-07T14:23:12.000Z' }, consecutive_failures: { description: 'Number of consecutive delivery failures since the last successful delivery', type: integer, example: 3 }, created_at: { description: 'Creation date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' }, updated_at: { description: 'Last update date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' } }, required: [id, callback_url, events, enabled, disabled_at, disabled_reason, last_failure_status, last_failure_at, consecutive_failures, created_at, updated_at] } }
+                                    has_more: { description: 'Indicates whether additional results are available', type: boolean }
+                                    next_cursor: { description: 'Cursor to retrieve the next set of results', type: string, nullable: true }
+                                required:
+                                    - items
+                                    - has_more
+                                    - next_cursor
+                400:
+                    description: 'Bad request'
+                    content:
+                        application/json:
+                            schema:
+                                anyOf:
+                                    - { type: object, additionalProperties: false, properties: { error: { type: string }, status: { type: integer } }, required: [error, status] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string } }, required: [message] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, payload, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, payload, code] }
+                401:
+                    description: 'Access token is missing or invalid'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'The access token is invalid' }
+                                    status: { type: integer, example: 401 }
+                                required:
+                                    - error
+                                    - status
+                403:
+                    description: 'Access to this resource forbidden'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Access to this resource requires scope "ledger".' }
+                                    status: { type: integer, example: 403 }
+                                required:
+                                    - error
+                                    - status
+        post:
+            operationId: postWebhookSubscriptions
+            summary: 'Create a webhook subscription'
+            description: |-
+                Creates a webhook subscription to receive real-time notifications for events occurring within your company or companies.
+
+                **Authentication & Scope**
+                - **Developer Token**: The subscription is scoped to the single company linked to the token.
+                - **OAuth Application Access Token**: The subscription covers **all companies** accessible by the OAuth application.
+
+                **Limits**
+                Up to 10 webhook subscriptions are allowed per subscriber.
+
+                **Secret**
+                . The secret will be auto-generated.
+
+                > 🔒 The secret is **only returned in the creation response** and cannot be retrieved afterwards. Make sure to store it securely.
+            tags:
+                - Hidden
+            security:
+                -
+                    oauth2: {  }
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                callback_url:
+                                    description: 'HTTPS URL where webhook events will be sent'
+                                    type: string
+                                    format: uri
+                                    example: 'https://example.com/webhooks'
+                                events:
+                                    description: |
+                                        Array of event types to subscribe to.
+                                        - `customer_invoice.e_invoicing_status_updated`: the event is triggered when a customer invoice e-invoicing status is updated.
+                                        - `dms_file.created`: the event is triggered when a dms file is created.
+                                    type: array
+                                    items: { type: string, enum: [customer_invoice.e_invoicing_status_updated, dms_file.created] }
+                                    example: [dms_file.created, customer_invoice.e_invoicing_status_updated]
+                                    minItems: 1
+                                enabled:
+                                    description: 'Indicates whether the webhook subscription is active'
+                                    type: boolean
+                                    default: true
+                                    example: false
+                            required:
+                                - callback_url
+                                - events
+            responses:
+                201:
+                    description: 'Renders the created webhook subscription'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    id: { type: integer, description: 'ID of the webhook subscription', example: 12345 }
+                                    callback_url: { description: 'HTTPS URL where webhook events are sent', type: string, format: uri, example: 'https://example.com/webhooks' }
+                                    events: { description: "Array of event types to subscribe to.\n- `customer_invoice.e_invoicing_status_updated`: the event is triggered when a customer invoice e-invoicing status is updated.\n- `dms_file.created`: the event is triggered when a dms file is created.\n", type: array, items: { type: string, enum: [customer_invoice.e_invoicing_status_updated, dms_file.created] }, example: [dms_file.created, customer_invoice.e_invoicing_status_updated], minItems: 1 }
+                                    enabled: { description: 'Indicates whether the webhook subscription is active', type: boolean, example: true }
+                                    secret: { description: "Automatically generated secret for HMAC signature verification. This is only returned once\non creation. Store it securely as it cannot be retrieved afterwards.\n", type: string }
+                                    created_at: { description: 'Creation date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' }
+                                    updated_at: { description: 'Last update date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' }
+                                required:
+                                    - id
+                                    - callback_url
+                                    - events
+                                    - enabled
+                                    - secret
+                                    - created_at
+                                    - updated_at
+                400:
+                    description: 'Bad request'
+                    content:
+                        application/json:
+                            schema:
+                                anyOf:
+                                    - { type: object, additionalProperties: false, properties: { error: { type: string }, status: { type: integer } }, required: [error, status] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string } }, required: [message] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, payload, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, payload, code] }
+                401:
+                    description: 'Access token is missing or invalid'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'The access token is invalid' }
+                                    status: { type: integer, example: 401 }
+                                required:
+                                    - error
+                                    - status
+                403:
+                    description: 'Access to this resource forbidden'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Access to this resource requires scope "ledger".' }
+                                    status: { type: integer, example: 403 }
+                                required:
+                                    - error
+                                    - status
+                422:
+                    description: 'Unprocessable content'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Entry lines are not balanced' }
+                                    status: { type: integer, example: 422 }
+                                required:
+                                    - error
+                                    - status
+    '/api/external/v2/webhook_subscriptions/{id}':
+        get:
+            operationId: getWebhookSubscription
+            summary: 'Get a webhook subscription'
+            description: |
+                This endpoint allows you to retrieve a webhook subscription by ID.
+                Note that the secret is not included in the response.
+            tags:
+                - Hidden
+            security:
+                -
+                    oauth2: {  }
+            parameters:
+                -
+                    name: id
+                    description: 'ID of the webhook subscription'
+                    in: path
+                    schema:
+                        type: integer
+                    required: true
+            responses:
+                200:
+                    description: 'A webhook subscription'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    id: { type: integer, description: 'ID of the webhook subscription', example: 12345 }
+                                    callback_url: { description: 'HTTPS URL where webhook events are sent', type: string, format: uri, example: 'https://example.com/webhooks' }
+                                    events: { description: "Array of event types to subscribe to.\n- `customer_invoice.e_invoicing_status_updated`: the event is triggered when a customer invoice e-invoicing status is updated.\n- `dms_file.created`: the event is triggered when a dms file is created.\n", type: array, items: { type: string, enum: [customer_invoice.e_invoicing_status_updated, dms_file.created] }, example: [dms_file.created, customer_invoice.e_invoicing_status_updated], minItems: 1 }
+                                    enabled: { description: 'Indicates whether the webhook subscription is active', type: boolean, example: true }
+                                    disabled_at: { description: 'Timestamp when the subscription was disabled', type: string, format: date-time, nullable: true, example: '2023-08-07T14:23:12.000Z' }
+                                    disabled_reason: { description: "Reason the subscription was disabled.\n- `permanent_error`: disabled due to a permanent delivery error (HTTP 401, 403, 404, or 410).\n- `repeated_failure`: disabled after repeated delivery failures over a sustained period.\n- `manual`: disabled manually via the API.\n", type: string, nullable: true, enum: [permanent_error, repeated_failure, manual] }
+                                    last_failure_status: { description: 'HTTP status code of the last failed delivery attempt', type: integer, nullable: true, example: 500 }
+                                    last_failure_at: { description: 'Timestamp of the last failed delivery attempt', type: string, format: date-time, nullable: true, example: '2023-08-07T14:23:12.000Z' }
+                                    consecutive_failures: { description: 'Number of consecutive delivery failures since the last successful delivery', type: integer, example: 3 }
+                                    created_at: { description: 'Creation date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' }
+                                    updated_at: { description: 'Last update date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' }
+                                required:
+                                    - id
+                                    - callback_url
+                                    - events
+                                    - enabled
+                                    - disabled_at
+                                    - disabled_reason
+                                    - last_failure_status
+                                    - last_failure_at
+                                    - consecutive_failures
+                                    - created_at
+                                    - updated_at
+                400:
+                    description: 'Bad request'
+                    content:
+                        application/json:
+                            schema:
+                                anyOf:
+                                    - { type: object, additionalProperties: false, properties: { error: { type: string }, status: { type: integer } }, required: [error, status] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string } }, required: [message] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, payload, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, payload, code] }
+                401:
+                    description: 'Access token is missing or invalid'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'The access token is invalid' }
+                                    status: { type: integer, example: 401 }
+                                required:
+                                    - error
+                                    - status
+                403:
+                    description: 'Access to this resource forbidden'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Access to this resource requires scope "ledger".' }
+                                    status: { type: integer, example: 403 }
+                                required:
+                                    - error
+                                    - status
+                404:
+                    description: 'The resource was not found'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Not Found' }
+                                    status: { type: integer, example: 404 }
+                                required:
+                                    - error
+                                    - status
+        put:
+            operationId: putWebhookSubscription
+            summary: 'Update a webhook subscription'
+            description: |
+                This endpoint allows you to update a webhook subscription by ID.
+            tags:
+                - Hidden
+            security:
+                -
+                    oauth2: {  }
+            parameters:
+                -
+                    name: id
+                    description: 'ID of the webhook subscription'
+                    in: path
+                    schema:
+                        type: integer
+                    required: true
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                callback_url:
+                                    description: 'HTTPS URL where webhook events will be sent'
+                                    type: string
+                                    format: uri
+                                    example: 'https://example.com/webhooks'
+                                events:
+                                    description: |
+                                        Array of event types to subscribe to.
+                                        - `customer_invoice.e_invoicing_status_updated`: the event is triggered when a customer invoice e-invoicing status is updated.
+                                        - `dms_file.created`: the event is triggered when a dms file is created.
+                                    type: array
+                                    items: { type: string, enum: [customer_invoice.e_invoicing_status_updated, dms_file.created] }
+                                    example: [dms_file.created, customer_invoice.e_invoicing_status_updated]
+                                    minItems: 1
+                                enabled:
+                                    description: 'Indicates whether the webhook subscription is active'
+                                    type: boolean
+                                    example: false
+            responses:
+                200:
+                    description: 'Returns the updated webhook subscription'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    id: { type: integer, description: 'ID of the webhook subscription', example: 12345 }
+                                    callback_url: { description: 'HTTPS URL where webhook events are sent', type: string, format: uri, example: 'https://example.com/webhooks' }
+                                    events: { description: "Array of event types to subscribe to.\n- `customer_invoice.e_invoicing_status_updated`: the event is triggered when a customer invoice e-invoicing status is updated.\n- `dms_file.created`: the event is triggered when a dms file is created.\n", type: array, items: { type: string, enum: [customer_invoice.e_invoicing_status_updated, dms_file.created] }, example: [dms_file.created, customer_invoice.e_invoicing_status_updated], minItems: 1 }
+                                    enabled: { description: 'Indicates whether the webhook subscription is active', type: boolean, example: true }
+                                    disabled_at: { description: 'Timestamp when the subscription was disabled', type: string, format: date-time, nullable: true, example: '2023-08-07T14:23:12.000Z' }
+                                    disabled_reason: { description: "Reason the subscription was disabled.\n- `permanent_error`: disabled due to a permanent delivery error (HTTP 401, 403, 404, or 410).\n- `repeated_failure`: disabled after repeated delivery failures over a sustained period.\n- `manual`: disabled manually via the API.\n", type: string, nullable: true, enum: [permanent_error, repeated_failure, manual] }
+                                    last_failure_status: { description: 'HTTP status code of the last failed delivery attempt', type: integer, nullable: true, example: 500 }
+                                    last_failure_at: { description: 'Timestamp of the last failed delivery attempt', type: string, format: date-time, nullable: true, example: '2023-08-07T14:23:12.000Z' }
+                                    consecutive_failures: { description: 'Number of consecutive delivery failures since the last successful delivery', type: integer, example: 3 }
+                                    created_at: { description: 'Creation date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' }
+                                    updated_at: { description: 'Last update date of the webhook subscription', type: string, format: date-time, example: '2023-08-07T14:23:12.000Z' }
+                                required:
+                                    - id
+                                    - callback_url
+                                    - events
+                                    - enabled
+                                    - disabled_at
+                                    - disabled_reason
+                                    - last_failure_status
+                                    - last_failure_at
+                                    - consecutive_failures
+                                    - created_at
+                                    - updated_at
+                400:
+                    description: 'Bad request'
+                    content:
+                        application/json:
+                            schema:
+                                anyOf:
+                                    - { type: object, additionalProperties: false, properties: { error: { type: string }, status: { type: integer } }, required: [error, status] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string } }, required: [message] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, payload, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, payload, code] }
+                401:
+                    description: 'Access token is missing or invalid'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'The access token is invalid' }
+                                    status: { type: integer, example: 401 }
+                                required:
+                                    - error
+                                    - status
+                403:
+                    description: 'Access to this resource forbidden'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Access to this resource requires scope "ledger".' }
+                                    status: { type: integer, example: 403 }
+                                required:
+                                    - error
+                                    - status
+                404:
+                    description: 'The resource was not found'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Not Found' }
+                                    status: { type: integer, example: 404 }
+                                required:
+                                    - error
+                                    - status
+                422:
+                    description: 'Unprocessable content'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Entry lines are not balanced' }
+                                    status: { type: integer, example: 422 }
+                                required:
+                                    - error
+                                    - status
+        delete:
+            operationId: deleteWebhookSubscription
+            summary: 'Delete a webhook subscription'
+            description: |
+                This endpoint allows you to delete a webhook subscription by ID.
+            tags:
+                - Hidden
+            security:
+                -
+                    oauth2: {  }
+            parameters:
+                -
+                    name: id
+                    description: 'ID of the webhook subscription'
+                    in: path
+                    schema:
+                        type: integer
+                    required: true
+            responses:
+                204:
+                    description: 'Webhook subscription deleted'
+                400:
+                    description: 'Bad request'
+                    content:
+                        application/json:
+                            schema:
+                                anyOf:
+                                    - { type: object, additionalProperties: false, properties: { error: { type: string }, status: { type: integer } }, required: [error, status] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string } }, required: [message] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, payload, code] }
+                                    - { type: object, additionalProperties: false, properties: { message: { type: string }, field: { type: string }, payload: { type: string }, code: { type: string, enum: [InvalidDateFormat, InvalidDateTimeFormat, InvalidEmailFormat, InvalidPattern, InvalidUUIDFormat, LessThanExclusiveMinimum, LessThanMinimum, LessThanMinItems, LessThanMinLength, MoreThanExclusiveMaximum, MoreThanMaximum, MoreThanMaxItems, MoreThanMaxLength, NotAMultipartFile, NotAnyOf, NotEnumInclude, NotExistContentTypeDefinition, NotExistDiscriminatorMappedSchema, NotExistDiscriminatorPropertyName, NotExistPropertyDefinition, NotExistRequiredKey, NotExistStatusCodeDefinition, NotNullError, NotOneOf, ValidateError] } }, required: [message, field, payload, code] }
+                401:
+                    description: 'Access token is missing or invalid'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'The access token is invalid' }
+                                    status: { type: integer, example: 401 }
+                                required:
+                                    - error
+                                    - status
+                403:
+                    description: 'Access to this resource forbidden'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Access to this resource requires scope "ledger".' }
+                                    status: { type: integer, example: 403 }
+                                required:
+                                    - error
+                                    - status
+                404:
+                    description: 'The resource was not found'
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                properties:
+                                    error: { type: string, example: 'Not Found' }
+                                    status: { type: integer, example: 404 }
+                                required:
+                                    - error
+                                    - status
 components:
     securitySchemes:
         oauth2:
