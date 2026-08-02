@@ -14,14 +14,17 @@ use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
 use Noneo\Sdk\Pennylane\Resource\Exports;
 use Noneo\Sdk\Pennylane\Resource\FiscalYears;
+use Noneo\Sdk\Pennylane\Resource\GocardlessMandates;
 use Noneo\Sdk\Pennylane\Resource\Journals;
 use Noneo\Sdk\Pennylane\Resource\LedgerAccounts;
 use Noneo\Sdk\Pennylane\Resource\LedgerEntries;
 use Noneo\Sdk\Pennylane\Resource\LedgerEntryLines;
 use Noneo\Sdk\Pennylane\Resource\PaRegistrations;
+use Noneo\Sdk\Pennylane\Resource\ProAccountMandates;
 use Noneo\Sdk\Pennylane\Resource\Products;
 use Noneo\Sdk\Pennylane\Resource\PurchaseRequests;
 use Noneo\Sdk\Pennylane\Resource\Quotes;
+use Noneo\Sdk\Pennylane\Resource\SepaMandates;
 use Noneo\Sdk\Pennylane\Resource\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Resource\Suppliers;
 use Noneo\Sdk\Pennylane\Resource\Transactions;
@@ -84,6 +87,11 @@ final class Pennylane extends Connector
         return new Exports($this);
     }
 
+    public function gocardlessMandates(): GocardlessMandates
+    {
+        return new GocardlessMandates($this);
+    }
+
     public function journals(): Journals
     {
         return new Journals($this);
@@ -114,6 +122,11 @@ final class Pennylane extends Connector
         return new PaRegistrations($this);
     }
 
+    public function proAccountMandates(): ProAccountMandates
+    {
+        return new ProAccountMandates($this);
+    }
+
     public function products(): Products
     {
         return new Products($this);
@@ -127,6 +140,11 @@ final class Pennylane extends Connector
     public function quotes(): Quotes
     {
         return new Quotes($this);
+    }
+
+    public function sepaMandates(): SepaMandates
+    {
+        return new SepaMandates($this);
     }
 
     public function suppliers(): Suppliers
