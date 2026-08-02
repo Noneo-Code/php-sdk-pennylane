@@ -13,6 +13,8 @@ use Noneo\Sdk\Pennylane\Resource\Customers;
 use Noneo\Sdk\Pennylane\Resource\FiscalYears;
 use Noneo\Sdk\Pennylane\Resource\Journals;
 use Noneo\Sdk\Pennylane\Resource\LedgerAccounts;
+use Noneo\Sdk\Pennylane\Resource\LedgerEntries;
+use Noneo\Sdk\Pennylane\Resource\LedgerEntryLines;
 use Noneo\Sdk\Pennylane\Resource\PaRegistrations;
 use Noneo\Sdk\Pennylane\Resource\Products;
 use Noneo\Sdk\Pennylane\Resource\PurchaseRequests;
@@ -75,6 +77,16 @@ final class Pennylane extends Connector
     public function fiscalYears(): FiscalYears
     {
         return new FiscalYears($this);
+    }
+
+    public function ledgerEntries(): LedgerEntries
+    {
+        return new LedgerEntries($this);
+    }
+
+    public function ledgerEntryLines(): LedgerEntryLines
+    {
+        return new LedgerEntryLines($this);
     }
 
     public function paRegistrations(): PaRegistrations
