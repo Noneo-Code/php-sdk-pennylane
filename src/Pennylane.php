@@ -8,17 +8,21 @@ use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
 use Noneo\Sdk\Pennylane\Resource\BankAccounts;
 use Noneo\Sdk\Pennylane\Resource\BankEstablishments;
+use Noneo\Sdk\Pennylane\Resource\BillingSubscriptions;
 use Noneo\Sdk\Pennylane\Resource\Categories;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
+use Noneo\Sdk\Pennylane\Resource\CommercialDocuments;
 use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
 use Noneo\Sdk\Pennylane\Resource\Exports;
+use Noneo\Sdk\Pennylane\Resource\FileAttachments;
 use Noneo\Sdk\Pennylane\Resource\FiscalYears;
 use Noneo\Sdk\Pennylane\Resource\GocardlessMandates;
 use Noneo\Sdk\Pennylane\Resource\Journals;
 use Noneo\Sdk\Pennylane\Resource\LedgerAccounts;
 use Noneo\Sdk\Pennylane\Resource\LedgerEntries;
 use Noneo\Sdk\Pennylane\Resource\LedgerEntryLines;
+use Noneo\Sdk\Pennylane\Resource\Me;
 use Noneo\Sdk\Pennylane\Resource\PaRegistrations;
 use Noneo\Sdk\Pennylane\Resource\ProAccountMandates;
 use Noneo\Sdk\Pennylane\Resource\Products;
@@ -62,6 +66,11 @@ final class Pennylane extends Connector
         return new BankEstablishments($this);
     }
 
+    public function billingSubscriptions(): BillingSubscriptions
+    {
+        return new BillingSubscriptions($this);
+    }
+
     public function categories(): Categories
     {
         return new Categories($this);
@@ -70,6 +79,11 @@ final class Pennylane extends Connector
     public function categoryGroups(): CategoryGroups
     {
         return new CategoryGroups($this);
+    }
+
+    public function commercialDocuments(): CommercialDocuments
+    {
+        return new CommercialDocuments($this);
     }
 
     public function customers(): Customers
@@ -85,6 +99,11 @@ final class Pennylane extends Connector
     public function exports(): Exports
     {
         return new Exports($this);
+    }
+
+    public function fileAttachments(): FileAttachments
+    {
+        return new FileAttachments($this);
     }
 
     public function gocardlessMandates(): GocardlessMandates
@@ -115,6 +134,11 @@ final class Pennylane extends Connector
     public function ledgerEntryLines(): LedgerEntryLines
     {
         return new LedgerEntryLines($this);
+    }
+
+    public function me(): Me
+    {
+        return new Me($this);
     }
 
     public function paRegistrations(): PaRegistrations

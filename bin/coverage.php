@@ -25,8 +25,13 @@ foreach ($specFiles as $specFile) {
     array_push($operations, ...SpecOperationsReader::fromYamlFile($specFile));
 }
 
+// operationId => raison de l'exclusion explicite (endpoint volontairement non implémenté)
+$excludedOperationIds = [
+    'postLedgerAttachments' => 'Déprécié au profit de postFileAttachments (ticket 18).',
+];
+
 $coveredBasenames = RequestClassLocator::classBasenames(__DIR__.'/../src/Requests');
-$report = new CoverageReport($operations, $coveredBasenames);
+$report = new CoverageReport($operations, $coveredBasenames, $excludedOperationIds);
 
 fwrite(STDOUT, sprintf("%d/%d endpoints couverts\n", $report->coveredCount(), $report->total()));
 
@@ -34,5 +39,13 @@ if ($report->missing() !== []) {
     fwrite(STDOUT, "\nEndpoints manquants :\n");
     foreach ($report->missing() as $operation) {
         fwrite(STDOUT, sprintf("  - %-6s %-55s (%s)\n", $operation->method, $operation->path, $operation->operationId));
+    }
+}
+
+if ($report->excluded() !== []) {
+    fwrite(STDOUT, "\nExclusions explicites :\n");
+    foreach ($report->excluded() as $exclusion) {
+        $operation = $exclusion['operation'];
+        fwrite(STDOUT, sprintf("  - %-6s %-55s (%s) — %s\n", $operation->method, $operation->path, $operation->operationId, $exclusion['reason']));
     }
 }
