@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Noneo\Sdk\Pennylane\Dto\BankEstablishment;
+
+final readonly class BankEstablishmentDto
+{
+    public function __construct(
+        public int $id,
+        public string $name,
+        public string $createdAt,
+        public string $updatedAt,
+    ) {
+    }
+
+    /** @param mixed[] $body */
+    public static function fromArray(array $body): self
+    {
+        $id = $body['id'] ?? null;
+        $name = $body['name'] ?? null;
+        $createdAt = $body['created_at'] ?? null;
+        $updatedAt = $body['updated_at'] ?? null;
+
+        if (!is_int($id)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un entier "id".');
+        }
+
+        if (!is_string($name)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "name" textuel.');
+        }
+
+        if (!is_string($createdAt) || !is_string($updatedAt)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir "created_at" et "updated_at".');
+        }
+
+        return new self(
+            id: $id,
+            name: $name,
+            createdAt: $createdAt,
+            updatedAt: $updatedAt,
+        );
+    }
+}

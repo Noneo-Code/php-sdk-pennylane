@@ -6,6 +6,8 @@ namespace Noneo\Sdk\Pennylane;
 
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
+use Noneo\Sdk\Pennylane\Resource\BankAccounts;
+use Noneo\Sdk\Pennylane\Resource\BankEstablishments;
 use Noneo\Sdk\Pennylane\Resource\Categories;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
 use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
@@ -22,6 +24,7 @@ use Noneo\Sdk\Pennylane\Resource\PurchaseRequests;
 use Noneo\Sdk\Pennylane\Resource\Quotes;
 use Noneo\Sdk\Pennylane\Resource\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Resource\Suppliers;
+use Noneo\Sdk\Pennylane\Resource\Transactions;
 use Noneo\Sdk\Pennylane\Resource\TrialBalance;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
@@ -44,6 +47,16 @@ final class Pennylane extends Connector
     public function resolveBaseUrl(): string
     {
         return 'https://app.pennylane.com/api/external/v2';
+    }
+
+    public function bankAccounts(): BankAccounts
+    {
+        return new BankAccounts($this);
+    }
+
+    public function bankEstablishments(): BankEstablishments
+    {
+        return new BankEstablishments($this);
     }
 
     public function categories(): Categories
@@ -124,6 +137,11 @@ final class Pennylane extends Connector
     public function supplierInvoices(): SupplierInvoices
     {
         return new SupplierInvoices($this);
+    }
+
+    public function transactions(): Transactions
+    {
+        return new Transactions($this);
     }
 
     public function trialBalance(): TrialBalance
