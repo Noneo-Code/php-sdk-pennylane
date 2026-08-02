@@ -36,4 +36,25 @@ final class CoverageReportTest extends TestCase
         self::assertSame(1, $report->coveredCount());
         self::assertSame('postJournals', $report->missing()[0]->operationId);
     }
+
+    public function testExcludesADocumentedOperationFromTheTotalAndFromMissing(): void
+    {
+        $operations = [
+            new SpecOperation('GET', '/api/external/v2/journals', 'getJournals'),
+            new SpecOperation('POST', '/api/external/v2/ledger_attachments', 'postLedgerAttachments'),
+        ];
+
+        $report = new CoverageReport(
+            $operations,
+            coveredBasenames: ['GetJournals'],
+            excludedOperationIds: ['postLedgerAttachments' => 'Déprécié au profit de postFileAttachments.'],
+        );
+
+        self::assertSame(1, $report->total());
+        self::assertSame(1, $report->coveredCount());
+        self::assertSame([], $report->missing());
+        self::assertCount(1, $report->excluded());
+        self::assertSame('postLedgerAttachments', $report->excluded()[0]['operation']->operationId);
+        self::assertSame('Déprécié au profit de postFileAttachments.', $report->excluded()[0]['reason']);
+    }
 }
