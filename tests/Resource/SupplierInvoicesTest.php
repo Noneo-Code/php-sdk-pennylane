@@ -10,7 +10,8 @@ use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\MatchedTransactionDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\NewSupplierInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\PaymentDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\PaymentStatusUpdate;
-use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceDisputeReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceRefusalReason;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceDto;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
@@ -243,7 +244,7 @@ final class SupplierInvoicesTest extends TestCase
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
         $pennylane->withMockClient($mockClient);
 
-        $invoice = $pennylane->supplierInvoices()->disputeEInvoice(123, SupplierEInvoiceReason::IncorrectVatRate);
+        $invoice = $pennylane->supplierInvoices()->disputeEInvoice(123, SupplierEInvoiceDisputeReason::IncorrectVatRate);
 
         self::assertSame(123, $invoice->id);
     }
@@ -254,7 +255,7 @@ final class SupplierInvoicesTest extends TestCase
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
         $pennylane->withMockClient($mockClient);
 
-        $invoice = $pennylane->supplierInvoices()->refuseEInvoice(123, SupplierEInvoiceReason::DuplicateInvoice);
+        $invoice = $pennylane->supplierInvoices()->refuseEInvoice(123, SupplierEInvoiceRefusalReason::DuplicateInvoice);
 
         self::assertSame(123, $invoice->id);
     }

@@ -9,6 +9,7 @@ use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateDto;
 use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateSequenceType;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\SepaMandates\DeleteSepaMandate;
@@ -69,13 +70,13 @@ final class SepaMandates extends BaseResource
 
     public function update(
         int $id,
-        ?string $bank = null,
-        ?string $bic = null,
-        ?string $iban = null,
-        ?SepaMandateSequenceType $sequenceType = null,
-        ?string $signedAt = null,
-        ?string $identifier = null,
-        ?int $customerId = null,
+        string|Clear|null $bank = null,
+        string|Clear|null $bic = null,
+        string|Clear|null $iban = null,
+        SepaMandateSequenceType|Clear|null $sequenceType = null,
+        string|Clear|null $signedAt = null,
+        string|Clear|null $identifier = null,
+        int|Clear|null $customerId = null,
     ): SepaMandateDto {
         $request = new PutSepaMandate($id, $bank, $bic, $iban, $sequenceType, $signedAt, $identifier, $customerId);
 

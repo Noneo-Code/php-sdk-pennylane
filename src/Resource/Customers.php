@@ -16,6 +16,7 @@ use Noneo\Sdk\Pennylane\Dto\Customer\IndividualCustomerDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\PaymentConditions;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\Customers\GetCompanyCustomer;
@@ -82,20 +83,20 @@ final class Customers extends BaseResource
     /** @param string[]|null $emails */
     public function updateCompany(
         int $id,
-        ?string $name = null,
-        ?string $vatNumber = null,
-        ?string $regNo = null,
-        ?string $phone = null,
-        ?Address $billingAddress = null,
-        ?Address $deliveryAddress = null,
-        ?PaymentConditions $paymentConditions = null,
-        ?string $billingIban = null,
-        ?string $recipient = null,
-        ?string $reference = null,
-        ?string $notes = null,
-        ?array $emails = null,
-        ?string $externalReference = null,
-        ?BillingLanguage $billingLanguage = null,
+        string|Clear|null $name = null,
+        string|Clear|null $vatNumber = null,
+        string|Clear|null $regNo = null,
+        string|Clear|null $phone = null,
+        Address|Clear|null $billingAddress = null,
+        Address|Clear|null $deliveryAddress = null,
+        PaymentConditions|Clear|null $paymentConditions = null,
+        string|Clear|null $billingIban = null,
+        string|Clear|null $recipient = null,
+        string|Clear|null $reference = null,
+        string|Clear|null $notes = null,
+        array|Clear|null $emails = null,
+        string|Clear|null $externalReference = null,
+        BillingLanguage|Clear|null $billingLanguage = null,
     ): CompanyCustomerDto {
         $request = new PutCompanyCustomer(
             id: $id,
@@ -163,19 +164,19 @@ final class Customers extends BaseResource
     /** @param string[]|null $emails */
     public function updateIndividual(
         int $id,
-        ?string $firstName = null,
-        ?string $lastName = null,
-        ?string $phone = null,
-        ?Address $billingAddress = null,
-        ?Address $deliveryAddress = null,
-        ?PaymentConditions $paymentConditions = null,
-        ?string $billingIban = null,
-        ?string $recipient = null,
-        ?string $reference = null,
-        ?string $notes = null,
-        ?array $emails = null,
-        ?string $externalReference = null,
-        ?BillingLanguage $billingLanguage = null,
+        string|Clear|null $firstName = null,
+        string|Clear|null $lastName = null,
+        string|Clear|null $phone = null,
+        Address|Clear|null $billingAddress = null,
+        Address|Clear|null $deliveryAddress = null,
+        PaymentConditions|Clear|null $paymentConditions = null,
+        string|Clear|null $billingIban = null,
+        string|Clear|null $recipient = null,
+        string|Clear|null $reference = null,
+        string|Clear|null $notes = null,
+        array|Clear|null $emails = null,
+        string|Clear|null $externalReference = null,
+        BillingLanguage|Clear|null $billingLanguage = null,
     ): IndividualCustomerDto {
         $request = new PutIndividualCustomer(
             id: $id,

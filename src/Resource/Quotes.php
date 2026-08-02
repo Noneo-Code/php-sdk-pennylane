@@ -19,6 +19,7 @@ use Noneo\Sdk\Pennylane\Dto\Quote\QuoteInvoiceLinesPatch;
 use Noneo\Sdk\Pennylane\Dto\Quote\QuoteStatus;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\Quotes\GetQuote;
@@ -110,19 +111,19 @@ final class Quotes extends BaseResource
 
     public function update(
         int $id,
-        ?string $date = null,
-        ?string $deadline = null,
-        ?int $customerId = null,
-        ?int $quoteTemplateId = null,
-        ?string $pdfInvoiceFreeText = null,
-        ?string $pdfInvoiceSubject = null,
-        ?string $pdfDescription = null,
-        ?Currency $currency = null,
-        ?string $specialMention = null,
-        ?Discount $discount = null,
-        ?BillingLanguage $language = null,
-        ?QuoteInvoiceLinesPatch $invoiceLines = null,
-        ?string $externalReference = null,
+        string|Clear|null $date = null,
+        string|Clear|null $deadline = null,
+        int|Clear|null $customerId = null,
+        int|Clear|null $quoteTemplateId = null,
+        string|Clear|null $pdfInvoiceFreeText = null,
+        string|Clear|null $pdfInvoiceSubject = null,
+        string|Clear|null $pdfDescription = null,
+        Currency|Clear|null $currency = null,
+        string|Clear|null $specialMention = null,
+        Discount|Clear|null $discount = null,
+        BillingLanguage|Clear|null $language = null,
+        QuoteInvoiceLinesPatch|Clear|null $invoiceLines = null,
+        string|Clear|null $externalReference = null,
     ): QuoteDto {
         $request = new UpdateQuote(
             id: $id,

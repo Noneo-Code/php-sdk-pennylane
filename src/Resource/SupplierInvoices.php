@@ -17,11 +17,13 @@ use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\MatchedTransactionDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\NewSupplierInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\PaymentDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\PaymentStatusUpdate;
-use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceDisputeReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceRefusalReason;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceLinesPatch;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\CreateSupplierInvoiceEInvoiceImport;
@@ -231,20 +233,20 @@ final class SupplierInvoices extends BaseResource
 
     public function update(
         int $id,
-        ?int $supplierId = null,
-        ?string $date = null,
-        ?string $deadline = null,
-        ?string $invoiceNumber = null,
-        ?string $label = null,
-        ?Currency $currency = null,
-        ?string $currencyAmountBeforeTax = null,
-        ?string $currencyAmount = null,
-        ?string $amount = null,
-        ?string $currencyTax = null,
-        ?string $tax = null,
-        ?NewTransactionReference $transactionReference = null,
-        ?SupplierInvoiceLinesPatch $invoiceLines = null,
-        ?string $externalReference = null,
+        int|Clear|null $supplierId = null,
+        string|Clear|null $date = null,
+        string|Clear|null $deadline = null,
+        string|Clear|null $invoiceNumber = null,
+        string|Clear|null $label = null,
+        Currency|Clear|null $currency = null,
+        string|Clear|null $currencyAmountBeforeTax = null,
+        string|Clear|null $currencyAmount = null,
+        string|Clear|null $amount = null,
+        string|Clear|null $currencyTax = null,
+        string|Clear|null $tax = null,
+        NewTransactionReference|Clear|null $transactionReference = null,
+        SupplierInvoiceLinesPatch|Clear|null $invoiceLines = null,
+        string|Clear|null $externalReference = null,
     ): SupplierInvoiceDto {
         $request = new PutSupplierInvoice(
             id: $id,
@@ -282,14 +284,14 @@ final class SupplierInvoices extends BaseResource
         return SupplierInvoiceDto::fromArray($this->connector->send(new ValidateAccountingSupplierInvoice($id))->json());
     }
 
-    public function disputeEInvoice(int $id, SupplierEInvoiceReason $reason): SupplierInvoiceDto
+    public function disputeEInvoice(int $id, SupplierEInvoiceDisputeReason $reason): SupplierInvoiceDto
     {
         $request = new PutSupplierInvoiceEInvoiceStatus($id, EInvoiceStatusTransition::Disputed, $reason);
 
         return SupplierInvoiceDto::fromArray($this->connector->send($request)->json());
     }
 
-    public function refuseEInvoice(int $id, SupplierEInvoiceReason $reason): SupplierInvoiceDto
+    public function refuseEInvoice(int $id, SupplierEInvoiceRefusalReason $reason): SupplierInvoiceDto
     {
         $request = new PutSupplierInvoiceEInvoiceStatus($id, EInvoiceStatusTransition::Refused, $reason);
 

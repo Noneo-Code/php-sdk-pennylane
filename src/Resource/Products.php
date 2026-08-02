@@ -11,6 +11,7 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
 use Noneo\Sdk\Pennylane\Dto\Product\ProductDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\Products\GetProduct;
@@ -84,16 +85,16 @@ final class Products extends BaseResource
 
     public function update(
         int $id,
-        ?string $label = null,
-        ?string $description = null,
-        ?string $externalReference = null,
-        ?string $priceBeforeTax = null,
-        ?VatRate $vatRate = null,
-        ?string $unit = null,
-        ?Currency $currency = null,
-        ?string $reference = null,
-        ?int $ledgerAccountId = null,
-        ?Substance $substance = null,
+        string|Clear|null $label = null,
+        string|Clear|null $description = null,
+        string|Clear|null $externalReference = null,
+        string|Clear|null $priceBeforeTax = null,
+        VatRate|Clear|null $vatRate = null,
+        string|Clear|null $unit = null,
+        Currency|Clear|null $currency = null,
+        string|Clear|null $reference = null,
+        int|Clear|null $ledgerAccountId = null,
+        Substance|Clear|null $substance = null,
     ): ProductDto {
         $request = new PutProduct(
             id: $id,

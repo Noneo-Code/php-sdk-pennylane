@@ -16,6 +16,7 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineSectionDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\BillingSubscriptions\GetBillingSubscription;
@@ -87,14 +88,14 @@ final class BillingSubscriptions extends BaseResource
 
     public function update(
         int $id,
-        ?bool $stop = null,
-        ?NewMode $mode = null,
-        ?PaymentConditions $paymentConditions = null,
-        ?BillingSubscriptionPaymentMethod $paymentMethod = null,
-        ?string $label = null,
-        ?NewRecurringRule $recurringRule = null,
-        ?int $customerId = null,
-        ?UpdateInvoiceData $customerInvoiceData = null,
+        bool|Clear|null $stop = null,
+        NewMode|Clear|null $mode = null,
+        PaymentConditions|Clear|null $paymentConditions = null,
+        BillingSubscriptionPaymentMethod|Clear|null $paymentMethod = null,
+        string|Clear|null $label = null,
+        NewRecurringRule|Clear|null $recurringRule = null,
+        int|Clear|null $customerId = null,
+        UpdateInvoiceData|Clear|null $customerInvoiceData = null,
     ): BillingSubscriptionDto {
         $request = new PutBillingSubscriptions(
             id: $id,

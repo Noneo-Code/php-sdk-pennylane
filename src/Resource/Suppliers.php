@@ -13,6 +13,7 @@ use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierDueDateRule;
 use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierPaymentMethod;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\Suppliers\GetSupplier;
@@ -94,17 +95,17 @@ final class Suppliers extends BaseResource
     /** @param string[]|null $emails */
     public function update(
         int $id,
-        ?string $name = null,
-        ?string $establishmentNo = null,
-        ?string $regNo = null,
-        ?Address $postalAddress = null,
-        ?string $vatNumber = null,
-        ?array $emails = null,
-        ?string $iban = null,
-        ?SupplierPaymentMethod $supplierPaymentMethod = null,
-        ?int $supplierDueDateDelay = null,
-        ?SupplierDueDateRule $supplierDueDateRule = null,
-        ?string $externalReference = null,
+        string|Clear|null $name = null,
+        string|Clear|null $establishmentNo = null,
+        string|Clear|null $regNo = null,
+        Address|Clear|null $postalAddress = null,
+        string|Clear|null $vatNumber = null,
+        array|Clear|null $emails = null,
+        string|Clear|null $iban = null,
+        SupplierPaymentMethod|Clear|null $supplierPaymentMethod = null,
+        int|Clear|null $supplierDueDateDelay = null,
+        SupplierDueDateRule|Clear|null $supplierDueDateRule = null,
+        string|Clear|null $externalReference = null,
     ): SupplierDto {
         $request = new PutSupplier(
             id: $id,

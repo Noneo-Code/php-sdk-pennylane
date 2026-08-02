@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Requests\SepaMandates;
 
 use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateSequenceType;
+use Noneo\Sdk\Pennylane\Http\Clear;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -18,13 +20,13 @@ final class PutSepaMandate extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly ?string $bank = null,
-        private readonly ?string $bic = null,
-        private readonly ?string $iban = null,
-        private readonly ?SepaMandateSequenceType $sequenceType = null,
-        private readonly ?string $signedAt = null,
-        private readonly ?string $identifier = null,
-        private readonly ?int $customerId = null,
+        private readonly string|Clear|null $bank = null,
+        private readonly string|Clear|null $bic = null,
+        private readonly string|Clear|null $iban = null,
+        private readonly SepaMandateSequenceType|Clear|null $sequenceType = null,
+        private readonly string|Clear|null $signedAt = null,
+        private readonly string|Clear|null $identifier = null,
+        private readonly int|Clear|null $customerId = null,
     ) {
     }
 
@@ -36,14 +38,14 @@ final class PutSepaMandate extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'bank' => $this->bank,
             'bic' => $this->bic,
             'iban' => $this->iban,
-            'sequence_type' => $this->sequenceType?->value,
+            'sequence_type' => $this->sequenceType,
             'signed_at' => $this->signedAt,
             'identifier' => $this->identifier,
             'customer_id' => $this->customerId,
-        ], static fn (mixed $value): bool => null !== $value);
+        ]);
     }
 }

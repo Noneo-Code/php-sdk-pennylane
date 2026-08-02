@@ -9,6 +9,7 @@ use Noneo\Sdk\Pennylane\Dto\Category\CategoryDirection;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\Categories\GetCategories;
@@ -72,9 +73,9 @@ final class Categories extends BaseResource
 
     public function update(
         int $id,
-        ?string $label = null,
-        ?CategoryDirection $direction = null,
-        ?string $analyticalCode = null,
+        string|Clear|null $label = null,
+        CategoryDirection|Clear|null $direction = null,
+        string|Clear|null $analyticalCode = null,
     ): CategoryDto {
         $request = new UpdateCategory($id, $label, $direction, $analyticalCode);
 

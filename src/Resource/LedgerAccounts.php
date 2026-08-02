@@ -10,6 +10,7 @@ use Noneo\Sdk\Pennylane\Dto\LedgerAccount\LedgerAccountDto;
 use Noneo\Sdk\Pennylane\Dto\LedgerAccount\VatRate;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\LedgerAccounts\GetLedgerAccount;
@@ -71,7 +72,7 @@ final class LedgerAccounts extends BaseResource
         return LedgerAccountDto::fromArray($this->connector->send($request)->json());
     }
 
-    public function update(int $id, ?string $label = null, ?bool $letterable = null): LedgerAccountDto
+    public function update(int $id, string|Clear|null $label = null, ?bool $letterable = null): LedgerAccountDto
     {
         $request = new UpdateLedgerAccount($id, $label, $letterable);
 

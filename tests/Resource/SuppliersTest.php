@@ -8,6 +8,7 @@ use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\Address;
 use Noneo\Sdk\Pennylane\Dto\Customer\CategoryAllocation;
 use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierDto;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Suppliers\PostSupplier;
@@ -125,6 +126,19 @@ final class SuppliersTest extends TestCase
         self::assertInstanceOf(SupplierDto::class, $supplier);
         $mockClient->assertSent(function (PutSupplier $sent): bool {
             return ['name' => 'Renamed Pennylane'] === $sent->body()->all();
+        });
+    }
+
+    public function testUpdateClearsAFieldWhenAskedTo(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([MockResponse::make($this->documentedSupplierPayload())]);
+        $pennylane->withMockClient($mockClient);
+
+        $pennylane->suppliers()->update(42, externalReference: Clear::value());
+
+        $mockClient->assertSent(function (PutSupplier $sent): bool {
+            return ['external_reference' => null] === $sent->body()->all();
         });
     }
 

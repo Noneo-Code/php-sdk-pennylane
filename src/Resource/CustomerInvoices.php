@@ -30,6 +30,7 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\OverrideInvoiceLine;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\PaymentDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
+use Noneo\Sdk\Pennylane\Http\Clear;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Http\CursorPaginator;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceEInvoiceImport;
@@ -219,21 +220,21 @@ final class CustomerInvoices extends BaseResource
 
     public function update(
         int $id,
-        ?string $date = null,
-        ?string $deadline = null,
-        ?int $customerId = null,
-        ?int $customerInvoiceTemplateId = null,
-        ?string $pdfInvoiceFreeText = null,
-        ?string $pdfInvoiceSubject = null,
-        ?string $pdfDescription = null,
-        ?Currency $currency = null,
-        ?string $specialMention = null,
-        ?Discount $discount = null,
-        ?BillingLanguage $language = null,
-        ?InvoiceLinesPatch $invoiceLines = null,
-        ?string $label = null,
-        ?string $externalReference = null,
-        ?NewTransactionReference $transactionReference = null,
+        string|Clear|null $date = null,
+        string|Clear|null $deadline = null,
+        int|Clear|null $customerId = null,
+        int|Clear|null $customerInvoiceTemplateId = null,
+        string|Clear|null $pdfInvoiceFreeText = null,
+        string|Clear|null $pdfInvoiceSubject = null,
+        string|Clear|null $pdfDescription = null,
+        Currency|Clear|null $currency = null,
+        string|Clear|null $specialMention = null,
+        Discount|Clear|null $discount = null,
+        BillingLanguage|Clear|null $language = null,
+        InvoiceLinesPatch|Clear|null $invoiceLines = null,
+        string|Clear|null $label = null,
+        string|Clear|null $externalReference = null,
+        NewTransactionReference|Clear|null $transactionReference = null,
     ): CustomerInvoiceDto {
         $request = new UpdateCustomerInvoice(
             id: $id,
@@ -259,19 +260,19 @@ final class CustomerInvoices extends BaseResource
 
     public function updateImported(
         int $id,
-        ?string $date = null,
-        ?string $deadline = null,
-        ?int $customerId = null,
-        ?string $invoiceNumber = null,
-        ?Currency $currency = null,
-        ?string $currencyAmountBeforeTax = null,
-        ?string $currencyAmount = null,
-        ?string $amount = null,
-        ?string $currencyTax = null,
-        ?string $tax = null,
-        ?NewTransactionReference $transactionReference = null,
-        ?ImportedInvoiceLinesPatch $invoiceLines = null,
-        ?string $externalReference = null,
+        string|Clear|null $date = null,
+        string|Clear|null $deadline = null,
+        int|Clear|null $customerId = null,
+        string|Clear|null $invoiceNumber = null,
+        Currency|Clear|null $currency = null,
+        string|Clear|null $currencyAmountBeforeTax = null,
+        string|Clear|null $currencyAmount = null,
+        string|Clear|null $amount = null,
+        string|Clear|null $currencyTax = null,
+        string|Clear|null $tax = null,
+        NewTransactionReference|Clear|null $transactionReference = null,
+        ImportedInvoiceLinesPatch|Clear|null $invoiceLines = null,
+        string|Clear|null $externalReference = null,
     ): CustomerInvoiceDto {
         $request = new UpdateImportedCustomerInvoice(
             id: $id,

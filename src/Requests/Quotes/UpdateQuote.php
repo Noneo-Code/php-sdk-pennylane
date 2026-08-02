@@ -8,6 +8,8 @@ use Noneo\Sdk\Pennylane\Dto\Customer\BillingLanguage;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Discount;
 use Noneo\Sdk\Pennylane\Dto\Quote\QuoteInvoiceLinesPatch;
+use Noneo\Sdk\Pennylane\Http\Clear;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -21,19 +23,19 @@ final class UpdateQuote extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly ?string $date = null,
-        private readonly ?string $deadline = null,
-        private readonly ?int $customerId = null,
-        private readonly ?int $quoteTemplateId = null,
-        private readonly ?string $pdfInvoiceFreeText = null,
-        private readonly ?string $pdfInvoiceSubject = null,
-        private readonly ?string $pdfDescription = null,
-        private readonly ?Currency $currency = null,
-        private readonly ?string $specialMention = null,
-        private readonly ?Discount $discount = null,
-        private readonly ?BillingLanguage $language = null,
-        private readonly ?QuoteInvoiceLinesPatch $invoiceLines = null,
-        private readonly ?string $externalReference = null,
+        private readonly string|Clear|null $date = null,
+        private readonly string|Clear|null $deadline = null,
+        private readonly int|Clear|null $customerId = null,
+        private readonly int|Clear|null $quoteTemplateId = null,
+        private readonly string|Clear|null $pdfInvoiceFreeText = null,
+        private readonly string|Clear|null $pdfInvoiceSubject = null,
+        private readonly string|Clear|null $pdfDescription = null,
+        private readonly Currency|Clear|null $currency = null,
+        private readonly string|Clear|null $specialMention = null,
+        private readonly Discount|Clear|null $discount = null,
+        private readonly BillingLanguage|Clear|null $language = null,
+        private readonly QuoteInvoiceLinesPatch|Clear|null $invoiceLines = null,
+        private readonly string|Clear|null $externalReference = null,
     ) {
     }
 
@@ -45,7 +47,7 @@ final class UpdateQuote extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'date' => $this->date,
             'deadline' => $this->deadline,
             'customer_id' => $this->customerId,
@@ -53,12 +55,12 @@ final class UpdateQuote extends Request implements HasBody
             'pdf_invoice_free_text' => $this->pdfInvoiceFreeText,
             'pdf_invoice_subject' => $this->pdfInvoiceSubject,
             'pdf_description' => $this->pdfDescription,
-            'currency' => $this->currency?->value,
+            'currency' => $this->currency,
             'special_mention' => $this->specialMention,
-            'discount' => $this->discount?->toArray(),
-            'language' => $this->language?->value,
-            'invoice_lines' => $this->invoiceLines?->toArray(),
+            'discount' => $this->discount,
+            'language' => $this->language,
+            'invoice_lines' => $this->invoiceLines,
             'external_reference' => $this->externalReference,
-        ], static fn (mixed $value): bool => null !== $value);
+        ]);
     }
 }

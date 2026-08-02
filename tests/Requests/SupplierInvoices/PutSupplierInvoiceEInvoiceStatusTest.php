@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Tests\Requests\SupplierInvoices;
 
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\EInvoiceStatusTransition;
-use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceReason;
+use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoiceDisputeReason;
 use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\PutSupplierInvoiceEInvoiceStatus;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +22,7 @@ final class PutSupplierInvoiceEInvoiceStatusTest extends TestCase
         $mockClient = new MockClient([MockResponse::make(['id' => 12345])]);
         $pennylane->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplierInvoiceEInvoiceStatus(12345, EInvoiceStatusTransition::Disputed, SupplierEInvoiceReason::IncorrectVatRate));
+        $pennylane->send(new PutSupplierInvoiceEInvoiceStatus(12345, EInvoiceStatusTransition::Disputed, SupplierEInvoiceDisputeReason::IncorrectVatRate));
 
         $mockClient->assertSent(function (PutSupplierInvoiceEInvoiceStatus $sent): bool {
             return Method::PUT === $sent->getMethod()

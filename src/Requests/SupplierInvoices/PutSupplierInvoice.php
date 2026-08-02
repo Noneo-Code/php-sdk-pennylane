@@ -7,6 +7,8 @@ namespace Noneo\Sdk\Pennylane\Requests\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\NewTransactionReference;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceLinesPatch;
+use Noneo\Sdk\Pennylane\Http\Clear;
+use Noneo\Sdk\Pennylane\Http\Payload;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
 use Saloon\Http\Request;
@@ -20,20 +22,20 @@ final class PutSupplierInvoice extends Request implements HasBody
 
     public function __construct(
         private readonly int $id,
-        private readonly ?int $supplierId = null,
-        private readonly ?string $date = null,
-        private readonly ?string $deadline = null,
-        private readonly ?string $invoiceNumber = null,
-        private readonly ?string $label = null,
-        private readonly ?Currency $currency = null,
-        private readonly ?string $currencyAmountBeforeTax = null,
-        private readonly ?string $currencyAmount = null,
-        private readonly ?string $amount = null,
-        private readonly ?string $currencyTax = null,
-        private readonly ?string $tax = null,
-        private readonly ?NewTransactionReference $transactionReference = null,
-        private readonly ?SupplierInvoiceLinesPatch $invoiceLines = null,
-        private readonly ?string $externalReference = null,
+        private readonly int|Clear|null $supplierId = null,
+        private readonly string|Clear|null $date = null,
+        private readonly string|Clear|null $deadline = null,
+        private readonly string|Clear|null $invoiceNumber = null,
+        private readonly string|Clear|null $label = null,
+        private readonly Currency|Clear|null $currency = null,
+        private readonly string|Clear|null $currencyAmountBeforeTax = null,
+        private readonly string|Clear|null $currencyAmount = null,
+        private readonly string|Clear|null $amount = null,
+        private readonly string|Clear|null $currencyTax = null,
+        private readonly string|Clear|null $tax = null,
+        private readonly NewTransactionReference|Clear|null $transactionReference = null,
+        private readonly SupplierInvoiceLinesPatch|Clear|null $invoiceLines = null,
+        private readonly string|Clear|null $externalReference = null,
     ) {
     }
 
@@ -45,21 +47,21 @@ final class PutSupplierInvoice extends Request implements HasBody
     /** @return array<string, mixed> */
     protected function defaultBody(): array
     {
-        return array_filter([
+        return Payload::build([
             'supplier_id' => $this->supplierId,
             'date' => $this->date,
             'deadline' => $this->deadline,
             'invoice_number' => $this->invoiceNumber,
             'label' => $this->label,
-            'currency' => $this->currency?->value,
+            'currency' => $this->currency,
             'currency_amount_before_tax' => $this->currencyAmountBeforeTax,
             'currency_amount' => $this->currencyAmount,
             'amount' => $this->amount,
             'currency_tax' => $this->currencyTax,
             'tax' => $this->tax,
-            'transaction_reference' => $this->transactionReference?->toArray(),
-            'invoice_lines' => $this->invoiceLines?->toArray(),
+            'transaction_reference' => $this->transactionReference,
+            'invoice_lines' => $this->invoiceLines,
             'external_reference' => $this->externalReference,
-        ], static fn (mixed $value): bool => null !== $value);
+        ]);
     }
 }
