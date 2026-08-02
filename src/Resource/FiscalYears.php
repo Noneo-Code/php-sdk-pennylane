@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\FiscalYear\FiscalYearDto;
 use Noneo\Sdk\Pennylane\Filter\Sort;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
@@ -13,6 +14,8 @@ use Saloon\Http\BaseResource;
 
 final class FiscalYears extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -30,26 +33,17 @@ final class FiscalYears extends BaseResource
     }
 
     /** @return \Generator<int, FiscalYearDto> */
-    public function paginate(?Sort $sort = null): \Generator
+    public function paginate(?Sort $sort = null, ?int $perPage = null): \Generator
     {
         $paginator = new CursorPaginator(
             $this->connector,
             new GetFiscalYears(sort: $sort),
             sort: $sort,
+            perPage: $perPage,
         );
 
         foreach ($paginator->items() as $item) {
             yield FiscalYearDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

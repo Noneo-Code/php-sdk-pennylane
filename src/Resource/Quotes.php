@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Customer\BillingLanguage;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\AppendixDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
@@ -34,6 +35,8 @@ use Saloon\Http\BaseResource;
 
 final class Quotes extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -51,9 +54,9 @@ final class Quotes extends BaseResource
     }
 
     /** @return \Generator<int, QuoteDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new ListQuotes(filters: $filters, sort: $sort), filters: $filters, sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new ListQuotes(filters: $filters, sort: $sort), filters: $filters, sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield QuoteDto::fromArray(self::asArray($item));
@@ -165,9 +168,9 @@ final class Quotes extends BaseResource
     }
 
     /** @return \Generator<int, AppendixDto> */
-    public function paginateAppendices(int $quoteId): \Generator
+    public function paginateAppendices(int $quoteId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetQuoteAppendices($quoteId));
+        $paginator = new CursorPaginator($this->connector, new GetQuoteAppendices($quoteId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield AppendixDto::fromArray(self::asArray($item));
@@ -195,9 +198,9 @@ final class Quotes extends BaseResource
     }
 
     /** @return \Generator<int, InvoiceLineSectionDto> */
-    public function paginateInvoiceLineSections(int $quoteId, ?Sort $sort = null): \Generator
+    public function paginateInvoiceLineSections(int $quoteId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetQuoteInvoiceLineSections($quoteId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetQuoteInvoiceLineSections($quoteId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield InvoiceLineSectionDto::fromArray(self::asArray($item));
@@ -217,22 +220,12 @@ final class Quotes extends BaseResource
     }
 
     /** @return \Generator<int, QuoteInvoiceLineDto> */
-    public function paginateInvoiceLines(int $quoteId, ?Sort $sort = null): \Generator
+    public function paginateInvoiceLines(int $quoteId, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetQuoteInvoiceLines($quoteId, sort: $sort));
+        $paginator = new CursorPaginator($this->connector, new GetQuoteInvoiceLines($quoteId, sort: $sort), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield QuoteInvoiceLineDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

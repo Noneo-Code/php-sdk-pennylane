@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Tests\Concerns;
 
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
+use Noneo\Sdk\Pennylane\Exception\BadRequestException;
+use Noneo\Sdk\Pennylane\Exception\ClientException;
 use Noneo\Sdk\Pennylane\Exception\ConflictException;
 use Noneo\Sdk\Pennylane\Exception\ForbiddenException;
 use Noneo\Sdk\Pennylane\Exception\NotFoundException;
+use Noneo\Sdk\Pennylane\Exception\PennylaneException;
 use Noneo\Sdk\Pennylane\Exception\RateLimitException;
 use Noneo\Sdk\Pennylane\Exception\ServerException;
 use Noneo\Sdk\Pennylane\Exception\UnauthorizedException;
@@ -121,6 +124,83 @@ final class HandlesPennylaneErrorsTest extends TestCase
         ));
 
         self::assertInstanceOf(ServerException::class, $exception);
+    }
+
+    public function testThrowsBadRequestExceptionOn400WithTheDocumentedErrorShape(): void
+    {
+        $exception = $this->sendAndCapture(MockResponse::make(
+            ['error' => 'Invalid filter', 'status' => 400],
+            400,
+        ));
+
+        self::assertInstanceOf(BadRequestException::class, $exception);
+        self::assertSame('Invalid filter', $exception->error());
+    }
+
+    public function testThrowsBadRequestExceptionOn400WithAValidationCode(): void
+    {
+        $exception = $this->sendAndCapture(MockResponse::make(
+            ['message' => 'must be a valid date', 'code' => 'InvalidDateFormat', 'field' => 'date'],
+            400,
+        ));
+
+        self::assertInstanceOf(BadRequestException::class, $exception);
+        self::assertSame('must be a valid date', $exception->message());
+        self::assertSame('InvalidDateFormat', $exception->errorCode());
+        self::assertSame(['code' => 'InvalidDateFormat', 'field' => 'date'], $exception->details());
+    }
+
+    public function testThrowsAPennylaneClientExceptionOnAnUnmapped4xx(): void
+    {
+        $exception = $this->sendAndCapture(MockResponse::make(
+            ['error' => 'Payment required', 'status' => 402],
+            402,
+        ));
+
+        self::assertInstanceOf(ClientException::class, $exception);
+        self::assertInstanceOf(PennylaneException::class, $exception);
+        self::assertSame('Payment required', $exception->error());
+    }
+
+    public function testThrowsAPennylaneServerExceptionOnAnUnmapped5xx(): void
+    {
+        $exception = $this->sendAndCapture(MockResponse::make(
+            ['error' => 'Bad gateway', 'status' => 502],
+            502,
+        ));
+
+        self::assertInstanceOf(ServerException::class, $exception);
+        self::assertSame('Bad gateway', $exception->error());
+    }
+
+    public function testKeepsTheHttpContextWhenTheBodyIsNotJson(): void
+    {
+        $exception = $this->sendAndCapture(MockResponse::make(
+            '<html><body>503 Service Unavailable</body></html>',
+            503,
+            ['Content-Type' => 'text/html'],
+        ));
+
+        self::assertInstanceOf(ServerException::class, $exception);
+        self::assertSame('<html><body>503 Service Unavailable</body></html>', $exception->error());
+        self::assertSame(503, $exception->response()->status());
+    }
+
+    public function testKeepsTheHttpContextWhenA404BodyIsNotJson(): void
+    {
+        $exception = $this->sendAndCapture(MockResponse::make('<html>404</html>', 404, ['Content-Type' => 'text/html']));
+
+        self::assertInstanceOf(NotFoundException::class, $exception);
+        self::assertSame('<html>404</html>', $exception->error());
+    }
+
+    public function testReadsTheMessageOnlyErrorShape(): void
+    {
+        $exception = $this->sendAndCapture(MockResponse::make(['message' => 'Something went wrong'], 500));
+
+        self::assertInstanceOf(ServerException::class, $exception);
+        self::assertSame('Something went wrong', $exception->error());
+        self::assertSame('Something went wrong', $exception->message());
     }
 
     private function sendAndCapture(MockResponse $response): \Throwable

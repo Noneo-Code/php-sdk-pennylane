@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\BankAccount\AccountType;
 use Noneo\Sdk\Pennylane\Dto\BankAccount\BankAccountDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
@@ -17,6 +18,8 @@ use Saloon\Http\BaseResource;
 
 final class BankAccounts extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(?string $cursor = null, ?int $limit = null, ?Sort $sort = null): CursorPage
     {
         $response = $this->connector->send(new GetBankAccounts($cursor, $limit, $sort));
@@ -30,9 +33,9 @@ final class BankAccounts extends BaseResource
     }
 
     /** @return \Generator<int, BankAccountDto> */
-    public function paginate(?Sort $sort = null): \Generator
+    public function paginate(?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetBankAccounts(sort: $sort), sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetBankAccounts(sort: $sort), sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield BankAccountDto::fromArray(self::asArray($item));
@@ -55,15 +58,5 @@ final class BankAccounts extends BaseResource
         $request = new PostBankAccount($name, $bankEstablishmentId, $iban, $bic, $currency, $accountType);
 
         return BankAccountDto::fromArray($this->connector->send($request)->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

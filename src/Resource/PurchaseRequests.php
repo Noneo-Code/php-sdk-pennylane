@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Customer\Address;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\PurchaseRequest\NewPurchaseRequestLine;
@@ -19,6 +20,8 @@ use Saloon\Http\BaseResource;
 
 final class PurchaseRequests extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -36,9 +39,9 @@ final class PurchaseRequests extends BaseResource
     }
 
     /** @return \Generator<int, PurchaseRequestDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetPurchaseRequests(filters: $filters, sort: $sort), filters: $filters, sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetPurchaseRequests(filters: $filters, sort: $sort), filters: $filters, sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield PurchaseRequestDto::fromArray(self::asArray($item));
@@ -83,15 +86,5 @@ final class PurchaseRequests extends BaseResource
         );
 
         return PurchaseRequestDto::fromArray($this->connector->send($request)->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

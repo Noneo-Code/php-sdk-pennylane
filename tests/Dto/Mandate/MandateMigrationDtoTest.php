@@ -62,4 +62,17 @@ final class MandateMigrationDtoTest extends TestCase
 
         self::assertNull($dto->directDebitMethod);
     }
+
+    public function testFromArrayAllowsANullCustomerAsDocumented(): void
+    {
+        $payload = $this->documentedPayload();
+        $payload['customer'] = null;
+
+        $dto = MandateMigrationDto::fromArray($payload);
+
+        self::assertNull($dto->customerId);
+        self::assertNull($dto->customerUrl);
+        self::assertNull($dto->proAccountMandateUrl);
+        self::assertSame(42, $dto->mandateId);
+    }
 }

@@ -112,6 +112,32 @@ final class CursorPaginatorTest extends TestCase
         self::assertSame('cursor-page-3', $queriesPerPage[2]['cursor'] ?? null);
     }
 
+    public function testSendsNoLimitByDefaultAndLeavesThePageSizeToTheApi(): void
+    {
+        $mockClient = $this->threePageMockClient();
+        $paginator = new CursorPaginator($this->makeConnector($mockClient), $this->makeRequest());
+
+        /** @var Response $response */
+        foreach ($paginator as $response) {
+            self::assertArrayNotHasKey('limit', $response->getPendingRequest()->query()->all());
+        }
+    }
+
+    public function testResendsTheRequestedPageSizeOnEveryPage(): void
+    {
+        $mockClient = $this->threePageMockClient();
+        $paginator = new CursorPaginator($this->makeConnector($mockClient), $this->makeRequest(), perPage: 100);
+
+        $limits = [];
+
+        /** @var Response $response */
+        foreach ($paginator as $response) {
+            $limits[] = $response->getPendingRequest()->query()->all()['limit'] ?? null;
+        }
+
+        self::assertSame([100, 100, 100], $limits);
+    }
+
     public function testIsLastPageReliesOnHasMoreRatherThanTheItemCount(): void
     {
         $mockClient = new MockClient([

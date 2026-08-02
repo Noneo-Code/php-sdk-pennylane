@@ -18,9 +18,9 @@ final readonly class MandateMigrationDto
         public string $updatedAt,
         public int $mandateId,
         public MandateType $mandateType,
-        public int $customerId,
-        public string $customerUrl,
-        public string $proAccountMandateUrl,
+        public ?int $customerId,
+        public ?string $customerUrl,
+        public ?string $proAccountMandateUrl,
     ) {
     }
 
@@ -75,13 +75,15 @@ final readonly class MandateMigrationDto
             throw new \InvalidArgumentException('La migration de mandat Pennylane doit contenir un "mandate" avec un "id" et un "type".');
         }
 
-        if (!is_array($customer) || !is_int($customer['id'] ?? null) || !is_string($customer['url'] ?? null)) {
-            throw new \InvalidArgumentException('La migration de mandat Pennylane doit contenir un "customer" avec un "id" et une "url".');
+        // `customer` est documenté nullable : une migration peut ne pointer
+        // aucun client. Refuser ce cas ferait échouer la page entière.
+        if (null !== $customer && (!is_array($customer) || !is_int($customer['id'] ?? null) || !is_string($customer['url'] ?? null))) {
+            throw new \InvalidArgumentException('La migration de mandat Pennylane doit contenir un "customer" avec un "id" et une "url", ou nul.');
         }
 
-        $proAccountMandate = $customer['pro_account_mandate'] ?? null;
+        $proAccountMandate = is_array($customer) ? $customer['pro_account_mandate'] ?? null : null;
 
-        if (!is_array($proAccountMandate) || !is_string($proAccountMandate['url'] ?? null)) {
+        if (null !== $customer && (!is_array($proAccountMandate) || !is_string($proAccountMandate['url'] ?? null))) {
             throw new \InvalidArgumentException('Le "customer" de la migration de mandat Pennylane doit contenir un "pro_account_mandate" avec une "url".');
         }
 
@@ -97,9 +99,9 @@ final readonly class MandateMigrationDto
             updatedAt: $updatedAt,
             mandateId: $mandate['id'],
             mandateType: MandateType::from($mandate['type']),
-            customerId: $customer['id'],
-            customerUrl: $customer['url'],
-            proAccountMandateUrl: $proAccountMandate['url'],
+            customerId: is_array($customer) ? $customer['id'] : null,
+            customerUrl: is_array($customer) ? $customer['url'] : null,
+            proAccountMandateUrl: is_array($proAccountMandate) ? $proAccountMandate['url'] : null,
         );
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntry\LedgerEntryDto;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntry\LedgerEntryLineSummaryDto;
@@ -22,6 +23,8 @@ use Saloon\Http\BaseResource;
 
 final class LedgerEntries extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -40,13 +43,14 @@ final class LedgerEntries extends BaseResource
     }
 
     /** @return \Generator<int, LedgerEntryDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
         $paginator = new CursorPaginator(
             $this->connector,
             new GetLedgerEntries(filters: $filters, sort: $sort),
             filters: $filters,
             sort: $sort,
+            perPage: $perPage,
         );
 
         foreach ($paginator->items() as $item) {
@@ -136,27 +140,18 @@ final class LedgerEntries extends BaseResource
     }
 
     /** @return \Generator<int, LedgerEntryLineSummaryDto> */
-    public function paginateLines(int $ledgerEntryId, ?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginateLines(int $ledgerEntryId, ?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
         $paginator = new CursorPaginator(
             $this->connector,
             new GetLedgerEntriesLedgerEntryLines($ledgerEntryId, filters: $filters, sort: $sort),
             filters: $filters,
             sort: $sort,
+            perPage: $perPage,
         );
 
         foreach ($paginator->items() as $item) {
             yield LedgerEntryLineSummaryDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

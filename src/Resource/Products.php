@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Substance;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
@@ -20,6 +21,8 @@ use Saloon\Http\BaseResource;
 
 final class Products extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -37,9 +40,9 @@ final class Products extends BaseResource
     }
 
     /** @return \Generator<int, ProductDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetProducts(filters: $filters, sort: $sort), filters: $filters, sort: $sort);
+        $paginator = new CursorPaginator($this->connector, new GetProducts(filters: $filters, sort: $sort), filters: $filters, sort: $sort, perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield ProductDto::fromArray(self::asArray($item));
@@ -107,15 +110,5 @@ final class Products extends BaseResource
         );
 
         return ProductDto::fromArray($this->connector->send($request)->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

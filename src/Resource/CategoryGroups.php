@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryGroupDto;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
@@ -15,6 +16,8 @@ use Saloon\Http\BaseResource;
 
 final class CategoryGroups extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(?string $cursor = null, ?int $limit = null): CursorPage
     {
         $response = $this->connector->send(new GetCategoryGroups($cursor, $limit));
@@ -29,9 +32,9 @@ final class CategoryGroups extends BaseResource
     }
 
     /** @return \Generator<int, CategoryGroupDto> */
-    public function paginate(): \Generator
+    public function paginate(?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCategoryGroups());
+        $paginator = new CursorPaginator($this->connector, new GetCategoryGroups(), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CategoryGroupDto::fromArray(self::asArray($item));
@@ -57,22 +60,12 @@ final class CategoryGroups extends BaseResource
     }
 
     /** @return \Generator<int, CategoryDto> */
-    public function paginateCategories(int $categoryGroupId): \Generator
+    public function paginateCategories(int $categoryGroupId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCategoryGroupCategories($categoryGroupId));
+        $paginator = new CursorPaginator($this->connector, new GetCategoryGroupCategories($categoryGroupId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CategoryDto::fromArray(self::asArray($item));
         }
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

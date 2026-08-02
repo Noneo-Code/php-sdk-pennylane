@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\Address;
 use Noneo\Sdk\Pennylane\Dto\Customer\BillingLanguage;
@@ -32,6 +33,8 @@ use Saloon\Http\BaseResource;
 
 final class Customers extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function getCompany(int $id): CompanyCustomerDto
     {
         return CompanyCustomerDto::fromArray($this->connector->send(new GetCompanyCustomer($id))->json());
@@ -212,13 +215,14 @@ final class Customers extends BaseResource
     }
 
     /** @return \Generator<int, CustomerDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
         $paginator = new CursorPaginator(
             $this->connector,
             new GetCustomers(filters: $filters, sort: $sort),
             filters: $filters,
             sort: $sort,
+            perPage: $perPage,
         );
 
         foreach ($paginator->items() as $item) {
@@ -245,9 +249,9 @@ final class Customers extends BaseResource
     }
 
     /** @return \Generator<int, ContactDto> */
-    public function paginateContacts(int $customerId): \Generator
+    public function paginateContacts(int $customerId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerContacts($customerId));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerContacts($customerId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield ContactDto::fromArray(self::asArray($item));
@@ -268,9 +272,9 @@ final class Customers extends BaseResource
     }
 
     /** @return \Generator<int, CategoryDto> */
-    public function paginateCategories(int $customerId): \Generator
+    public function paginateCategories(int $customerId, ?int $perPage = null): \Generator
     {
-        $paginator = new CursorPaginator($this->connector, new GetCustomerCategories($customerId));
+        $paginator = new CursorPaginator($this->connector, new GetCustomerCategories($customerId), perPage: $perPage);
 
         foreach ($paginator->items() as $item) {
             yield CategoryDto::fromArray(self::asArray($item));
@@ -304,15 +308,5 @@ final class Customers extends BaseResource
             'individual' => IndividualCustomerDto::fromArray($item),
             default => throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "customer_type" valant "company" ou "individual".'),
         };
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

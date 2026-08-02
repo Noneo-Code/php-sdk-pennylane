@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Resource;
 
+use Noneo\Sdk\Pennylane\Concerns\DecodesPennylanePayloads;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDirection;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
@@ -18,6 +19,8 @@ use Saloon\Http\BaseResource;
 
 final class Categories extends BaseResource
 {
+    use DecodesPennylanePayloads;
+
     public function list(
         ?string $cursor = null,
         ?int $limit = null,
@@ -36,13 +39,14 @@ final class Categories extends BaseResource
     }
 
     /** @return \Generator<int, CategoryDto> */
-    public function paginate(?FilterSet $filters = null, ?Sort $sort = null): \Generator
+    public function paginate(?FilterSet $filters = null, ?Sort $sort = null, ?int $perPage = null): \Generator
     {
         $paginator = new CursorPaginator(
             $this->connector,
             new GetCategories(filters: $filters, sort: $sort),
             filters: $filters,
             sort: $sort,
+            perPage: $perPage,
         );
 
         foreach ($paginator->items() as $item) {
@@ -75,15 +79,5 @@ final class Categories extends BaseResource
         $request = new UpdateCategory($id, $label, $direction, $analyticalCode);
 
         return CategoryDto::fromArray($this->connector->send($request)->json());
-    }
-
-    /** @return mixed[] */
-    private static function asArray(mixed $item): array
-    {
-        if (!is_array($item)) {
-            throw new \InvalidArgumentException('Un item de la réponse Pennylane doit être un objet.');
-        }
-
-        return $item;
     }
 }

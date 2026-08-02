@@ -13,7 +13,9 @@ use Saloon\Enums\Method;
 use Saloon\Http\Connector;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
+use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Request;
+use Saloon\RateLimitPlugin\Limit;
 use Saloon\RateLimitPlugin\Stores\MemoryStore;
 use Saloon\RateLimitPlugin\Stores\PsrStore;
 
@@ -69,6 +71,81 @@ final class RespectsPennylaneRateLimitsTest extends TestCase
         self::assertNotEmpty($cache->setCalls);
     }
 
+    public function testSegmentsTheLimiterKeyByToken(): void
+    {
+        $first = new RateLimitedTestConnector();
+        $first->authenticate(new TokenAuthenticator('token-societe-a'));
+
+        $second = new RateLimitedTestConnector();
+        $second->authenticate(new TokenAuthenticator('token-societe-b'));
+
+        self::assertNotSame($this->limiterNames($first), $this->limiterNames($second));
+    }
+
+    public function testReusesTheSameLimiterKeyForTheSameToken(): void
+    {
+        $first = new RateLimitedTestConnector();
+        $first->authenticate(new TokenAuthenticator('token-partage'));
+
+        $second = new RateLimitedTestConnector();
+        $second->authenticate(new TokenAuthenticator('token-partage'));
+
+        self::assertSame($this->limiterNames($first), $this->limiterNames($second));
+    }
+
+    public function testNeverExposesTheRawTokenInTheLimiterKey(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->authenticate(new TokenAuthenticator('un-secret-tres-reconnaissable'));
+
+        foreach ($this->limiterNames($connector) as $name) {
+            self::assertStringNotContainsString('un-secret-tres-reconnaissable', $name);
+        }
+    }
+
+    public function testForgetsTheRetryCounterOnceTheRequestSucceeds(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->authenticate(new TokenAuthenticator('a-token'));
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Too Many Requests'], 429, ['Retry-After' => '1']),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        $connector->send($this->makeRequest());
+
+        self::assertSame(0, $connector->trackedRetryCount());
+    }
+
+    public function testRetriesEachRequestOnItsOwnBudget(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->authenticate(new TokenAuthenticator('a-token'));
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Too Many Requests'], 429, ['Retry-After' => '1']),
+            MockResponse::make(['id' => 1], 200),
+            MockResponse::make(['error' => 'Too Many Requests'], 429, ['Retry-After' => '1']),
+            MockResponse::make(['id' => 2], 200),
+        ]));
+
+        $connector->send($this->makeRequest());
+        $second = $connector->send($this->makeRequest());
+
+        self::assertSame(200, $second->status());
+        self::assertSame([1, 1], $connector->waits);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function limiterNames(RateLimitedTestConnector $connector): array
+    {
+        return array_values(array_map(
+            static fn (Limit $limit): string => $limit->getName(),
+            $connector->getLimits(),
+        ));
+    }
+
     private function makeRequest(): Request
     {
         return new class extends Request {
@@ -93,6 +170,11 @@ final class RateLimitedTestConnector extends Connector
     public function resolveBaseUrl(): string
     {
         return 'https://app.pennylane.com/api/external/v2';
+    }
+
+    public function trackedRetryCount(): int
+    {
+        return $this->countTrackedRetries();
     }
 
     protected function wait(int $seconds): void

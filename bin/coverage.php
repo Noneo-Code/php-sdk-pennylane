@@ -30,8 +30,8 @@ $excludedOperationIds = [
     'postLedgerAttachments' => 'Déprécié au profit de postFileAttachments (ticket 18).',
 ];
 
-$coveredBasenames = RequestClassLocator::classBasenames(__DIR__.'/../src/Requests');
-$report = new CoverageReport($operations, $coveredBasenames, $excludedOperationIds);
+$signatures = RequestClassLocator::signatures(__DIR__.'/../src/Requests');
+$report = new CoverageReport($operations, $signatures, $excludedOperationIds);
 
 fwrite(STDOUT, sprintf("%d/%d endpoints couverts\n", $report->coveredCount(), $report->total()));
 
@@ -47,5 +47,12 @@ if ($report->excluded() !== []) {
     foreach ($report->excluded() as $exclusion) {
         $operation = $exclusion['operation'];
         fwrite(STDOUT, sprintf("  - %-6s %-55s (%s) — %s\n", $operation->method, $operation->path, $operation->operationId, $exclusion['reason']));
+    }
+}
+
+if ($report->undocumented() !== []) {
+    fwrite(STDOUT, "\nRequêtes sans opération documentée correspondante :\n");
+    foreach ($report->undocumented() as $signature) {
+        fwrite(STDOUT, sprintf("  - %-40s %-6s %s\n", $signature->basename, $signature->method, $signature->endpoint));
     }
 }
