@@ -11,6 +11,7 @@ use Noneo\Sdk\Pennylane\Resource\BankEstablishments;
 use Noneo\Sdk\Pennylane\Resource\BillingSubscriptions;
 use Noneo\Sdk\Pennylane\Resource\Categories;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
+use Noneo\Sdk\Pennylane\Resource\Changelogs;
 use Noneo\Sdk\Pennylane\Resource\CommercialDocuments;
 use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
@@ -33,6 +34,7 @@ use Noneo\Sdk\Pennylane\Resource\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Resource\Suppliers;
 use Noneo\Sdk\Pennylane\Resource\Transactions;
 use Noneo\Sdk\Pennylane\Resource\TrialBalance;
+use Noneo\Sdk\Pennylane\Resource\WebhookSubscriptions;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
 use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
@@ -79,6 +81,11 @@ final class Pennylane extends Connector
     public function categoryGroups(): CategoryGroups
     {
         return new CategoryGroups($this);
+    }
+
+    public function changelogs(): Changelogs
+    {
+        return new Changelogs($this);
     }
 
     public function commercialDocuments(): CommercialDocuments
@@ -189,5 +196,10 @@ final class Pennylane extends Connector
     public function trialBalance(): TrialBalance
     {
         return new TrialBalance($this);
+    }
+
+    public function webhookSubscriptions(): WebhookSubscriptions
+    {
+        return new WebhookSubscriptions($this);
     }
 }
