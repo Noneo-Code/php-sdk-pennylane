@@ -23,14 +23,9 @@ foreach ($targets as $llmsTxtUrl => $outputPath) {
 
     file_put_contents($outputPath, YamlSpecWriter::toYaml($result->spec));
 
-    $operationCount = 0;
-    foreach ($result->spec['paths'] as $operations) {
-        $operationCount += count($operations);
-    }
+    fwrite(STDOUT, sprintf("  %d opération(s) écrite(s) dans %s\n", $result->operationCount(), basename($outputPath)));
 
-    fwrite(STDOUT, sprintf("  %d opération(s) écrite(s) dans %s\n", $operationCount, basename($outputPath)));
-
-    if ($result->skippedUrls !== []) {
+    if ([] !== $result->skippedUrls) {
         fwrite(STDOUT, sprintf("  %d page(s) ignorée(s) (pas de fragment OpenAPI) :\n", count($result->skippedUrls)));
         foreach ($result->skippedUrls as $skippedUrl) {
             fwrite(STDOUT, "    - {$skippedUrl}\n");

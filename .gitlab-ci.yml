@@ -11,8 +11,19 @@ stages:
 phpunit:
   extends: .php_setup
   stage: test
+  before_script:
+    - apt-get update && apt-get install -y unzip git
+    - pecl install pcov && docker-php-ext-enable pcov
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --no-interaction --no-progress
   script:
-    - composer test
+    - composer test -- --coverage-text --coverage-cobertura=coverage.xml
+  coverage: '/^\s*Lines:\s*(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
 
 phpstan:
   extends: .php_setup
@@ -25,6 +36,12 @@ cs-fixer:
   stage: test
   script:
     - composer cs
+
+endpoint-coverage:
+  extends: .php_setup
+  stage: test
+  script:
+    - php bin/coverage.php
 
 no-framework:
   extends: .php_setup
