@@ -38,6 +38,11 @@ trait RespectsPennylaneRateLimits
         return $this;
     }
 
+    public function getRateLimitStore(): RateLimitStore
+    {
+        return $this->resolveRateLimitStore();
+    }
+
     protected function resolveRateLimitStore(): RateLimitStore
     {
         return $this->configuredRateLimitStore ??= new MemoryStore();

@@ -11,8 +11,9 @@ use Noneo\Sdk\Pennylane\Dto\LedgerEntry\LedgerAccountReferenceDto;
 final readonly class LedgerEntryLineDto
 {
     /**
-     * @param CategoryDto[] $categories
-     * @param int[]         $letteredLedgerEntryLineIds
+     * @param CategoryDto[]        $categories
+     * @param int[]                $letteredLedgerEntryLineIds
+     * @param ImputationDatesDto[] $imputationDates
      */
     public function __construct(
         public int $id,
@@ -28,6 +29,7 @@ final readonly class LedgerEntryLineDto
         public string $letteredLedgerEntryLinesUrl,
         public string $createdAt,
         public string $updatedAt,
+        public array $imputationDates = [],
     ) {
     }
 
@@ -38,7 +40,7 @@ final readonly class LedgerEntryLineDto
         $debit = $body['debit'] ?? null;
         $credit = $body['credit'] ?? null;
         $label = $body['label'] ?? null;
-        $categories = $body['categories'] ?? null;
+        $categories = $body['categories'] ?? [];
         $ledgerAccount = $body['ledger_account'] ?? null;
         $journal = $body['journal'] ?? null;
         $date = $body['date'] ?? null;
@@ -95,6 +97,12 @@ final readonly class LedgerEntryLineDto
             throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "updated_at" textuel.');
         }
 
+        $imputationDates = $body['imputation_dates'] ?? [];
+
+        if (!is_array($imputationDates)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un tableau "imputation_dates".');
+        }
+
         return new self(
             id: $id,
             debit: $debit,
@@ -115,6 +123,10 @@ final readonly class LedgerEntryLineDto
             letteredLedgerEntryLinesUrl: $letteredLedgerEntryLines['url'],
             createdAt: $createdAt,
             updatedAt: $updatedAt,
+            imputationDates: array_map(
+                static fn (mixed $item): ImputationDatesDto => ImputationDatesDto::fromArray(self::asArray($item)),
+                $imputationDates,
+            ),
         );
     }
 

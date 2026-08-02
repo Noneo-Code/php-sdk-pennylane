@@ -28,4 +28,17 @@ final class FiscalYearDtoTest extends TestCase
         self::assertSame('2023-08-30T10:08:08.146343Z', $dto->createdAt);
         self::assertSame('2023-08-30T10:08:08.146343Z', $dto->updatedAt);
     }
+
+    public function testItBuildsFromTheDocumentedFirmFiscalYearPayloadWithoutTimestamps(): void
+    {
+        $dto = FiscalYearDto::fromArray([
+            'id' => 12,
+            'start' => '2023-08-30',
+            'finish' => '2022-12-31',
+            'status' => 'open',
+        ]);
+
+        self::assertNull($dto->createdAt);
+        self::assertNull($dto->updatedAt);
+    }
 }

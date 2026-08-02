@@ -14,6 +14,7 @@ final readonly class CategoryDto
         public string $updatedAt,
         public ?int $categoryGroupId,
         public ?string $analyticalCode,
+        public ?string $archivedAt = null,
     ) {
     }
 
@@ -56,6 +57,12 @@ final readonly class CategoryDto
             throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "analytical_code" textuel ou nul.');
         }
 
+        $archivedAt = $body['archived_at'] ?? null;
+
+        if (null !== $archivedAt && !is_string($archivedAt)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "archived_at" textuel ou nul.');
+        }
+
         $categoryGroupId = null;
 
         if (null !== $categoryGroup) {
@@ -76,6 +83,7 @@ final readonly class CategoryDto
             updatedAt: $updatedAt,
             categoryGroupId: $categoryGroupId,
             analyticalCode: $analyticalCode,
+            archivedAt: $archivedAt,
         );
     }
 }

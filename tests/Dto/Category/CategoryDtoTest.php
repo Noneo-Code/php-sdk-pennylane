@@ -60,4 +60,35 @@ final class CategoryDtoTest extends TestCase
 
         self::assertNull($dto->categoryGroupId);
     }
+
+    public function testItParsesTheArchivedAtReturnedByTheFirmApi(): void
+    {
+        $dto = CategoryDto::fromArray([
+            'id' => 42,
+            'label' => 'Alimentaire',
+            'direction' => null,
+            'created_at' => '2023-08-30T10:08:08.146343Z',
+            'updated_at' => '2023-08-30T10:08:08.146343Z',
+            'archived_at' => '2023-09-01T00:00:00.000000Z',
+            'category_group' => ['id' => 348],
+            'analytical_code' => 'CODE123',
+        ]);
+
+        self::assertSame('2023-09-01T00:00:00.000000Z', $dto->archivedAt);
+    }
+
+    public function testTheArchivedAtIsNullWhenAbsentAsReturnedByTheCompanyApi(): void
+    {
+        $dto = CategoryDto::fromArray([
+            'id' => 42,
+            'label' => 'Alimentaire',
+            'direction' => null,
+            'created_at' => '2023-08-30T10:08:08.146343Z',
+            'updated_at' => '2023-08-30T10:08:08.146343Z',
+            'category_group' => ['id' => 348],
+            'analytical_code' => 'CODE123',
+        ]);
+
+        self::assertNull($dto->archivedAt);
+    }
 }

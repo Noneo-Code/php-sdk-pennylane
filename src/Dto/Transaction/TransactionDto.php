@@ -33,7 +33,7 @@ final readonly class TransactionDto
         public ?int $supplierId,
         public ?string $supplierUrl,
         public array $categories,
-        public string $matchedInvoicesUrl,
+        public ?string $matchedInvoicesUrl,
         public ?string $interbankCode,
     ) {
     }
@@ -100,8 +100,8 @@ final readonly class TransactionDto
             throw new \InvalidArgumentException('La transaction de la réponse Pennylane doit contenir un tableau "categories".');
         }
 
-        if (!is_array($matchedInvoices) || !is_string($matchedInvoices['url'] ?? null)) {
-            throw new \InvalidArgumentException('La transaction de la réponse Pennylane doit contenir un "matched_invoices" avec une "url".');
+        if (null !== $matchedInvoices && (!is_array($matchedInvoices) || !is_string($matchedInvoices['url'] ?? null))) {
+            throw new \InvalidArgumentException('La transaction de la réponse Pennylane doit contenir un "matched_invoices" avec une "url", ou en être dépourvue.');
         }
 
         $mappedCategories = [];
@@ -137,7 +137,7 @@ final readonly class TransactionDto
             supplierId: is_array($supplier) && is_int($supplier['id'] ?? null) ? $supplier['id'] : null,
             supplierUrl: is_array($supplier) && is_string($supplier['url'] ?? null) ? $supplier['url'] : null,
             categories: $mappedCategories,
-            matchedInvoicesUrl: $matchedInvoices['url'],
+            matchedInvoicesUrl: is_array($matchedInvoices) && is_string($matchedInvoices['url'] ?? null) ? $matchedInvoices['url'] : null,
             interbankCode: is_string($body['interbank_code'] ?? null) ? $body['interbank_code'] : null,
         );
     }

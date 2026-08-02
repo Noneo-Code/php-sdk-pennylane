@@ -55,4 +55,23 @@ final class LedgerAccountDtoTest extends TestCase
 
         self::assertSame(VatRate::FR_200, $dto->vatRate);
     }
+
+    public function testItBuildsFromTheDocumentedFirmLedgerAccountPayloadWithoutTypeOrTimestamps(): void
+    {
+        $dto = LedgerAccountDto::fromArray([
+            'id' => 124,
+            'number' => '512',
+            'label' => 'Secondary Account',
+            'vat_rate' => 'any',
+            'country_alpha2' => 'FR',
+            'enabled' => true,
+            'letterable' => false,
+            'archived_at' => '2023-09-01T00:00:00.000000Z',
+        ]);
+
+        self::assertNull($dto->type);
+        self::assertNull($dto->createdAt);
+        self::assertNull($dto->updatedAt);
+        self::assertSame('2023-09-01T00:00:00.000000Z', $dto->archivedAt);
+    }
 }

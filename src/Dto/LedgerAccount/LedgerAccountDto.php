@@ -13,10 +13,11 @@ final readonly class LedgerAccountDto
         public VatRate $vatRate,
         public CountryAlpha2 $countryAlpha2,
         public bool $enabled,
-        public string $type,
+        public ?string $type,
         public bool $letterable,
-        public string $createdAt,
-        public string $updatedAt,
+        public ?string $createdAt,
+        public ?string $updatedAt,
+        public ?string $archivedAt = null,
     ) {
     }
 
@@ -58,20 +59,26 @@ final readonly class LedgerAccountDto
             throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un booléen "enabled".');
         }
 
-        if (!is_string($type)) {
-            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "type" textuel.');
+        if (null !== $type && !is_string($type)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "type" textuel ou nul.');
         }
 
         if (!is_bool($letterable)) {
             throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un booléen "letterable".');
         }
 
-        if (!is_string($createdAt)) {
-            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "created_at" textuel.');
+        if (null !== $createdAt && !is_string($createdAt)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "created_at" textuel ou nul.');
         }
 
-        if (!is_string($updatedAt)) {
-            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "updated_at" textuel.');
+        if (null !== $updatedAt && !is_string($updatedAt)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "updated_at" textuel ou nul.');
+        }
+
+        $archivedAt = $body['archived_at'] ?? null;
+
+        if (null !== $archivedAt && !is_string($archivedAt)) {
+            throw new \InvalidArgumentException('Le corps de la réponse Pennylane doit contenir un "archived_at" textuel ou nul.');
         }
 
         return new self(
@@ -85,6 +92,7 @@ final readonly class LedgerAccountDto
             letterable: $letterable,
             createdAt: $createdAt,
             updatedAt: $updatedAt,
+            archivedAt: $archivedAt,
         );
     }
 }
