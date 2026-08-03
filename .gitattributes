@@ -1,0 +1,16 @@
+# Ce qui n'a pas à voyager dans l'archive Composer. Les deux specs OpenAPI
+# pèsent à elles seules près de 10 Mo : les livrer à chaque `composer require`
+# serait payer le poids d'un outil de développement dans chaque déploiement.
+/tests                      export-ignore
+/docs                       export-ignore
+/bin                        export-ignore
+/examples                   export-ignore
+/.claude                    export-ignore
+/pennylane-api-v2.json      export-ignore
+/pennylane-api-firm-v1.json export-ignore
+/.gitlab-ci.yml             export-ignore
+/phpunit.xml                export-ignore
+/phpstan.neon               export-ignore
+/.php-cs-fixer.php          export-ignore
+/.gitattributes             export-ignore
+/.gitignore                 export-ignore
