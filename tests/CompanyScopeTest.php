@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Tests;
 
+use GuzzleHttp\RequestOptions;
 use Noneo\Sdk\Pennylane\CompanyScope;
 use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
@@ -182,6 +183,34 @@ final class CompanyScopeTest extends TestCase
             $this->limiterNames($firm->company(111)),
             $this->limiterNames($firm->company(222)),
         );
+    }
+
+    public function testInheritsTheDefaultTimeoutsFromTheFirmConnector(): void
+    {
+        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+
+        $scope = $firm->company(1234);
+
+        self::assertSame(10.0, $scope->getConnectTimeout());
+        self::assertSame(60.0, $scope->getRequestTimeout());
+    }
+
+    public function testInheritsTheConfiguredTimeoutsFromTheFirmConnector(): void
+    {
+        $firm = new PennylaneFirm(
+            new TokenAuthenticator('firm-token'),
+            requestTimeout: 90,
+            connectTimeout: 4,
+        );
+        $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
+        $firm->withMockClient($mockClient);
+
+        $firm->company(1234)->send(new LedgerEntriesProbe());
+
+        $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
+
+        self::assertSame(4.0, $config[RequestOptions::CONNECT_TIMEOUT] ?? null);
+        self::assertSame(90.0, $config[RequestOptions::TIMEOUT] ?? null);
     }
 
     /**
