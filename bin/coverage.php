@@ -56,3 +56,9 @@ if ([] !== $report->undocumented()) {
         fwrite(STDOUT, sprintf("  - %-40s %-6s %s\n", $signature->basename, $signature->method, $signature->endpoint));
     }
 }
+
+if (null !== $summary = $report->failureSummary()) {
+    fwrite(STDERR, "\n".$summary."\n");
+
+    exit($report->exitCode());
+}
