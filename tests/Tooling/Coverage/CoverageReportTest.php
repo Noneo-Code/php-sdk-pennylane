@@ -151,4 +151,93 @@ final class CoverageReportTest extends TestCase
         self::assertCount(1, $report->undocumented());
         self::assertSame('GetGhosts', $report->undocumented()[0]->basename);
     }
+
+    public function testIsCompleteWhenEveryOperationIsCoveredAndNoRequestIsUndocumented(): void
+    {
+        $report = new CoverageReport(
+            [new SpecOperation('GET', '/api/external/v2/journals', 'getJournals')],
+            signatures: [new RequestSignature('GetJournals', 'GET', '/journals')],
+        );
+
+        self::assertTrue($report->isComplete());
+        self::assertSame(0, $report->exitCode());
+        self::assertNull($report->failureSummary());
+    }
+
+    public function testIsNotCompleteWhenAnOperationIsNotCovered(): void
+    {
+        $report = new CoverageReport(
+            [
+                new SpecOperation('GET', '/api/external/v2/journals', 'getJournals'),
+                new SpecOperation('POST', '/api/external/v2/journals', 'postJournals'),
+            ],
+            signatures: [new RequestSignature('GetJournals', 'GET', '/journals')],
+        );
+
+        self::assertFalse($report->isComplete());
+        self::assertSame(1, $report->exitCode());
+        self::assertSame(
+            'Couverture incomplète : 1 endpoint de la spec sans requête correspondante.',
+            $report->failureSummary(),
+        );
+    }
+
+    public function testIsNotCompleteWhenARequestMatchesNoDocumentedOperation(): void
+    {
+        $report = new CoverageReport(
+            [new SpecOperation('GET', '/api/external/v2/journals', 'getJournals')],
+            signatures: [
+                new RequestSignature('GetJournals', 'GET', '/journals'),
+                new RequestSignature('GetGhosts', 'GET', '/ghosts'),
+            ],
+        );
+
+        self::assertFalse($report->isComplete());
+        self::assertSame(2, $report->exitCode());
+        self::assertSame(
+            'Requêtes hors spec : 1 requête du SDK sans opération documentée.',
+            $report->failureSummary(),
+        );
+    }
+
+    /**
+     * Les deux causes d'échec se cumulent dans le message, et le code de sortie
+     * retient la couverture incomplète — c'est elle qu'on corrige en premier.
+     */
+    public function testSummarisesBothFailuresAtOnce(): void
+    {
+        $report = new CoverageReport(
+            [
+                new SpecOperation('GET', '/api/external/v2/journals', 'getJournals'),
+                new SpecOperation('POST', '/api/external/v2/journals', 'postJournals'),
+            ],
+            signatures: [new RequestSignature('GetGhosts', 'GET', '/ghosts')],
+        );
+
+        self::assertSame(1, $report->exitCode());
+        self::assertSame(
+            "Couverture incomplète : 2 endpoints de la spec sans requête correspondante.\n"
+            .'Requêtes hors spec : 1 requête du SDK sans opération documentée.',
+            $report->failureSummary(),
+        );
+    }
+
+    /**
+     * Une exclusion explicite est un choix documenté, pas une régression : elle
+     * ne doit jamais faire échouer la CI.
+     */
+    public function testAnExplicitlyExcludedOperationLeavesTheReportComplete(): void
+    {
+        $report = new CoverageReport(
+            [
+                new SpecOperation('GET', '/api/external/v2/journals', 'getJournals'),
+                new SpecOperation('POST', '/api/external/v2/ledger_attachments', 'postLedgerAttachments'),
+            ],
+            signatures: [new RequestSignature('GetJournals', 'GET', '/journals')],
+            excludedOperationIds: ['postLedgerAttachments' => 'Déprécié au profit de postFileAttachments.'],
+        );
+
+        self::assertTrue($report->isComplete());
+        self::assertSame(0, $report->exitCode());
+    }
 }
