@@ -59,8 +59,8 @@ tes messages, jamais en sous-tâches.
   corrige). Jamais de commit direct sur `main`. Pas de worktree — ce dépôt n'a pas de stack à
   isoler.
 
-- [ ] **2. Lire la spec OpenAPI du groupe.** `pennylane-api-v2.yaml` (ou
-  `pennylane-api-firm-v1.yaml`) est la **source de vérité** locale : chemins exacts, paramètres,
+- [ ] **2. Lire la spec OpenAPI du groupe.** `pennylane-api-v2.json` (ou
+  `pennylane-api-firm-v1.json`) est la **source de vérité** locale : chemins exacts, paramètres,
   schémas de réponse, énumérations. Lis les opérations du ticket **avant** d'écrire quoi que ce
   soit. N'invente jamais un champ « probable » — s'il manque dans la spec, il n'existe pas.
 
