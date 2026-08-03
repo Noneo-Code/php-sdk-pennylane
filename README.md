@@ -219,9 +219,40 @@ $pennylane = new Noneo\Sdk\Pennylane\Pennylane(
 );
 ```
 
-Un 429 ou une erreur 5xx accompagnée d'un en-tête `Retry-After` déclenche une
-unique nouvelle tentative après le délai indiqué par Pennylane ; au-delà, une
-`RateLimitException` (ou `ServerException`) est levée.
+### Politique de nouvelle tentative
+
+L'API Pennylane n'expose aucune clé d'idempotence : rien ne permet de rejouer
+un `POST` sans risquer un doublon. La politique du SDK en découle.
+
+| Statut | Méthodes rejouées | Motif |
+| --- | --- | --- |
+| 429 | toutes | La requête n'a pas été traitée : la rejouer est sans effet de bord. |
+| 5xx | `GET`, `HEAD`, `PUT`, `DELETE` | Un 502 de proxy ne dit pas si Pennylane a traité l'appel — seules les méthodes idempotentes supportent le doute. |
+| 5xx | jamais `POST` ni `PATCH` | Rejouer un `POST /customer_invoices` créerait une seconde facture. |
+| 4xx (hors 429) | aucune | Une requête invalide le restera. |
+
+Le délai d'attente suit le serveur quand il se prononce, et un backoff sinon :
+
+- `Retry-After` présent et exploitable → honoré tel quel, plafonné à **60 s** ;
+- sinon → backoff exponentiel de base **0,5 s**, doublé à chaque tentative,
+  plafonné à **8 s**, avec un jitter soustractif de 25 % au plus qui
+  désynchronise les rafales de plusieurs process.
+
+Le nombre de **nouvelles** tentatives après l'échec initial vaut `3` par défaut
+(soit quatre appels HTTP au pire) et se règle au constructeur des deux
+connecteurs ; `0` désactive tout rejeu. Un `CompanyScope` hérite du réglage de
+son `PennylaneFirm`.
+
+```php
+$pennylane = new Noneo\Sdk\Pennylane\Pennylane($authenticator, maxRetries: 5);
+
+// Aucun rejeu : à l'appelant de décider quoi faire de l'échec.
+$firm = new Noneo\Sdk\Pennylane\PennylaneFirm($authenticator, maxRetries: 0);
+$firm->company(42)->ledgerEntries()->list(); // hérite de maxRetries: 0
+```
+
+Une fois les tentatives épuisées, l'exception correspondant au statut est levée
+(`RateLimitException` pour un 429, `ServerException` pour un 5xx).
 
 ## Dépendances et Guzzle
 

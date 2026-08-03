@@ -7,6 +7,10 @@ namespace Noneo\Sdk\Pennylane\Tests\Concerns;
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
 use Noneo\Sdk\Pennylane\Exception\RateLimitException;
+use Noneo\Sdk\Pennylane\Exception\ServerException;
+use Noneo\Sdk\Pennylane\Pennylane;
+use Noneo\Sdk\Pennylane\PennylaneFirm;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 use Saloon\Enums\Method;
@@ -37,12 +41,48 @@ final class RespectsPennylaneRateLimitsTest extends TestCase
         $response = $connector->send($this->makeRequest());
 
         self::assertSame(200, $response->status());
-        self::assertSame([3], $connector->waits);
+        self::assertSame([3.0], $connector->waits);
     }
 
-    public function testStopsRetryingAndThrowsAfterOneRetryStillFails(): void
+    public function testStopsAfterThreeRetriesByDefaultAndThrows(): void
     {
         $connector = new RateLimitedTestConnector();
+        $connector->withMockClient(new MockClient(array_fill(0, 4, MockResponse::make(
+            ['error' => 'Too Many Requests', 'status' => 429],
+            429,
+            ['Retry-After' => '3'],
+        ))));
+
+        $this->expectException(RateLimitException::class);
+
+        try {
+            $connector->send($this->makeRequest());
+        } finally {
+            self::assertSame([3.0, 3.0, 3.0], $connector->waits);
+        }
+    }
+
+    public function testDisablesEveryRetryWhenMaxRetriesIsZero(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->useMaxRetries(0);
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Too Many Requests', 'status' => 429], 429, ['Retry-After' => '3']),
+        ]));
+
+        $this->expectException(RateLimitException::class);
+
+        try {
+            $connector->send($this->makeRequest());
+        } finally {
+            self::assertSame([], $connector->waits);
+        }
+    }
+
+    public function testStopsAfterTheConfiguredNumberOfRetries(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->useMaxRetries(1);
         $connector->withMockClient(new MockClient([
             MockResponse::make(['error' => 'Too Many Requests', 'status' => 429], 429, ['Retry-After' => '3']),
             MockResponse::make(['error' => 'Too Many Requests', 'status' => 429], 429, ['Retry-After' => '3']),
@@ -53,8 +93,60 @@ final class RespectsPennylaneRateLimitsTest extends TestCase
         try {
             $connector->send($this->makeRequest());
         } finally {
-            self::assertSame([3], $connector->waits);
+            self::assertSame([3.0], $connector->waits);
         }
+    }
+
+    public function testHonoursTheMaxRetriesGivenToTheConnectorConstructor(): void
+    {
+        self::assertSame(1, (new Pennylane(new TokenAuthenticator('a-token'), maxRetries: 1))->getMaxRetries());
+        self::assertSame(0, (new PennylaneFirm(new TokenAuthenticator('a-token'), maxRetries: 0))->getMaxRetries());
+        self::assertSame(
+            Pennylane::DEFAULT_MAX_RETRIES,
+            (new Pennylane(new TokenAuthenticator('a-token')))->getMaxRetries(),
+        );
+    }
+
+    public function testPropagatesTheFirmMaxRetriesToItsCompanyScope(): void
+    {
+        $firm = new PennylaneFirm(new TokenAuthenticator('a-token'), maxRetries: 0);
+
+        self::assertSame(0, $firm->company(42)->getMaxRetries());
+    }
+
+    public function testCapsAnAbsurdRetryAfterHeader(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Too Many Requests'], 429, ['Retry-After' => '3600']),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        $connector->send($this->makeRequest());
+
+        self::assertSame([60.0], $connector->waits);
+    }
+
+    public function testCapsTheExponentialBackoffAtEightSeconds(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->useMaxRetries(6);
+        $connector->withMockClient(new MockClient([
+            ...array_fill(0, 6, MockResponse::make(['error' => 'Service Unavailable'], 503)),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        $connector->send($this->makeRequest());
+
+        self::assertCount(6, $connector->waits);
+
+        foreach ($connector->waits as $wait) {
+            self::assertLessThanOrEqual(8.0, $wait);
+        }
+
+        // Les deux dernières tentatives sont au plafond : 0,5 × 2⁵ = 16 > 8.
+        self::assertGreaterThanOrEqual(6.0, $connector->waits[4]);
+        self::assertGreaterThanOrEqual(6.0, $connector->waits[5]);
     }
 
     public function testSolicitsTheInjectedPsrStore(): void
@@ -132,7 +224,108 @@ final class RespectsPennylaneRateLimitsTest extends TestCase
         $second = $connector->send($this->makeRequest());
 
         self::assertSame(200, $second->status());
-        self::assertSame([1, 1], $connector->waits);
+        self::assertSame([1.0, 1.0], $connector->waits);
+    }
+
+    public function testRetriesA503WithoutRetryAfterUsingAnExponentialBackoff(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Service Unavailable'], 503),
+            MockResponse::make(['error' => 'Service Unavailable'], 503),
+            MockResponse::make(['error' => 'Service Unavailable'], 503),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        $response = $connector->send($this->makeRequest());
+
+        self::assertSame(200, $response->status());
+        self::assertCount(3, $connector->waits);
+
+        // Base 0,5 s doublée à chaque tentative, avec un jitter soustractif de
+        // 25 % au plus : les fenêtres restent disjointes et croissantes.
+        foreach ([[0.375, 0.5], [0.75, 1.0], [1.5, 2.0]] as $attempt => [$min, $max]) {
+            self::assertGreaterThanOrEqual($min, $connector->waits[$attempt]);
+            self::assertLessThanOrEqual($max, $connector->waits[$attempt]);
+        }
+    }
+
+    public function testNeverReplaysAPostOnAServerError(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Bad Gateway'], 502),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        $this->expectException(ServerException::class);
+
+        try {
+            $connector->send($this->makeRequest(Method::POST));
+        } finally {
+            // Pennylane n'offre aucune clé d'idempotence : un 502 ne dit pas si
+            // la facture a été créée. Rejouer, c'est risquer le doublon.
+            self::assertSame([], $connector->waits);
+        }
+    }
+
+    public function testNeverReplaysAPatchOnAServerError(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Service Unavailable'], 503),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        $this->expectException(ServerException::class);
+
+        try {
+            $connector->send($this->makeRequest(Method::PATCH));
+        } finally {
+            self::assertSame([], $connector->waits);
+        }
+    }
+
+    public function testReplaysAPostOnA429(): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Too Many Requests'], 429, ['Retry-After' => '2']),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        // Un 429 dit que la requête n'a pas été traitée : la rejouer est sûr,
+        // quelle que soit la méthode.
+        $response = $connector->send($this->makeRequest(Method::POST));
+
+        self::assertSame(200, $response->status());
+        self::assertSame([2.0], $connector->waits);
+    }
+
+    #[DataProvider('idempotentMethods')]
+    public function testReplaysIdempotentMethodsOnAServerError(Method $method): void
+    {
+        $connector = new RateLimitedTestConnector();
+        $connector->withMockClient(new MockClient([
+            MockResponse::make(['error' => 'Bad Gateway'], 502),
+            MockResponse::make(['id' => 1], 200),
+        ]));
+
+        $response = $connector->send($this->makeRequest($method));
+
+        self::assertSame(200, $response->status());
+        self::assertCount(1, $connector->waits);
+    }
+
+    /**
+     * @return iterable<string, array{Method}>
+     */
+    public static function idempotentMethods(): iterable
+    {
+        yield 'GET' => [Method::GET];
+        yield 'PUT' => [Method::PUT];
+        yield 'DELETE' => [Method::DELETE];
+        yield 'HEAD' => [Method::HEAD];
     }
 
     /**
@@ -146,10 +339,12 @@ final class RespectsPennylaneRateLimitsTest extends TestCase
         ));
     }
 
-    private function makeRequest(): Request
+    private function makeRequest(Method $method = Method::GET): Request
     {
-        return new class extends Request {
-            protected Method $method = Method::GET;
+        return new class($method) extends Request {
+            public function __construct(protected Method $method)
+            {
+            }
 
             public function resolveEndpoint(): string
             {
@@ -164,7 +359,7 @@ final class RateLimitedTestConnector extends Connector
     use HandlesPennylaneErrors;
     use RespectsPennylaneRateLimits;
 
-    /** @var array<int, int> */
+    /** @var list<float> */
     public array $waits = [];
 
     public function resolveBaseUrl(): string
@@ -177,7 +372,7 @@ final class RateLimitedTestConnector extends Connector
         return $this->countTrackedRetries();
     }
 
-    protected function wait(int $seconds): void
+    protected function wait(float $seconds): void
     {
         $this->waits[] = $seconds;
     }

@@ -16,13 +16,18 @@ final class PennylaneFirm extends Connector
     use HandlesPennylaneErrors;
     use RespectsPennylaneRateLimits;
 
-    public function __construct(Authenticator $authenticator, ?RateLimitStore $rateLimitStore = null)
-    {
+    public function __construct(
+        Authenticator $authenticator,
+        ?RateLimitStore $rateLimitStore = null,
+        int $maxRetries = self::DEFAULT_MAX_RETRIES,
+    ) {
         $this->authenticate($authenticator);
 
         if ($rateLimitStore instanceof RateLimitStore) {
             $this->useRateLimitStore($rateLimitStore);
         }
+
+        $this->useMaxRetries($maxRetries);
     }
 
     public function resolveBaseUrl(): string
