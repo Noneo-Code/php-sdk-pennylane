@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Tests;
 
+use GuzzleHttp\RequestOptions;
 use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
@@ -102,5 +103,59 @@ final class PennylaneTest extends TestCase
         });
 
         self::assertNotEmpty($store->getStore());
+    }
+
+    public function testAppliesTheDefaultTimeoutsToOutgoingRequests(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
+        $pennylane->withMockClient($mockClient);
+
+        $pennylane->send(new class extends Request {
+            protected Method $method = Method::GET;
+
+            public function resolveEndpoint(): string
+            {
+                return '/ledger_entries';
+            }
+        });
+
+        $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
+
+        self::assertSame(10.0, $config[RequestOptions::CONNECT_TIMEOUT] ?? null);
+        self::assertSame(60.0, $config[RequestOptions::TIMEOUT] ?? null);
+    }
+
+    public function testAppliesTheTimeoutsGivenToTheConstructor(): void
+    {
+        $pennylane = new Pennylane(
+            new TokenAuthenticator('a-token'),
+            requestTimeout: 120,
+            connectTimeout: 3,
+        );
+        $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
+        $pennylane->withMockClient($mockClient);
+
+        $pennylane->send(new class extends Request {
+            protected Method $method = Method::GET;
+
+            public function resolveEndpoint(): string
+            {
+                return '/ledger_entries';
+            }
+        });
+
+        $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
+
+        self::assertSame(3.0, $config[RequestOptions::CONNECT_TIMEOUT] ?? null);
+        self::assertSame(120.0, $config[RequestOptions::TIMEOUT] ?? null);
+    }
+
+    public function testKeepsTheDefaultTimeoutWhenOnlyOneOfThemIsOverridden(): void
+    {
+        $pennylane = new Pennylane(new TokenAuthenticator('a-token'), requestTimeout: 5);
+
+        self::assertSame(5.0, $pennylane->getRequestTimeout());
+        self::assertSame(10.0, $pennylane->getConnectTimeout());
     }
 }

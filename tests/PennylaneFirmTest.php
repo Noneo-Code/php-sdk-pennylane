@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Tests;
 
+use GuzzleHttp\RequestOptions;
 use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
@@ -81,5 +82,51 @@ final class PennylaneFirmTest extends TestCase
         });
 
         self::assertNotEmpty($store->getStore());
+    }
+
+    public function testAppliesTheDefaultTimeoutsToOutgoingRequests(): void
+    {
+        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
+        $firm->withMockClient($mockClient);
+
+        $firm->send(new class extends Request {
+            protected Method $method = Method::GET;
+
+            public function resolveEndpoint(): string
+            {
+                return '/companies';
+            }
+        });
+
+        $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
+
+        self::assertSame(10.0, $config[RequestOptions::CONNECT_TIMEOUT] ?? null);
+        self::assertSame(60.0, $config[RequestOptions::TIMEOUT] ?? null);
+    }
+
+    public function testAppliesTheTimeoutsGivenToTheConstructor(): void
+    {
+        $firm = new PennylaneFirm(
+            new TokenAuthenticator('firm-token'),
+            requestTimeout: 90,
+            connectTimeout: 4,
+        );
+        $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
+        $firm->withMockClient($mockClient);
+
+        $firm->send(new class extends Request {
+            protected Method $method = Method::GET;
+
+            public function resolveEndpoint(): string
+            {
+                return '/companies';
+            }
+        });
+
+        $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
+
+        self::assertSame(4.0, $config[RequestOptions::CONNECT_TIMEOUT] ?? null);
+        self::assertSame(90.0, $config[RequestOptions::TIMEOUT] ?? null);
     }
 }

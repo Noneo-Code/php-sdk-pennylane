@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Tests\Auth;
 
+use GuzzleHttp\RequestOptions;
 use Noneo\Sdk\Pennylane\Auth\OAuthClient;
 use PHPUnit\Framework\TestCase;
 use Saloon\Http\Auth\AccessTokenAuthenticator;
@@ -91,5 +92,43 @@ final class OAuthClientTest extends TestCase
 
         self::assertSame($valid, $result);
         $mockClient->assertNothingSent();
+    }
+
+    public function testAppliesTheDefaultTimeoutsToTheTokenRequest(): void
+    {
+        $client = new OAuthClient('client-id', 'client-secret', 'https://app.example.com/callback');
+        $mockClient = new MockClient([
+            MockResponse::make(['access_token' => 'access-token', 'expires_in' => 3600]),
+        ]);
+        $client->withMockClient($mockClient);
+
+        $client->getAccessToken('the-code');
+
+        $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
+
+        self::assertSame(10.0, $config[RequestOptions::CONNECT_TIMEOUT] ?? null);
+        self::assertSame(60.0, $config[RequestOptions::TIMEOUT] ?? null);
+    }
+
+    public function testAppliesTheTimeoutsGivenToTheConstructor(): void
+    {
+        $client = new OAuthClient(
+            'client-id',
+            'client-secret',
+            'https://app.example.com/callback',
+            requestTimeout: 30,
+            connectTimeout: 2,
+        );
+        $mockClient = new MockClient([
+            MockResponse::make(['access_token' => 'access-token', 'expires_in' => 3600]),
+        ]);
+        $client->withMockClient($mockClient);
+
+        $client->getAccessToken('the-code');
+
+        $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
+
+        self::assertSame(2.0, $config[RequestOptions::CONNECT_TIMEOUT] ?? null);
+        self::assertSame(30.0, $config[RequestOptions::TIMEOUT] ?? null);
     }
 }

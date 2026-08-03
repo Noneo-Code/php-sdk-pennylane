@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane;
 
+use Noneo\Sdk\Pennylane\Concerns\AppliesPennylaneTimeouts;
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
 use Noneo\Sdk\Pennylane\Resource\Firm\Companies;
@@ -13,6 +14,7 @@ use Saloon\RateLimitPlugin\Contracts\RateLimitStore;
 
 final class PennylaneFirm extends Connector
 {
+    use AppliesPennylaneTimeouts;
     use HandlesPennylaneErrors;
     use RespectsPennylaneRateLimits;
 
@@ -20,6 +22,8 @@ final class PennylaneFirm extends Connector
         Authenticator $authenticator,
         ?RateLimitStore $rateLimitStore = null,
         int $maxRetries = self::DEFAULT_MAX_RETRIES,
+        ?float $requestTimeout = null,
+        ?float $connectTimeout = null,
     ) {
         $this->authenticate($authenticator);
 
@@ -28,6 +32,7 @@ final class PennylaneFirm extends Connector
         }
 
         $this->useMaxRetries($maxRetries);
+        $this->useTimeouts($requestTimeout, $connectTimeout);
     }
 
     public function resolveBaseUrl(): string

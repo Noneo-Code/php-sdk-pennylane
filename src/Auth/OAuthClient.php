@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Auth;
 
+use Noneo\Sdk\Pennylane\Concerns\AppliesPennylaneTimeouts;
 use Saloon\Contracts\OAuthAuthenticator;
 use Saloon\Helpers\OAuth2\OAuthConfig;
 use Saloon\Http\Connector;
@@ -11,13 +12,17 @@ use Saloon\Traits\OAuth2\AuthorizationCodeGrant;
 
 final class OAuthClient extends Connector
 {
+    use AppliesPennylaneTimeouts;
     use AuthorizationCodeGrant;
 
     public function __construct(
         private readonly string $clientId,
         private readonly string $clientSecret,
         private readonly string $redirectUri,
+        ?float $requestTimeout = null,
+        ?float $connectTimeout = null,
     ) {
+        $this->useTimeouts($requestTimeout, $connectTimeout);
     }
 
     public function resolveBaseUrl(): string

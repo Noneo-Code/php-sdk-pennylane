@@ -254,6 +254,40 @@ $firm->company(42)->ledgerEntries()->list(); // hérite de maxRetries: 0
 Une fois les tentatives épuisées, l'exception correspondant au statut est levée
 (`RateLimitException` pour un 429, `ServerException` pour un 5xx).
 
+## Timeouts
+
+Sans borne explicite, un appel lent — les exports comptables au premier chef —
+bloque le process indéfiniment. Le SDK applique donc deux limites à toutes ses
+requêtes :
+
+| Réglage | Défaut | Portée |
+| --- | --- | --- |
+| `connectTimeout` | **10 s** | Établissement de la connexion TCP/TLS. |
+| `requestTimeout` | **60 s** | Échange complet, en-têtes et corps compris. |
+
+Les deux se règlent au constructeur de `Pennylane`, `PennylaneFirm` et
+`OAuthClient`, en secondes. Un `CompanyScope` hérite des valeurs de son
+`PennylaneFirm`.
+
+```php
+// Un export volumineux mérite plus que la minute par défaut.
+$pennylane = new Noneo\Sdk\Pennylane\Pennylane($authenticator, requestTimeout: 300);
+
+$firm = new Noneo\Sdk\Pennylane\PennylaneFirm(
+    $authenticator,
+    requestTimeout: 120,
+    connectTimeout: 5,
+);
+$firm->company(42)->exports()->list(); // hérite de 120 s / 5 s
+```
+
+`0` vaut « pas de limite » au sens de Guzzle — à réserver aux traitements hors
+ligne, jamais à un process qui sert une requête HTTP.
+
+Attention à la combinaison avec les nouvelles tentatives : le timeout borne
+**chaque** appel, pas la série. Avec `maxRetries: 3`, quatre appels de 60 s plus
+les délais d'attente peuvent occuper le process plusieurs minutes.
+
 ## Dépendances et Guzzle
 
 Le SDK repose sur [Saloon](https://docs.saloon.dev/) v4, qui requiert

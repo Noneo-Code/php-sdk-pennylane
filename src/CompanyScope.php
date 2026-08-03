@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane;
 
+use Noneo\Sdk\Pennylane\Concerns\AppliesPennylaneTimeouts;
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
@@ -35,6 +36,7 @@ use Saloon\Http\Faking\MockClient;
  */
 final class CompanyScope extends Connector
 {
+    use AppliesPennylaneTimeouts;
     use HandlesPennylaneErrors;
     use RespectsPennylaneRateLimits;
 
@@ -50,6 +52,7 @@ final class CompanyScope extends Connector
 
         $this->useRateLimitStore($this->firm->getRateLimitStore());
         $this->useMaxRetries($this->firm->getMaxRetries());
+        $this->useTimeouts($this->firm->getRequestTimeout(), $this->firm->getConnectTimeout());
 
         $mockClient = $this->firm->getMockClient();
 
