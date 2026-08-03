@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Concerns;
 
 use Saloon\Contracts\OAuthAuthenticator;
+use Saloon\Enums\Method;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\PendingRequest;
 use Saloon\Http\Request;
@@ -27,7 +28,33 @@ trait RespectsPennylaneRateLimits
 {
     use HasRateLimits;
 
+    /**
+     * Nombre de *nouvelles* tentatives après l'échec initial : `3` signifie
+     * quatre appels HTTP au pire, `0` désactive tout rejeu.
+     */
+    public const int DEFAULT_MAX_RETRIES = 3;
+
+    private const float BASE_RETRY_DELAY = 0.5;
+
+    private const float MAX_RETRY_DELAY = 8.0;
+
+    private const float RETRY_JITTER = 0.25;
+
+    /**
+     * Plafond appliqué à un `Retry-After` reçu du serveur : au-delà, mieux vaut
+     * rendre la main à l'appelant que bloquer le process plusieurs minutes.
+     */
+    private const int MAX_RETRY_AFTER_DELAY = 60;
+
+    /**
+     * `PATCH` en est volontairement absent : la sémantique d'un patch partiel
+     * (incrément, ajout à une liste) n'est pas idempotente en général.
+     */
+    private const array IDEMPOTENT_METHODS = [Method::GET, Method::HEAD, Method::PUT, Method::DELETE];
+
     private ?RateLimitStore $configuredRateLimitStore = null;
+
+    private ?int $configuredMaxRetries = null;
 
     /**
      * Nombre de tentatives déjà consommées, par requête. Une `WeakMap` plutôt
@@ -50,6 +77,22 @@ trait RespectsPennylaneRateLimits
     public function getRateLimitStore(): RateLimitStore
     {
         return $this->resolveRateLimitStore();
+    }
+
+    /**
+     * Les connecteurs étant `final`, le nombre de tentatives se règle ici
+     * plutôt qu'en redéfinissant une méthode protégée.
+     */
+    public function useMaxRetries(int $maxRetries): static
+    {
+        $this->configuredMaxRetries = max(0, $maxRetries);
+
+        return $this;
+    }
+
+    public function getMaxRetries(): int
+    {
+        return $this->configuredMaxRetries ?? self::DEFAULT_MAX_RETRIES;
     }
 
     protected function resolveRateLimitStore(): RateLimitStore
@@ -92,17 +135,10 @@ trait RespectsPennylaneRateLimits
                 return $response;
             }
 
-            $header = $response->header('Retry-After');
-            $retryAfter = RetryAfterHelper::parse(is_string($header) ? $header : null);
-
-            if (null === $retryAfter) {
-                return $response;
-            }
-
             $request = $response->getRequest();
             $attempts = $this->retryAttempts()[$request] ?? 0;
 
-            if ($attempts >= $this->maxRetryAttempts()) {
+            if ($attempts >= $this->getMaxRetries()) {
                 unset($this->retryAttempts()[$request]);
 
                 return $response;
@@ -110,7 +146,7 @@ trait RespectsPennylaneRateLimits
 
             $this->retryAttempts()[$request] = $attempts + 1;
 
-            $this->wait($retryAfter);
+            $this->wait($this->retryDelay($response, $attempts));
 
             $retried = $response->getConnector()->send($request);
 
@@ -120,15 +156,37 @@ trait RespectsPennylaneRateLimits
         });
     }
 
-    protected function maxRetryAttempts(): int
+    /**
+     * Combien attendre avant la tentative n° `$attempts + 1`.
+     *
+     * Le serveur a le dernier mot : un `Retry-After` exploitable est honoré tel
+     * quel, simplement plafonné pour qu'un en-tête aberrant ne fige pas le
+     * process. Sans en-tête — le cas courant des 5xx — on retombe sur un
+     * backoff exponentiel : réessayer immédiatement un serveur qui vient de
+     * renvoyer 503 ne fait qu'ajouter à sa charge.
+     */
+    protected function retryDelay(Response $response, int $attempts): float
     {
-        return 1;
+        $header = $response->header('Retry-After');
+        $retryAfter = RetryAfterHelper::parse(is_string($header) ? $header : null);
+
+        // Un `Retry-After` nul ou déjà expiré (date passée) ne protège de rien :
+        // il vaut alors une absence d'en-tête.
+        if (null !== $retryAfter && $retryAfter > 0) {
+            return (float) min($retryAfter, self::MAX_RETRY_AFTER_DELAY);
+        }
+
+        $delay = min(self::BASE_RETRY_DELAY * 2 ** $attempts, self::MAX_RETRY_DELAY);
+
+        // Jitter soustractif : il désynchronise les rafales de plusieurs
+        // process sans jamais franchir le plafond par le haut.
+        return round($delay * (1.0 - self::RETRY_JITTER * random_int(0, 1000) / 1000), 3);
     }
 
-    protected function wait(int $seconds): void
+    protected function wait(float $seconds): void
     {
         if ($seconds > 0) {
-            sleep($seconds);
+            usleep((int) round($seconds * 1_000_000));
         }
     }
 
@@ -160,8 +218,21 @@ trait RespectsPennylaneRateLimits
         return null === $token ? 'shared' : substr(hash('xxh128', $token), 0, 12);
     }
 
+    /**
+     * Un 429 dit que la requête n'a pas été traitée : la rejouer est sûr, quelle
+     * que soit la méthode. Un 5xx, lui, ne dit rien — un 502 de proxy laisse
+     * entière la question de savoir si Pennylane a traité l'appel. Faute de clé
+     * d'idempotence côté API, on ne rejoue alors que les méthodes qui, par
+     * définition, supportent d'être répétées : rejouer un
+     * `POST /customer_invoices` créerait une seconde facture.
+     */
     private function isRetryableFailure(Response $response): bool
     {
-        return 429 === $response->status() || $response->serverError();
+        if (429 === $response->status()) {
+            return true;
+        }
+
+        return $response->serverError()
+            && in_array($response->getPendingRequest()->getMethod(), self::IDEMPOTENT_METHODS, true);
     }
 }

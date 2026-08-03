@@ -49,6 +49,7 @@ final class CompanyScope extends Connector
         }
 
         $this->useRateLimitStore($this->firm->getRateLimitStore());
+        $this->useMaxRetries($this->firm->getMaxRetries());
 
         $mockClient = $this->firm->getMockClient();
 
