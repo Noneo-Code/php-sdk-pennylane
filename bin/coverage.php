@@ -8,26 +8,25 @@ require __DIR__.'/../vendor/autoload.php';
 use Noneo\Sdk\Pennylane\Tooling\Coverage\CoverageReport;
 use Noneo\Sdk\Pennylane\Tooling\Coverage\RequestClassLocator;
 use Noneo\Sdk\Pennylane\Tooling\Coverage\SpecOperationsReader;
-
-$specFiles = [
-    __DIR__.'/../pennylane-api-v2.yaml',
-    __DIR__.'/../pennylane-api-firm-v1.yaml',
-];
+use Noneo\Sdk\Pennylane\Tooling\OpenApi\SpecSources;
 
 $operations = [];
 
-foreach ($specFiles as $specFile) {
+foreach (array_keys(SpecSources::URLS) as $file) {
+    $specFile = __DIR__.'/../'.$file;
+
     if (!is_file($specFile)) {
         fwrite(STDERR, "Spec introuvable : {$specFile}. Lancez d'abord php bin/fetch-openapi.php.\n");
         exit(1);
     }
 
-    array_push($operations, ...SpecOperationsReader::fromYamlFile($specFile));
+    array_push($operations, ...SpecOperationsReader::fromJsonFile($specFile));
 }
 
 // operationId => raison de l'exclusion explicite (endpoint volontairement non implémenté)
 $excludedOperationIds = [
     'postLedgerAttachments' => 'Déprécié au profit de postFileAttachments (ticket 18).',
+    'createEInvoiceImport' => 'Révélé par les specs officielles, à implémenter (ticket 31).',
 ];
 
 $signatures = RequestClassLocator::signatures(__DIR__.'/../src/Requests');

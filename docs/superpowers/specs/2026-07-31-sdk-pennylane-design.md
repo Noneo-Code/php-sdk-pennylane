@@ -114,9 +114,10 @@ $invoice->amount;
 ## 4. Arborescence
 
 ```
-pennylane-api-v2.yaml          spec Company reconstruite (commitée)
-pennylane-api-firm-v1.yaml     spec Firm reconstruite (commitée)
-bin/fetch-openapi.php          scrape /reference/*.md, fusionne les fragments
+pennylane-api-v2.json          spec Company officielle (commitée)
+pennylane-api-firm-v1.json     spec Firm officielle (commitée)
+bin/fetch-openapi.php          télécharge les deux specs publiées par Pennylane
+bin/spec-watch.php             veille : dérive committé ↔ publié → issue GitLab
 bin/coverage.php               spec ↔ src/Requests → % couvert + manquants
 
 src/

@@ -1,5 +1,6 @@
 stages:
   - test
+  - veille
 
 .php_setup:
   image: php:8.4-cli
@@ -42,6 +43,18 @@ endpoint-coverage:
   stage: test
   script:
     - php bin/coverage.php
+
+# Veille hebdomadaire des specs Pennylane. Le schedule qui la déclenche se crée
+# à la main dans CI/CD > Schedules ; `SPEC_WATCH_FORCE` permet de rejouer le job
+# sur n'importe quel pipeline sans toucher à ces règles.
+spec-watch:
+  extends: .php_setup
+  stage: veille
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $SPEC_WATCH_FORCE
+  script:
+    - php bin/spec-watch.php
 
 no-framework:
   extends: .php_setup

@@ -5,30 +5,20 @@ declare(strict_types=1);
 
 require __DIR__.'/../vendor/autoload.php';
 
+use Noneo\Sdk\Pennylane\Tooling\Coverage\SpecOperationsReader;
 use Noneo\Sdk\Pennylane\Tooling\OpenApi\CurlHttpFetcher;
-use Noneo\Sdk\Pennylane\Tooling\OpenApi\OpenApiSpecBuilder;
-use Noneo\Sdk\Pennylane\Tooling\OpenApi\YamlSpecWriter;
+use Noneo\Sdk\Pennylane\Tooling\OpenApi\SpecDownloader;
+use Noneo\Sdk\Pennylane\Tooling\OpenApi\SpecJsonWriter;
+use Noneo\Sdk\Pennylane\Tooling\OpenApi\SpecSources;
 
-$targets = [
-    'https://pennylane.readme.io/llms.txt' => __DIR__.'/../pennylane-api-v2.yaml',
-    'https://firm-pennylane.readme.io/llms.txt' => __DIR__.'/../pennylane-api-firm-v1.yaml',
-];
+$downloader = new SpecDownloader(new CurlHttpFetcher(delayMicroseconds: 0));
 
-$builder = new OpenApiSpecBuilder(new CurlHttpFetcher());
+foreach (SpecSources::URLS as $file => $url) {
+    fwrite(STDOUT, "Récupération de {$url}...\n");
 
-foreach ($targets as $llmsTxtUrl => $outputPath) {
-    fwrite(STDOUT, "Récupération de {$llmsTxtUrl}...\n");
+    $spec = $downloader->download($url);
 
-    $result = $builder->build($llmsTxtUrl);
+    file_put_contents(__DIR__.'/../'.$file, SpecJsonWriter::toJson($spec));
 
-    file_put_contents($outputPath, YamlSpecWriter::toYaml($result->spec));
-
-    fwrite(STDOUT, sprintf("  %d opération(s) écrite(s) dans %s\n", $result->operationCount(), basename($outputPath)));
-
-    if ([] !== $result->skippedUrls) {
-        fwrite(STDOUT, sprintf("  %d page(s) ignorée(s) (pas de fragment OpenAPI) :\n", count($result->skippedUrls)));
-        foreach ($result->skippedUrls as $skippedUrl) {
-            fwrite(STDOUT, "    - {$skippedUrl}\n");
-        }
-    }
+    fwrite(STDOUT, sprintf("  %d opération(s) écrite(s) dans %s\n", count(SpecOperationsReader::fromArray($spec)), $file));
 }

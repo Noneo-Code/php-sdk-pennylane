@@ -150,6 +150,33 @@ Scripts disponibles :
 - `composer cs` — vérification PHP-CS-Fixer (`@Symfony`, mode `--dry-run`)
 - `composer check` — enchaîne les trois
 - `php bin/coverage.php` — couverture des endpoints face à la spec OpenAPI
+- `php bin/fetch-openapi.php` — régénère les specs depuis les URLs officielles
+- `php bin/spec-watch.php` — signale une dérive entre specs committées et publiées
+
+### Specs OpenAPI
+
+Les deux specs committées à la racine sont téléchargées telles quelles depuis
+Pennylane, puis réindentées pour rester lisibles et diffables :
+
+| Fichier | Source |
+|---|---|
+| `pennylane-api-v2.json` | <https://pennylane.readme.io/openapi/accounting.json> |
+| `pennylane-api-firm-v1.json` | <https://firm-pennylane.readme.io/openapi/referentials.json> |
+
+`bin/spec-watch.php` compare les opérations committées à celles publiées —
+`operationId`, méthode et chemin, jamais le texte du fichier, qui bouge à chaque
+republication. En CI, le job `spec-watch` l'exécute et ouvre une issue étiquetée
+`spec-watch` dès qu'une dérive apparaît, sans doublonner une issue déjà ouverte.
+
+Deux gestes restent manuels, hors dépôt :
+
+1. créer le schedule dans **CI/CD > Schedules** (hebdomadaire, lundi matin) ;
+2. exposer un token projet en variable CI `SPEC_WATCH_TOKEN`, portée `api` —
+   `$CI_JOB_TOKEN` ne permet pas de créer une issue. Sans ce token, le job
+   affiche le rapport sans rien ouvrir.
+
+Pour rejouer la veille hors schedule, lancez un pipeline avec la variable
+`SPEC_WATCH_FORCE=1`.
 
 `bin/coverage.php` rapproche chaque opération de la spec d'une classe `Request`
 sur **la méthode HTTP et le chemin**, pas sur le nom de classe : une requête
