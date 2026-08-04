@@ -95,8 +95,8 @@ use Noneo\Sdk\Pennylane\Http\Clear;
 
 $pennylane->suppliers()->update(
     id: 42,
-    notes: Clear::value(), // "notes": null — le champ est vidé
-    phone: null,           // absent du corps — le téléphone est conservé
+    establishmentNo: Clear::value(), // "establishment_no": null — le champ est vidé
+    iban: null,                      // absent du corps — l'IBAN est conservé
 );
 ```
 
@@ -113,7 +113,167 @@ une même instance de requête peut être réutilisée, y compris d'une entrepri
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 
 $firm = new PennylaneFirm(new TokenAuthenticator($firmToken));
-$firm->company(1234)->send(new GetLedgerEntries());
+
+foreach ($firm->companies()->paginate() as $company) {
+    $firm->company($company->id)->ledgerEntries()->list(limit: 10);
+}
+```
+
+Le scope hérite du rate limit, des timeouts et de la politique de rejeu de son
+`PennylaneFirm`. Il expose aussi le DMS du cabinet, absent de la Company API :
+
+```php
+$firm->company(1234)->dms()->uploadFile($handle, name: 'bilan-2026.pdf');
+```
+
+## Upload de fichiers
+
+`fileAttachments()->upload()` accepte indifféremment une **ressource stream** ou
+une chaîne. Préférez le stream : un PDF de plusieurs mégaoctets ne transite
+alors jamais entier par la mémoire du process.
+
+```php
+$handle = fopen('/chemin/facture.pdf', 'r');
+
+$attachment = $pennylane->fileAttachments()->upload($handle, filename: 'facture.pdf');
+
+fclose($handle);
+
+$attachment->id;  // à passer à customerInvoices()->import(...)
+$attachment->url; // lien de téléchargement signé
+```
+
+L'usage principal est l'import d'une facture déjà émise ailleurs : on téléverse
+le PDF, puis on rattache l'identifiant obtenu au document.
+
+```php
+$pennylane->customerInvoices()->import(
+    fileAttachmentId: $attachment->id,
+    date: '2026-01-31',
+    deadline: '2026-03-01',
+    customerId: 42,
+    currencyAmountBeforeTax: '1000.00',
+    currencyAmount: '1200.00',
+    currencyTax: '200.00',
+    invoiceLines: [],
+);
+```
+
+Côté cabinet, le DMS a sa propre arborescence de dossiers :
+
+```php
+$folder = $firm->company(1234)->dms()->createFolder('Exercice 2026');
+$firm->company(1234)->dms()->uploadFile($handle, name: 'grand-livre.pdf', parentFolderId: $folder->id);
+```
+
+## E-invoicing
+
+La réforme de la facturation électronique passe par une plateforme agréée (PA).
+Le SDK couvre les deux sens de circulation.
+
+**Émission.** Une facture électronique s'importe depuis un fichier Factur-X, UBL
+ou CII ; `sendToPa` décide si elle part dans la foulée ou attend un ordre
+explicite.
+
+```php
+use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\EInvoiceImportOptions;
+
+$import = $pennylane->customerInvoices()->importEInvoice(
+    fileContents: $handle,
+    filename: 'facture.pdf',
+    sendToPa: false,
+    invoiceOptions: new EInvoiceImportOptions(customerId: 42),
+);
+
+$pennylane->customerInvoices()->sendToPa($import->id);
+```
+
+Le statut vit ensuite sur la facture, dans `eInvoicingStatus` — un
+`EInvoicingStatus` : `submitted`, `sent`, `accepted`, `rejected`, `in_dispute`,
+`collected`… `eInvoicingReason` porte le motif d'un refus.
+
+**Réception.** Les factures fournisseur arrivent en `waiting_for_validation`
+(`SupplierEInvoicingStatus`) et attendent une décision, chacune avec son
+énumération de motifs :
+
+```php
+$pennylane->supplierInvoices()->approveEInvoice(42);
+$pennylane->supplierInvoices()->disputeEInvoice(42, SupplierEInvoiceDisputeReason::WrongAmount);
+$pennylane->supplierInvoices()->refuseEInvoice(42, SupplierEInvoiceRefusalReason::Other);
+```
+
+**Immatriculation.** Rien ne circule tant que l'entreprise n'est pas enregistrée
+auprès de la plateforme. `paRegistrations()` en donne l'état, par SIREN et par
+sens d'échange :
+
+```php
+foreach ($pennylane->paRegistrations()->list()->items as $registration) {
+    $registration->status;            // PaRegistrationStatus::Activated, Pending…
+    $registration->exchangeDirection; // Emission, Reception, EmissionAndReception
+}
+```
+
+La transmission étant asynchrone, ne sondez pas l'API : abonnez-vous à
+l'événement `customer_invoice.e_invoicing_status_updated` (section suivante).
+
+## Webhooks
+
+Un abonnement se crée par l'API. **Le secret n'est rendu qu'une fois**, à la
+création : `create()` rend un `CreatedWebhookSubscriptionDto`, seul DTO à porter
+le champ `secret`. Un `get()` ultérieur ne le redonnera pas.
+
+```php
+use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
+
+$subscription = $pennylane->webhookSubscriptions()->create(
+    callbackUrl: 'https://exemple.test/webhooks/pennylane',
+    events: [WebhookEventType::CustomerInvoiceEInvoicingStatusUpdated],
+);
+
+$subscription->secret; // à ranger dans votre coffre à secrets, maintenant
+```
+
+Côté réception, `Webhook\SignatureVerifier` valide l'en-tête
+`X-Pennylane-Signature` (format `t=<unix>,v1=<hex>`) : HMAC SHA-256 sur
+`{timestamp}.{corps}`, comparaison en temps constant, et fenêtre anti-rejeu de
+**300 s** par défaut. Il travaille sur le **corps brut** : re-sérialiser un
+tableau décodé décalerait une espace, et l'empreinte ne correspondrait plus.
+
+```php
+use Noneo\Sdk\Pennylane\Webhook\SignatureVerifier;
+use Noneo\Sdk\Pennylane\Webhook\WebhookEvent;
+
+final class PennylaneWebhookController
+{
+    public function __construct(private readonly SignatureVerifier $verifier)
+    {
+    }
+
+    public function __invoke(Request $request): Response
+    {
+        $rawBody = $request->getContent();
+
+        if (!$this->verifier->verify($rawBody, $request->headers->get('X-Pennylane-Signature', ''))) {
+            return new Response('Signature invalide.', 401);
+        }
+
+        $event = WebhookEvent::fromArray(json_decode($rawBody, true, flags: JSON_THROW_ON_ERROR));
+
+        // Répondez vite : Pennylane rejoue l'événement en cas d'échec ou de
+        // lenteur, et $event->retryCount dit combien de fois il l'a déjà tenté.
+        $this->bus->dispatch(new HandlePennylaneEvent($event->event, $event->object));
+
+        return new Response('', 200);
+    }
+}
+```
+
+`WebhookEvent` expose `event`, `object`, `previousAttributes` (l'état antérieur
+des seuls champs modifiés), `companyId`, `firmId` et `retryCount`. Le
+vérificateur est indépendant de Saloon : il s'instancie avec le seul secret.
+
+```php
+$verifier = new SignatureVerifier($secret, toleranceSeconds: 900);
 ```
 
 ## OAuth 2.0
@@ -135,6 +295,27 @@ $authenticator = $oauth->getAccessToken($code);
 // 3. Rafraîchir si besoin, puis consommer
 $pennylane = new Pennylane($oauth->refreshIfExpired($authenticator));
 ```
+
+## Exemples
+
+Le dossier `examples/` contient des scripts exécutables, autonomes, qui lisent
+leur jeton dans l'environnement. Ils ne sont pas livrés dans l'archive Composer.
+
+| Script | Ce qu'il montre |
+|---|---|
+| `quickstart.php` | Identité du jeton, liste filtrée et triée, pagination complète |
+| `invoicing_lifecycle.php` | Client → brouillon → finalisation → envoi par e-mail → marquage payé |
+| `firm_portfolio.php` | Portefeuille cabinet, scope entreprise, lecture d'écritures |
+| `webhook_receiver.php` | Vérification de signature et parsing d'événement, sans framework |
+| `einvoice_import.php` | Import d'une facture électronique et suivi de son statut |
+
+```bash
+PENNYLANE_TOKEN=… php examples/quickstart.php
+PENNYLANE_FIRM_TOKEN=… php examples/firm_portfolio.php
+```
+
+Les scripts d'écriture (`invoicing_lifecycle.php`, `einvoice_import.php`) créent
+de vraies données : réservez-les à un environnement de test.
 
 ## Développement
 
@@ -305,7 +486,8 @@ $firm = new Noneo\Sdk\Pennylane\PennylaneFirm(
     requestTimeout: 120,
     connectTimeout: 5,
 );
-$firm->company(42)->exports()->list(); // hérite de 120 s / 5 s
+// hérite de 120 s / 5 s
+$firm->company(42)->exports()->exportFec('2026-01-01', '2026-12-31');
 ```
 
 `0` vaut « pas de limite » au sens de Guzzle — à réserver aux traitements hors
