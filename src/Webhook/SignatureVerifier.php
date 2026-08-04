@@ -7,7 +7,7 @@ namespace Noneo\Sdk\Pennylane\Webhook;
 final readonly class SignatureVerifier
 {
     public function __construct(
-        private string $secret,
+        #[\SensitiveParameter] private string $secret,
         private int $toleranceSeconds = 300,
     ) {
     }

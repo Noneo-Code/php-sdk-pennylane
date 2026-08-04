@@ -35,7 +35,7 @@ final class HandlesPennylaneErrorsTest extends TestCase
         self::assertSame('The access token is invalid', $exception->error());
         self::assertSame('The access token is invalid', $exception->message());
         self::assertSame([], $exception->details());
-        self::assertSame(401, $exception->response()->status());
+        self::assertSame(401, $exception->status());
     }
 
     public function testThrowsForbiddenExceptionOn403WithMissingScope(): void
@@ -183,7 +183,7 @@ final class HandlesPennylaneErrorsTest extends TestCase
 
         self::assertInstanceOf(ServerException::class, $exception);
         self::assertSame('<html><body>503 Service Unavailable</body></html>', $exception->error());
-        self::assertSame(503, $exception->response()->status());
+        self::assertSame(503, $exception->status());
     }
 
     public function testKeepsTheHttpContextWhenA404BodyIsNotJson(): void

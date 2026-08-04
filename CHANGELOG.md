@@ -9,6 +9,35 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ## [Non publié]
 
+### Sécurité
+
+- `PennylaneException` ne retient plus aucun objet Saloon. La `Response`
+  donnait accès au `PendingRequest` et donc à l'en-tête `Authorization` : un
+  `Sentry::captureException()` pouvait journaliser le jeton.
+- Corps d'erreur tronqué à 2 000 octets (sur une frontière de caractère UTF-8)
+  et message à 500 caractères : un 502 HTML de proxy n'inonde plus les logs.
+- En-têtes de réponse conservés sur allowlist ; `Set-Cookie` et tout en-tête
+  inconnu sont écartés.
+- `#[\SensitiveParameter]` sur tout paramètre portant un secret, avec un test
+  qui relit `src/` pour refuser les oublis futurs.
+- Redirections HTTP non suivies (`allow_redirects: false`) : suivre un 301
+  rejouerait l'en-tête `Authorization` vers l'hôte annoncé par la réponse.
+- Refus d'émettre une requête authentifiée hors HTTPS, hôtes de bouclage
+  exceptés.
+
+### Ajouté
+
+- `Pennylane::VERSION` et un en-tête `User-Agent` de la forme
+  `noneo-sdk-pennylane/x.y.z` sur toutes les requêtes.
+- `RedirectException` (3xx, avec `location()`) et `InsecureBaseUrlException`.
+- `PennylaneException::status()`, `responseHeaders()` et `responseBody()`.
+
+### Changé (rupture)
+
+- `PennylaneException::response()` est **supprimé** — c'était le chemin d'accès
+  au jeton. Remplacé par `status()`, `responseHeaders()` et `responseBody()`.
+- Un 3xx lève désormais une exception au lieu de rendre une réponse vide.
+
 ## [0.1.0] - 2026-08-03
 
 Première version : couverture de la Company API v2 et de la Firm API v1 de
