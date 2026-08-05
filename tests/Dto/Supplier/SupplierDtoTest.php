@@ -8,12 +8,14 @@ use Noneo\Sdk\Pennylane\Dto\Customer\Address;
 use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierDto;
 use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierDueDateRule;
 use Noneo\Sdk\Pennylane\Dto\Supplier\SupplierPaymentMethod;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class SupplierDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getSupplier')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 42,

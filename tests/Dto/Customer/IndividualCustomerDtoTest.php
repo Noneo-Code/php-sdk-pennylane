@@ -10,11 +10,13 @@ use Noneo\Sdk\Pennylane\Dto\Customer\CustomerDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\CustomerType;
 use Noneo\Sdk\Pennylane\Dto\Customer\IndividualCustomerDto;
 use Noneo\Sdk\Pennylane\Dto\Customer\PaymentConditions;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class IndividualCustomerDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getIndividualCustomer')]
     public static function documentedPayload(): array
     {
         return [

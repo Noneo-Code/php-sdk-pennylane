@@ -7,12 +7,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\PurchaseRequest;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\PurchaseRequest\PurchaseRequestDto;
 use Noneo\Sdk\Pennylane\Dto\PurchaseRequest\PurchaseRequestStatus;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class PurchaseRequestDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getPurchaseRequest')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 1,

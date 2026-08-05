@@ -6,11 +6,13 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\Quote;
 
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
 use Noneo\Sdk\Pennylane\Dto\Quote\QuoteInvoiceLineDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class QuoteInvoiceLineDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getQuoteInvoiceLines', pointer: 'items')]
     public static function documentedPayload(): array
     {
         return [

@@ -8,11 +8,13 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Substance;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
 use Noneo\Sdk\Pennylane\Dto\Product\ProductDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class ProductDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getProduct')]
     public static function documentedPayload(): array
     {
         return [

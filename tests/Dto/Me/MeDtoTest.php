@@ -7,11 +7,13 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\Me;
 use Noneo\Sdk\Pennylane\Dto\Me\AccountingLogic;
 use Noneo\Sdk\Pennylane\Dto\Me\Locale;
 use Noneo\Sdk\Pennylane\Dto\Me\MeDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class MeDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getMe')]
     public static function documentedPayload(): array
     {
         return [

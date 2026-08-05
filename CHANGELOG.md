@@ -27,6 +27,18 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ### Ajouté
 
+- Suite d'intégration optionnelle (`tests/Integration/`, `composer
+  test:integration`) contre l'API réelle : lecture, pagination sur deux pages,
+  filtre `gteq` rejoué de page en page, contournement `start_date` des
+  changelogs, en-têtes de quota, et cas d'erreur 404/401/422. Chaque test
+  s'ignore sans `PENNYLANE_API_TOKEN` ; les écritures exigent en plus
+  `PENNYLANE_SANDBOX=1`. Job CI `integration` manuel, hors pipelines de MR.
+- `bin/schema-check.php` et `composer schema` : les fixtures des tests et les
+  55 enums backed sont confrontés aux schémas OpenAPI committés. Le
+  rattachement est explicite via l'attribut `#[DocumentedBy]`, avec pointeur de
+  propriété et sélecteur de branche (`status=refused.reason`). Une fixture non
+  annotée est signalée, un écart assumé se documente en exclusion. Bloquant en
+  CI (job `schema-check`) et intégré à `composer check`.
 - `Pennylane::VERSION` et un en-tête `User-Agent` de la forme
   `noneo-sdk-pennylane/x.y.z` sur toutes les requêtes.
 - `RedirectException` (3xx, avec `location()`) et `InsecureBaseUrlException`.

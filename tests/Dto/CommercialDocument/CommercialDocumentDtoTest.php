@@ -9,11 +9,13 @@ use Noneo\Sdk\Pennylane\Dto\CommercialDocument\CommercialDocumentType;
 use Noneo\Sdk\Pennylane\Dto\Customer\BillingLanguage;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\DiscountType;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class CommercialDocumentDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getCommercialDocument')]
     public static function documentedPayload(): array
     {
         return [

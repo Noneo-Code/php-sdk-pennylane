@@ -11,11 +11,13 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomerInvoiceStatus;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Discount;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\EInvoicingStatus;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\SchematronValidationStatus;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class CustomerInvoiceDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getCustomerInvoice')]
     public static function documentedPayload(): array
     {
         return [

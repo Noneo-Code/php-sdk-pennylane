@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\SupplierInvoice;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+
+#[DocumentedBy('getSupplierInvoice', pointer: 'payment_status')]
 enum SupplierInvoicePaymentStatus: string
 {
     case ToBeProcessed = 'to_be_processed';

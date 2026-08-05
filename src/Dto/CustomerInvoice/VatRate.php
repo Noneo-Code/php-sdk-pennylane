@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\CustomerInvoice;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+
+#[DocumentedBy('getProduct', pointer: 'vat_rate')]
 enum VatRate: string
 {
     case Fr105 = 'FR_1_05';

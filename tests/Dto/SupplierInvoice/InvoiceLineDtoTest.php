@@ -6,12 +6,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\SupplierInvoice;
 
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\InvoiceLineDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class InvoiceLineDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getSupplierInvoiceLines', pointer: 'items')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 444,

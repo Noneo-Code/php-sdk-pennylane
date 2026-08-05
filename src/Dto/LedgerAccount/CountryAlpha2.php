@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\LedgerAccount;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+use Noneo\Sdk\Pennylane\Tooling\Schema\SchemaSource;
+
+#[DocumentedBy('postLedgerAccounts', pointer: 'country_alpha2', source: SchemaSource::Request)]
 enum CountryAlpha2: string
 {
     case AT = 'AT';

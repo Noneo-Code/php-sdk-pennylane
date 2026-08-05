@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\SupplierInvoice;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+use Noneo\Sdk\Pennylane\Tooling\Schema\SchemaSource;
+
 /**
  * Motifs recevables pour contester une facture fournisseur électronique.
  * Distincts de ceux d'un refus : voir SupplierEInvoiceRefusalReason.
  */
+#[DocumentedBy('putSupplierInvoiceEInvoiceStatus', pointer: 'status=disputed.reason', source: SchemaSource::Request)]
 enum SupplierEInvoiceDisputeReason: string
 {
     case IncorrectVatRate = 'incorrect_vat_rate';

@@ -7,11 +7,13 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\PaRegistration;
 use Noneo\Sdk\Pennylane\Dto\PaRegistration\ExchangeDirection;
 use Noneo\Sdk\Pennylane\Dto\PaRegistration\PaRegistrationDto;
 use Noneo\Sdk\Pennylane\Dto\PaRegistration\PaRegistrationStatus;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class PaRegistrationDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getPaRegistrations', pointer: 'items')]
     public static function documentedPayload(): array
     {
         return [

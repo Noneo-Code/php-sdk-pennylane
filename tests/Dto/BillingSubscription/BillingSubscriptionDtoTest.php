@@ -10,11 +10,13 @@ use Noneo\Sdk\Pennylane\Dto\BillingSubscription\BillingSubscriptionPaymentMethod
 use Noneo\Sdk\Pennylane\Dto\BillingSubscription\BillingSubscriptionStatus;
 use Noneo\Sdk\Pennylane\Dto\BillingSubscription\RecurringRuleType;
 use Noneo\Sdk\Pennylane\Dto\Customer\PaymentConditions;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class BillingSubscriptionDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getBillingSubscription')]
     public static function documentedPayload(): array
     {
         return [

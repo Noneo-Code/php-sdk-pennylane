@@ -6,12 +6,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\Mandate;
 
 use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateDto;
 use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateSequenceType;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class SepaMandateDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getSepaMandate')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 12345,

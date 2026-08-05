@@ -6,12 +6,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\SupplierInvoice;
 
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\MatchedTransactionDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class MatchedTransactionDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getSupplierInvoiceMatchedTransactions', pointer: 'items')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 42,

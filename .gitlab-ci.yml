@@ -1,5 +1,6 @@
 stages:
   - test
+  - integration
   - veille
 
 .php_setup:
@@ -43,6 +44,34 @@ endpoint-coverage:
   stage: test
   script:
     - php bin/coverage.php
+
+# `coverage.php` valide les chemins, celui-ci valide les formes : chaque
+# fixture recopiée à la main et chaque enum backed est confronté au schéma
+# OpenAPI dont il se réclame. Bloquant : un écart se corrige, ou s'assume dans
+# la liste d'exclusions du script.
+schema-check:
+  extends: .php_setup
+  stage: test
+  script:
+    - php bin/schema-check.php
+
+# Tests contre l'API réelle. Jamais dans un pipeline de MR : `when: manual` et
+# `allow_failure` pour qu'un déclenchement volontaire ne bloque pas la branche,
+# l'API pouvant être indisponible sans que le SDK y soit pour quelque chose.
+#
+# `PENNYLANE_API_TOKEN` se définit dans CI/CD > Variables, **masquée et
+# protégée**, avec le jeton d'un compte de bac à sable — jamais un jeton de
+# production. Sans elle, la suite s'ignore proprement plutôt que d'échouer.
+# `PENNYLANE_SANDBOX` vaut `1` uniquement si l'on accepte que le job crée des
+# objets impossibles à supprimer ensuite.
+integration:
+  extends: .php_setup
+  stage: integration
+  rules:
+    - when: manual
+  allow_failure: true
+  script:
+    - composer test:integration
 
 # Veille hebdomadaire des specs Pennylane. Le schedule qui la déclenche se crée
 # à la main dans CI/CD > Schedules ; `SPEC_WATCH_FORCE` permet de rejouer le job

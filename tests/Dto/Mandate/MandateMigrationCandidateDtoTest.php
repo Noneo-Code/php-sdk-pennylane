@@ -8,12 +8,14 @@ use Noneo\Sdk\Pennylane\Dto\Mandate\DirectDebitMethod;
 use Noneo\Sdk\Pennylane\Dto\Mandate\MandateMigrationCandidateDto;
 use Noneo\Sdk\Pennylane\Dto\Mandate\MandateMigrationCandidateStatus;
 use Noneo\Sdk\Pennylane\Dto\Mandate\MandateType;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class MandateMigrationCandidateDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getProAccountMandateMigrations', pointer: 'items')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 42,
