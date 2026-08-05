@@ -382,6 +382,7 @@ jamais la `RequestException` générique de Saloon :
 
 | Statut | Exception | Accesseurs |
 |---|---|---|
+| 3xx | `RedirectException` | `location()` |
 | 400 | `BadRequestException` | `errorCode()`, `details()` |
 | 401 | `UnauthorizedException` | |
 | 403 | `ForbiddenException` | `missingScope()` |
@@ -393,16 +394,29 @@ jamais la `RequestException` générique de Saloon :
 | 5xx | `ServerException` | |
 
 Toutes héritent de `PennylaneException`, qui expose `error()`, `message()`,
-`errorCode()`, `details()` et la `Response` d'origine. Un `catch` sur la classe
-mère couvre donc toute la surface d'erreur, y compris une page HTML renvoyée
-par un proxy en amont sur un 502 : le corps illisible n'efface ni le statut ni
-le corps brut.
+`errorCode()`, `details()`, `status()`, `responseHeaders()` et
+`responseBody()`. Un `catch` sur la classe mère couvre donc toute la surface
+d'erreur, y compris une page HTML renvoyée par un proxy en amont sur un 502 :
+le corps illisible n'efface ni le statut ni le corps brut.
+
+L'exception ne retient **aucun** objet Saloon. C'est délibéré : depuis une
+`Response` on remonte au `PendingRequest`, donc à ses en-têtes, donc au
+`Authorization: Bearer …`. Un `Sentry::captureException()` suffirait alors à
+journaliser le jeton. Seules des copies sont conservées :
+
+- `responseBody()` — corps brut **tronqué à 2 000 octets**, sur une frontière
+  de caractère UTF-8 ; un 502 HTML de proxy pèse parfois des centaines de Ko ;
+- `responseHeaders()` — en-têtes retenus sur **allowlist** (`Retry-After`,
+  `Content-Type`, `Date`, `Location`, `X-Request-Id`, `X-Correlation-Id` et les
+  familles `RateLimit-*`). Un en-tête hors liste — `Set-Cookie` en tête — est
+  écarté plutôt que deviné ;
+- `error()` et `getMessage()` — tronqués à 500 caractères.
 
 ```php
 try {
     $pennylane->customerInvoices()->get(42);
 } catch (Noneo\Sdk\Pennylane\Exception\NotFoundException $e) {
-    // $e->error(), $e->response()
+    // $e->error(), $e->status(), $e->responseBody(), $e->responseHeaders()
 } catch (Noneo\Sdk\Pennylane\Exception\PennylaneException $e) {
     // tout le reste
 }
@@ -496,6 +510,48 @@ ligne, jamais à un process qui sert une requête HTTP.
 Attention à la combinaison avec les nouvelles tentatives : le timeout borne
 **chaque** appel, pas la série. Avec `maxRetries: 3`, quatre appels de 60 s plus
 les délais d'attente peuvent occuper le process plusieurs minutes.
+
+## Sécurité
+
+### Transport
+
+Trois invariants s'appliquent à tous les connecteurs (`Pennylane`,
+`PennylaneFirm`, `CompanyScope`, `OAuthClient`) :
+
+- **HTTPS obligatoire.** Une requête authentifiée hors HTTPS lève
+  `InsecureBaseUrlException` **avant** de partir : le jeton ne quitte jamais le
+  process. Les hôtes de bouclage (`localhost`, `127.0.0.1`, `[::1]`) font
+  exception, pour permettre un serveur d'enregistrement en tests d'intégration.
+- **Redirections non suivies.** `allow_redirects` est désactivé et un 3xx lève
+  `RedirectException`. Une API JSON ne redirige pas ; suivre un 301 rejouerait
+  l'en-tête `Authorization` vers l'hôte annoncé par la réponse — un tiers,
+  potentiellement.
+- **`User-Agent` identifiant**, de la forme `noneo-sdk-pennylane/0.1.0`, pour
+  que le support Pennylane retrouve nos appels dans leurs journaux. La version
+  vit dans `Pennylane::VERSION` et suit le CHANGELOG.
+
+### Secrets dans les traces
+
+Tout paramètre portant un secret — jeton, `clientSecret`, secret de webhook,
+`Authenticator` Saloon — est marqué `#[\SensitiveParameter]`. PHP remplace
+alors sa valeur par `Object(SensitiveParameterValue)` dans les arguments de
+trace. Un test relit `src/` à chaque exécution et refuse tout nouveau paramètre
+au nom évocateur qui oublierait l'attribut.
+
+**Réglage d'exploitation à vérifier :** activez
+
+```ini
+zend.exception_ignore_args = 1
+```
+
+C'est la valeur de `php.ini-production`, mais **pas** le défaut de PHP. Sans
+elle, PHP conserve les arguments de chaque frame, et les frames internes de
+Saloon reçoivent la `Response` — dont la requête PSR signée, `readonly` et hors
+de portée du SDK. Autrement dit : le SDK garantit que ni l'exception ni ses
+propres frames ne portent le jeton, mais seul ce réglage neutralise celles de
+ses dépendances. La trace *textuelle* (`getTraceAsString()`, celle qui part
+dans les logs) ne rend jamais que les types des arguments : elle est sûre dans
+les deux cas.
 
 ## Dépendances et Guzzle
 

@@ -6,13 +6,19 @@ namespace Noneo\Sdk\Pennylane\Dto\Webhook;
 
 final readonly class CreatedWebhookSubscriptionDto
 {
-    /** @param list<WebhookEventType> $events */
+    /**
+     * `$secret` est la clé de signature des webhooks, rendue une seule fois par
+     * Pennylane à la création de l'abonnement : c'est le secret le plus durable
+     * que le SDK manipule.
+     *
+     * @param list<WebhookEventType> $events
+     */
     public function __construct(
         public int $id,
         public string $callbackUrl,
         public array $events,
         public bool $enabled,
-        public string $secret,
+        #[\SensitiveParameter] public string $secret,
         public string $createdAt,
         public string $updatedAt,
     ) {

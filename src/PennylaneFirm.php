@@ -7,6 +7,7 @@ namespace Noneo\Sdk\Pennylane;
 use Noneo\Sdk\Pennylane\Concerns\AppliesPennylaneTimeouts;
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
+use Noneo\Sdk\Pennylane\Concerns\SecuresPennylaneTransport;
 use Noneo\Sdk\Pennylane\Resource\Firm\Companies;
 use Saloon\Contracts\Authenticator;
 use Saloon\Http\Connector;
@@ -17,9 +18,15 @@ final class PennylaneFirm extends Connector
     use AppliesPennylaneTimeouts;
     use HandlesPennylaneErrors;
     use RespectsPennylaneRateLimits;
+    use SecuresPennylaneTransport;
+
+    /**
+     * @see Pennylane::VERSION — même paquet, même version.
+     */
+    public const string VERSION = Pennylane::VERSION;
 
     public function __construct(
-        Authenticator $authenticator,
+        #[\SensitiveParameter] Authenticator $authenticator,
         ?RateLimitStore $rateLimitStore = null,
         int $maxRetries = self::DEFAULT_MAX_RETRIES,
         ?float $requestTimeout = null,

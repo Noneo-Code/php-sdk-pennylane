@@ -10,8 +10,8 @@ final class RateLimitException extends PennylaneException
 {
     public function retryAfter(): ?int
     {
-        $header = $this->response()->header('Retry-After');
+        $header = $this->responseHeaders()['Retry-After'] ?? null;
 
-        return RetryAfterHelper::parse(is_string($header) ? $header : null);
+        return RetryAfterHelper::parse($header);
     }
 }

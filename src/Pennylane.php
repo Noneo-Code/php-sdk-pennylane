@@ -7,6 +7,7 @@ namespace Noneo\Sdk\Pennylane;
 use Noneo\Sdk\Pennylane\Concerns\AppliesPennylaneTimeouts;
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
+use Noneo\Sdk\Pennylane\Concerns\SecuresPennylaneTransport;
 use Noneo\Sdk\Pennylane\Resource\BankAccounts;
 use Noneo\Sdk\Pennylane\Resource\BankEstablishments;
 use Noneo\Sdk\Pennylane\Resource\BillingSubscriptions;
@@ -45,9 +46,21 @@ final class Pennylane extends Connector
     use AppliesPennylaneTimeouts;
     use HandlesPennylaneErrors;
     use RespectsPennylaneRateLimits;
+    use SecuresPennylaneTransport;
 
+    /**
+     * Version du paquet, telle qu'annoncée dans le `User-Agent`. À faire
+     * évoluer avec le CHANGELOG à chaque release — un test le vérifie.
+     */
+    public const string VERSION = '0.1.0';
+
+    /**
+     * `$authenticator` est marqué sensible : un `TokenAuthenticator` porte le
+     * jeton en clair dans une propriété publique, qu'une trace conservant ses
+     * arguments afficherait tel quel.
+     */
     public function __construct(
-        Authenticator $authenticator,
+        #[\SensitiveParameter] Authenticator $authenticator,
         ?RateLimitStore $rateLimitStore = null,
         int $maxRetries = self::DEFAULT_MAX_RETRIES,
         ?float $requestTimeout = null,
