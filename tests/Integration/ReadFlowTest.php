@@ -133,10 +133,18 @@ final class ReadFlowTest extends IntegrationTestCase
      * abandonne `start_date` dès la seconde page. Ce test vérifie que le
      * contournement passe encore côté API — une 400 ici signalerait que
      * Pennylane a changé la règle.
+     *
+     * La spec impose deux contraintes sur `start_date`, toutes deux rendues par
+     * l'API sous forme d'erreur et non de résultat vide : le format RFC3339
+     * — une date nue vaut 400 — et la fenêtre de rétention de quatre semaines,
+     * au-delà de laquelle l'API répond « Start date is too old » en 422. D'où
+     * une date relative : une constante finirait par sortir de la fenêtre.
      */
     public function testChangelogsAcceptTheStartDateWorkaround(): void
     {
-        $page = self::pennylane()->changelogs()->customerInvoices(limit: 2, startDate: '2020-01-01');
+        $startDate = date('c', strtotime('-7 days'));
+
+        $page = self::pennylane()->changelogs()->customerInvoices(limit: 2, startDate: $startDate);
 
         self::assertLessThanOrEqual(2, count($page->items));
 
