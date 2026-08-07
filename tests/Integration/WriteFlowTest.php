@@ -48,7 +48,13 @@ final class WriteFlowTest extends IntegrationTestCase
         );
 
         self::assertGreaterThan(0, $product->id);
-        self::assertSame('100.00', $product->priceBeforeTax);
+
+        // Pennylane renormalise les décimaux avant de les rendre : `100.00`
+        // revient en `100.0`, et la spec l'annonce — `price_before_tax` s'y
+        // donne pour exemple `12.5`. Comparer les chaînes testerait la mise en
+        // forme du serveur ; ce qui nous regarde, c'est que le montant envoyé
+        // soit celui qui a été enregistré.
+        self::assertEqualsWithDelta(100.00, (float) $product->priceBeforeTax, 0.001);
 
         $customer = $pennylane->customers()->createCompany(
             name: 'Client '.$tag,
