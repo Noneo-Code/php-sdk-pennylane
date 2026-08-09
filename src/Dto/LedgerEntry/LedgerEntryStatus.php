@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\LedgerEntry;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+
+#[DocumentedBy('getLedgerEntry', pointer: 'status')]
 enum LedgerEntryStatus: string
 {
     case AccountingNeeded = 'accounting_needed';

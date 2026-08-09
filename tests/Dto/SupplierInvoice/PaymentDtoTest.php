@@ -7,12 +7,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\SupplierInvoice;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\CustomerInvoicePaymentStatus;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\PaymentDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class PaymentDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getSupplierInvoicePayments', pointer: 'items')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 444,

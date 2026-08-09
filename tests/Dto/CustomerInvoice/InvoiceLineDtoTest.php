@@ -8,11 +8,13 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\ImputationDates;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\InvoiceLineDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Substance;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class InvoiceLineDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getCustomerInvoiceInvoiceLines', pointer: 'items')]
     public static function documentedPayload(): array
     {
         return [

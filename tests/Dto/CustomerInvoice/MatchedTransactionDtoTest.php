@@ -7,11 +7,13 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\CustomerInvoice;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\MatchedTransactionDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class MatchedTransactionDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getCustomerInvoiceMatchedTransactions', pointer: 'items')]
     public static function documentedPayload(): array
     {
         return [

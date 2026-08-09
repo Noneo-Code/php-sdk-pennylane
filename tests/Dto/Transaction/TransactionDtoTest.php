@@ -6,12 +6,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\Transaction;
 
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\Transaction\TransactionDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class TransactionDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getTransaction')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 42,

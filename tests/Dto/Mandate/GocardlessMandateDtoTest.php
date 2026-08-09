@@ -6,12 +6,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\Mandate;
 
 use Noneo\Sdk\Pennylane\Dto\Mandate\GocardlessMandateDto;
 use Noneo\Sdk\Pennylane\Dto\Mandate\GocardlessMandateStatus;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class GocardlessMandateDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getGocardlessMandate')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 42,

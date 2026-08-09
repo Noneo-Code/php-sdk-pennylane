@@ -9,11 +9,13 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Discount;
 use Noneo\Sdk\Pennylane\Dto\Quote\QuoteDto;
 use Noneo\Sdk\Pennylane\Dto\Quote\QuoteStatus;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class QuoteDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('getQuote')]
     public static function documentedPayload(): array
     {
         return [

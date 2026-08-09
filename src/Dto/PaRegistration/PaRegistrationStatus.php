@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\PaRegistration;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+
+#[DocumentedBy('getPaRegistrations', pointer: 'items.status')]
 enum PaRegistrationStatus: string
 {
     case Pending = 'pending';

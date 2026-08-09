@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\Supplier;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+
+#[DocumentedBy('getSupplier', pointer: 'supplier_payment_method')]
 enum SupplierPaymentMethod: string
 {
     case AutomaticTransfer = 'automatic_transfer';

@@ -6,12 +6,14 @@ namespace Noneo\Sdk\Pennylane\Tests\Dto\BankAccount;
 
 use Noneo\Sdk\Pennylane\Dto\BankAccount\BankAccountDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class BankAccountDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getBankAccount')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 42,

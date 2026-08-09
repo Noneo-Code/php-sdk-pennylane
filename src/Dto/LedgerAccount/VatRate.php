@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\LedgerAccount;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+use Noneo\Sdk\Pennylane\Tooling\Schema\SchemaSource;
+
+#[DocumentedBy('postLedgerAccounts', pointer: 'vat_rate', source: SchemaSource::Request)]
 enum VatRate: string
 {
     case FR_1_05 = 'FR_1_05';

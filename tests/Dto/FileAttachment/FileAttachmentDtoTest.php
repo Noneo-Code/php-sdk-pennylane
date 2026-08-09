@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Tests\Dto\FileAttachment;
 
 use Noneo\Sdk\Pennylane\Dto\FileAttachment\FileAttachmentDto;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class FileAttachmentDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
+    #[DocumentedBy('postFileAttachments')]
     public static function documentedPayload(): array
     {
         return [

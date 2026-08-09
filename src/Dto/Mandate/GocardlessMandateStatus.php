@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\Mandate;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+
+#[DocumentedBy('getGocardlessMandate', pointer: 'status')]
 enum GocardlessMandateStatus: string
 {
     case PendingCustomerApproval = 'pending_customer_approval';

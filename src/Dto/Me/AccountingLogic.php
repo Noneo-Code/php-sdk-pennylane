@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Dto\Me;
 
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
+
+#[DocumentedBy('getMe', pointer: 'company.accounting_logic')]
 enum AccountingLogic: string
 {
     case FrPcg = 'FR_PCG';

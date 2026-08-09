@@ -9,12 +9,14 @@ use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierEInvoicingStatus;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceAccountingStatus;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceDto;
 use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoicePaymentStatus;
+use Noneo\Sdk\Pennylane\Tooling\Schema\DocumentedBy;
 use PHPUnit\Framework\TestCase;
 
 final class SupplierInvoiceDtoTest extends TestCase
 {
     /** @return array<string, mixed> */
-    private function documentedPayload(): array
+    #[DocumentedBy('getSupplierInvoice')]
+    public static function documentedPayload(): array
     {
         return [
             'id' => 123,

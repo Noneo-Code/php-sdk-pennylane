@@ -36,14 +36,22 @@
         "psr/simple-cache": "^3.0"
     },
     "scripts": {
-        "test": "phpunit",
+        "test": "phpunit --testsuite=default",
+        "test:integration": "phpunit --testsuite=integration",
         "stan": "phpstan analyse --memory-limit=1G",
         "cs": "php-cs-fixer fix --dry-run --diff",
+        "schema": "php bin/schema-check.php",
         "check": [
             "@test",
             "@stan",
-            "@cs"
+            "@cs",
+            "@schema"
         ]
+    },
+    "scripts-descriptions": {
+        "test": "Suite unitaire : ni réseau, ni jeton.",
+        "test:integration": "Suite d'intégration contre l'API réelle ; s'ignore sans PENNYLANE_API_TOKEN.",
+        "schema": "Confronte les fixtures et les enums du SDK aux schémas OpenAPI committés."
     },
     "config": {
         "sort-packages": true
