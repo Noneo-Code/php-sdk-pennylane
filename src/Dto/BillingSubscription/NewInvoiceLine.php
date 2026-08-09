@@ -11,7 +11,7 @@ final readonly class NewInvoiceLine
 {
     public function __construct(
         public string $label,
-        public int|float $quantity,
+        public int|string $quantity,
         public string $unit,
         public string $rawCurrencyUnitPrice,
         public VatRate $vatRate,

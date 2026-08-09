@@ -12,7 +12,7 @@ final readonly class UpdateInvoiceLine
     public function __construct(
         public int $id,
         public ?string $label = null,
-        public int|float|null $quantity = null,
+        public int|string|null $quantity = null,
         public ?string $unit = null,
         public ?string $rawCurrencyUnitPrice = null,
         public ?VatRate $vatRate = null,

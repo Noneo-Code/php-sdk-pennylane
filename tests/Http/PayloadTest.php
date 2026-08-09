@@ -61,4 +61,75 @@ final class PayloadTest extends TestCase
     {
         self::assertSame(Clear::value(), Clear::value());
     }
+
+    /**
+     * Un float ne représente pas exactement un montant décimal : `json_encode`
+     * peut écrire `120.5` là où l'API attend `"120.50"`, et une écriture
+     * comptable fausse d'un centime ne se voit pas. On refuse à la source.
+     */
+    public function testRefusesAFloatAndNamesTheOffendingField(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('amount');
+
+        Payload::build(['amount' => 1.1]);
+    }
+
+    public function testRefusesAFloatNestedInAnArrayOfInvoiceLines(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('invoice_lines[0][raw_currency_unit_price]');
+
+        Payload::build([
+            'invoice_lines' => [
+                ['label' => 'Prestation', 'raw_currency_unit_price' => 120.50],
+            ],
+        ]);
+    }
+
+    public function testRefusesAFloatReturnedByAnInputDto(): void
+    {
+        $line = new class {
+            /** @return array<string, mixed> */
+            public function toArray(): array
+            {
+                return ['raw_currency_unit_price' => 120.50];
+            }
+        };
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('line[raw_currency_unit_price]');
+
+        Payload::build(['line' => $line]);
+    }
+
+    /**
+     * Aucune exception pour les floats « entiers » : `2.0` est un float comme
+     * un autre, et une règle sans exception est la seule qui s'explique.
+     */
+    public function testRefusesAWholeFloatToo(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        Payload::build(['quantity' => 2.0]);
+    }
+
+    public function testSuggestsTheDecimalStringToWriteInstead(): void
+    {
+        $this->expectExceptionMessage("'120.50'");
+
+        Payload::build(['amount' => 120.50]);
+    }
+
+    public function testLetsDecimalStringsIntegersAndClearThrough(): void
+    {
+        self::assertSame(
+            ['amount' => '120.50', 'quantity' => 3, 'notes' => null],
+            Payload::build([
+                'amount' => '120.50',
+                'quantity' => 3,
+                'notes' => Clear::value(),
+            ]),
+        );
+    }
 }

@@ -9,7 +9,7 @@ final readonly class NewImportedInvoiceLine
     public function __construct(
         public string $currencyAmount,
         public string $currencyTax,
-        public int|float $quantity,
+        public int|string $quantity,
         public string $rawCurrencyUnitPrice,
         public string $unit,
         public VatRate $vatRate,

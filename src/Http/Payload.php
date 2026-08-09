@@ -28,6 +28,8 @@ final class Payload
             $body[$key] = self::normalise($value);
         }
 
+        FloatGuard::assertNoFloat($body);
+
         return $body;
     }
 

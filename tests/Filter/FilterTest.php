@@ -19,4 +19,17 @@ final class FilterTest extends TestCase
             $filter->jsonSerialize(),
         );
     }
+
+    /**
+     * Un filtre sur un montant se compare à une chaîne décimale, comme les
+     * montants du corps : le float est refusé dès la construction, là où la
+     * trace pointe encore la ligne d'appel.
+     */
+    public function testItRefusesAFloatValueOnConstruction(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('amount');
+
+        new Filter('amount', FilterOperator::Gteq, 1.5);
+    }
 }

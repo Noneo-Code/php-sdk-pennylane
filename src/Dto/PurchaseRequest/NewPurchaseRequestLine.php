@@ -12,7 +12,7 @@ final readonly class NewPurchaseRequestLine
         public string $currencyAmount,
         public string $currencyTax,
         public string $label,
-        public int|float $quantity,
+        public int|string $quantity,
         public string $unitPrice,
         public string $unit,
         public VatRate $vatRate,

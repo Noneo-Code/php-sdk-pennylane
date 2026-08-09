@@ -6,6 +6,7 @@ namespace Noneo\Sdk\Pennylane;
 
 use Noneo\Sdk\Pennylane\Concerns\AppliesPennylaneTimeouts;
 use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
+use Noneo\Sdk\Pennylane\Concerns\RejectsFloatValues;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
 use Noneo\Sdk\Pennylane\Concerns\SecuresPennylaneTransport;
 use Noneo\Sdk\Pennylane\Resource\Firm\Companies;
@@ -17,6 +18,7 @@ final class PennylaneFirm extends Connector
 {
     use AppliesPennylaneTimeouts;
     use HandlesPennylaneErrors;
+    use RejectsFloatValues;
     use RespectsPennylaneRateLimits;
     use SecuresPennylaneTransport;
 

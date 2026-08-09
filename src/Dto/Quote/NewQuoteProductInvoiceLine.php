@@ -11,7 +11,7 @@ final readonly class NewQuoteProductInvoiceLine
 {
     public function __construct(
         public int $productId,
-        public int|float $quantity,
+        public int|string $quantity,
         public ?string $label = null,
         public ?int $ledgerAccountId = null,
         public ?string $rawCurrencyUnitPrice = null,

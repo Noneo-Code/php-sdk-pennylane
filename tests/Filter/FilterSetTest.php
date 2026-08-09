@@ -38,4 +38,31 @@ final class FilterSetTest extends TestCase
     {
         self::assertSame('[]', FilterSet::make()->toJson());
     }
+
+    public function testItRefusesAFloatComparisonValue(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('amount');
+
+        FilterSet::make()->gteq('amount', 1.5);
+    }
+
+    public function testItRefusesAFloatHiddenInAnInList(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('amount[1]');
+
+        FilterSet::make()->in('amount', ['12.00', 2.5]);
+    }
+
+    public function testItStillAcceptsDecimalStringsAndIntegers(): void
+    {
+        $filters = FilterSet::make()->gteq('amount', '120.50')->eq('customer_id', 12);
+
+        self::assertSame(
+            '[{"field":"amount","operator":"gteq","value":"120.50"},'
+            .'{"field":"customer_id","operator":"eq","value":12}]',
+            $filters->toJson(),
+        );
+    }
 }
