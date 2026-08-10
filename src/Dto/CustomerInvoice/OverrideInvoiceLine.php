@@ -11,7 +11,7 @@ final readonly class OverrideInvoiceLine
         public string $currencyTax,
         public VatRate $vatRate,
         public int $ledgerAccountId,
-        public int|float $quantity,
+        public int|string $quantity,
         public string $rawCurrencyUnitPrice,
         public ?int $productId = null,
     ) {

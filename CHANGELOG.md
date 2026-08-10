@@ -46,6 +46,15 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ### Changé (rupture)
 
+- **Aucun `float` ne quitte plus le SDK.** Un `float` dans un corps de requête,
+  une query ou un filtre lève une `\InvalidArgumentException` citant le chemin
+  du champ fautif et la chaîne décimale à écrire à la place. Un `float` ne
+  représente pas exactement un décimal : `json_encode(120.50)` écrit `120.5`,
+  et une écriture comptable fausse d'un centime ne se voit pas. La règle n'a
+  aucune exception, `2.0` compris.
+- Les douze DTO de lignes (facture, devis, abonnement, demande d'achat)
+  déclarent leur `quantity` en `int|string` au lieu de `int|float` : une
+  quantité fractionnaire s'écrit `'2.5'`.
 - `PennylaneException::response()` est **supprimé** — c'était le chemin d'accès
   au jeton. Remplacé par `status()`, `responseHeaders()` et `responseBody()`.
 - Un 3xx lève désormais une exception au lieu de rendre une réponse vide.

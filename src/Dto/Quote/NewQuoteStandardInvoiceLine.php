@@ -14,7 +14,7 @@ final readonly class NewQuoteStandardInvoiceLine
         public string $rawCurrencyUnitPrice,
         public string $unit,
         public VatRate $vatRate,
-        public int|float $quantity,
+        public int|string $quantity,
         public ?int $ledgerAccountId = null,
         public ?string $description = null,
         public ?int $sectionRank = null,

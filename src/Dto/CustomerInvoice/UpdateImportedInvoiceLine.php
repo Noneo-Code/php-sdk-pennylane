@@ -13,7 +13,7 @@ final readonly class UpdateImportedInvoiceLine
         public ?string $currencyTax = null,
         public ?string $tax = null,
         public ?string $label = null,
-        public int|float|null $quantity = null,
+        public int|string|null $quantity = null,
         public ?int $ledgerAccountId = null,
         public ?string $rawCurrencyUnitPrice = null,
         public ?string $unit = null,
