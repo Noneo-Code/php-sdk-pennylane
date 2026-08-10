@@ -36,6 +36,7 @@ $exclusions = [
     // L'enveloppe d'un webhook n'est le corps d'aucune opération : la spec ne
     // décrit que ce que l'API expose en HTTP, pas ce qu'elle émet vers nous.
     Noneo\Sdk\Pennylane\Tests\Webhook\WebhookEventTest::class.'::documentedPayload' => 'Enveloppe de webhook : émise par Pennylane, absente d\'une spec qui ne décrit que des endpoints.',
+    Noneo\Sdk\Pennylane\Tests\Webhook\SignatureVerifierTest::class.'::documentedBody' => 'Même enveloppe de webhook, sérialisée pour signer un corps brut : hors spec pour la même raison.',
 ];
 
 $testClasses = [

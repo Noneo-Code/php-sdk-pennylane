@@ -268,15 +268,19 @@ $subscription = $pennylane->webhookSubscriptions()->create(
 $subscription->secret; // à ranger dans votre coffre à secrets, maintenant
 ```
 
-Côté réception, `Webhook\SignatureVerifier` valide l'en-tête
-`X-Pennylane-Signature` (format `t=<unix>,v1=<hex>`) : HMAC SHA-256 sur
-`{timestamp}.{corps}`, comparaison en temps constant, et fenêtre anti-rejeu de
-**300 s** par défaut. Il travaille sur le **corps brut** : re-sérialiser un
-tableau décodé décalerait une espace, et l'empreinte ne correspondrait plus.
+Côté réception, `Webhook\SignatureVerifier` valide l'en-tête dont le nom est
+figé dans `SignatureVerifier::HEADER` (`X-Pennylane-Signature`). Passez-lui le
+**corps brut** : re-sérialiser un tableau décodé décalerait une espace, et
+l'empreinte ne correspondrait plus.
+
+`constructEvent()` vérifie **puis** décode. Préférez-la à `verify()` suivi de
+`WebhookEvent::fromArray()` : elle rend impossible de traiter un événement dont
+la signature n'a pas été contrôlée.
 
 ```php
+use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
+use Noneo\Sdk\Pennylane\Exception\InvalidWebhookSignatureException;
 use Noneo\Sdk\Pennylane\Webhook\SignatureVerifier;
-use Noneo\Sdk\Pennylane\Webhook\WebhookEvent;
 
 final class PennylaneWebhookController
 {
@@ -286,30 +290,59 @@ final class PennylaneWebhookController
 
     public function __invoke(Request $request): Response
     {
-        $rawBody = $request->getContent();
-
-        if (!$this->verifier->verify($rawBody, $request->headers->get('X-Pennylane-Signature', ''))) {
+        try {
+            $event = $this->verifier->constructEvent(
+                $request->getContent(),
+                $request->headers->get(SignatureVerifier::HEADER, ''),
+            );
+        } catch (InvalidWebhookSignatureException) {
             return new Response('Signature invalide.', 401);
         }
 
-        $event = WebhookEvent::fromArray(json_decode($rawBody, true, flags: JSON_THROW_ON_ERROR));
-
         // Répondez vite : Pennylane rejoue l'événement en cas d'échec ou de
         // lenteur, et $event->retryCount dit combien de fois il l'a déjà tenté.
-        $this->bus->dispatch(new HandlePennylaneEvent($event->event, $event->object));
+        $this->bus->dispatch(new HandlePennylaneEvent($event->eventName, $event->object));
 
         return new Response('', 200);
     }
 }
 ```
 
-`WebhookEvent` expose `event`, `object`, `previousAttributes` (l'état antérieur
-des seuls champs modifiés), `companyId`, `firmId` et `retryCount`. Le
-vérificateur est indépendant de Saloon : il s'instancie avec le seul secret.
+`WebhookEvent` expose `event` (un `WebhookEventType`, ou `null` si Pennylane a
+publié un type postérieur à cette version du SDK), `eventName` (la valeur brute,
+toujours renseignée), `object`, `previousAttributes` (l'état antérieur des seuls
+champs modifiés), `companyId`, `firmId` et `retryCount`. Le vérificateur est
+indépendant de Saloon : il s'instancie avec le seul secret.
+
+### Deux schémas de signature, et pourquoi
+
+Pennylane ne documente pas publiquement le format de sa signature — la
+fonctionnalité est en bêta, et les intégrations existantes ont fait des paris
+**incompatibles entre eux**. Le SDK porte donc les deux et refuse de choisir à
+la place de l'API :
+
+| `WebhookSignatureScheme` | En-tête | HMAC-SHA256 sur | Anti-rejeu |
+| --- | --- | --- | --- |
+| `Timestamped` *(défaut)* | `t=<unix>,v1=<hex>` | `{timestamp}.{corps}` | fenêtre de 300 s |
+| `BodyOnly` | signature seule, hex (casse indifférente) ou base64, préfixe `sha256=`/`hmac-sha256=` toléré | le corps brut | **aucun** |
 
 ```php
+use Noneo\Sdk\Pennylane\Webhook\WebhookSignatureScheme;
+
+// Défaut : schéma horodaté, fenêtre anti-rejeu élargie à 900 s.
 $verifier = new SignatureVerifier($secret, toleranceSeconds: 900);
+
+// Mode compatibilité, à n'activer qu'après avoir constaté ce format :
+$verifier = new SignatureVerifier($secret, scheme: WebhookSignatureScheme::BodyOnly);
 ```
+
+Le schéma se choisit **à la construction, jamais d'après l'en-tête reçu** : une
+auto-détection laisserait un attaquant réclamer le format sans horodatage, donc
+sans anti-rejeu. Sous `BodyOnly`, la protection contre le rejeu revient à
+l'application — dédupliquez sur `WebhookEvent::$id` (`$retryCount` distingue une
+nouvelle tentative de Pennylane d'un rejeu hostile).
+
+Comparaison en temps constant (`hash_equals`) dans les deux cas.
 
 ## OAuth 2.0
 

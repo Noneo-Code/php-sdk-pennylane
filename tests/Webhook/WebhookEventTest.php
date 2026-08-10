@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Tests\Webhook;
 
+use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
 use Noneo\Sdk\Pennylane\Webhook\WebhookEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -38,7 +39,8 @@ final class WebhookEventTest extends TestCase
         $event = WebhookEvent::fromArray($this->documentedPayload());
 
         self::assertSame(987654, $event->id);
-        self::assertSame('customer_invoice.e_invoicing_status_updated', $event->event);
+        self::assertSame(WebhookEventType::CustomerInvoiceEInvoicingStatusUpdated, $event->event);
+        self::assertSame('customer_invoice.e_invoicing_status_updated', $event->eventName);
         self::assertSame(0, $event->retryCount);
         self::assertSame(1782864000, $event->createdAt);
         self::assertSame('abc-123', $event->companyId);
@@ -62,5 +64,28 @@ final class WebhookEventTest extends TestCase
 
         self::assertNull($event->firmId);
         self::assertNull($event->previousAttributes);
+    }
+
+    /**
+     * Pennylane ajoutera des types d'événement après cette version du SDK : un
+     * `WebhookEventType::from()` sec ferait échouer la réception d'un
+     * événement parfaitement valide. L'enum tombe donc à `null` et la valeur
+     * brute reste lisible.
+     */
+    public function testKeepsTheRawNameAndNullsTheEnumOnAnUnknownEventType(): void
+    {
+        $event = WebhookEvent::fromArray([
+            'id' => 987654,
+            'event' => 'supplier_invoice.created',
+            'retry_count' => 0,
+            'created' => 1782864000,
+            'data' => [
+                'context' => ['company_id' => 'abc-123'],
+                'object' => ['id' => 7],
+            ],
+        ]);
+
+        self::assertNull($event->event);
+        self::assertSame('supplier_invoice.created', $event->eventName);
     }
 }

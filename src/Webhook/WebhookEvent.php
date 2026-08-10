@@ -4,15 +4,23 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane\Webhook;
 
+use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
+
 final readonly class WebhookEvent
 {
     /**
-     * @param mixed[]      $object
-     * @param mixed[]|null $previousAttributes
+     * @param WebhookEventType|null $event              type reconnu, ou `null` si Pennylane
+     *                                                  a publié un événement postérieur à
+     *                                                  cette version du SDK
+     * @param string                $eventName          valeur brute du champ `event`,
+     *                                                  toujours renseignée
+     * @param mixed[]               $object
+     * @param mixed[]|null          $previousAttributes
      */
     public function __construct(
         public int $id,
-        public string $event,
+        public ?WebhookEventType $event,
+        public string $eventName,
         public int $retryCount,
         public int $createdAt,
         public string $companyId,
@@ -69,7 +77,8 @@ final readonly class WebhookEvent
 
         return new self(
             id: $id,
-            event: $event,
+            event: WebhookEventType::tryFrom($event),
+            eventName: $event,
             retryCount: $retryCount,
             createdAt: $createdAt,
             companyId: $context['company_id'],

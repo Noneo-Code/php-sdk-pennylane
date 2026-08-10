@@ -27,6 +27,21 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ### Ajouté
 
+- `SignatureVerifier::constructEvent()` : vérifie la signature **puis** décode
+  l'enveloppe, et lève `InvalidWebhookSignatureException` sinon. L'ancien couple
+  `verify()` + `WebhookEvent::fromArray()` laissait oublier la première moitié.
+  Le message d'exception ne reprend ni le corps reçu ni la signature attendue.
+- `SignatureVerifier::HEADER`, le nom de l'en-tête de signature
+  (`X-Pennylane-Signature`), jusqu'ici seulement retapé dans le README.
+- `WebhookSignatureScheme` : le vérificateur porte désormais les **deux**
+  schémas de signature en présence, Pennylane ne documentant pas le sien
+  (webhooks en bêta). `Timestamped` reste le défaut — en-tête `t=,v1=`, HMAC sur
+  `{timestamp}.{corps}`, fenêtre anti-rejeu de 300 s. `BodyOnly`, à activer
+  explicitement, accepte le HMAC du corps seul en hex ou base64, préfixe
+  `sha256=`/`hmac-sha256=` toléré ; sans horodatage, l'anti-rejeu revient alors
+  à l'application (déduplication sur `WebhookEvent::$id`). Le schéma se choisit
+  à la construction, **jamais d'après l'en-tête reçu** : une auto-détection
+  laisserait un attaquant réclamer le format sans anti-rejeu.
 - Suite d'intégration optionnelle (`tests/Integration/`, `composer
   test:integration`) contre l'API réelle : lecture, pagination sur deux pages,
   filtre `gteq` rejoué de page en page, contournement `start_date` des
@@ -46,6 +61,11 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ### Changé (rupture)
 
+- `WebhookEvent::$event` est désormais un `WebhookEventType|null` au lieu d'une
+  `string`, par cohérence avec le reste du SDK où toute énumération de l'API est
+  un enum backed. La valeur brute reste lisible dans le nouveau champ
+  `$eventName`, et `$event` vaut `null` — plutôt que de lever — quand Pennylane
+  publie un type d'événement postérieur à cette version du SDK.
 - **Aucun `float` ne quitte plus le SDK.** Un `float` dans un corps de requête,
   une query ou un filtre lève une `\InvalidArgumentException` citant le chemin
   du champ fautif et la chaîne décimale à écrire à la place. Un `float` ne
