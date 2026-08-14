@@ -27,6 +27,18 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ### Ajouté
 
+- `company()->supplierInvoices()` et `company()->customerInvoices()` : les
+  factures d'une entreprise, vues du cabinet. Ressources dédiées et en lecture
+  seule — la Firm API n'expose que la liste et le détail, là où la Company API
+  accepte aussi la création et l'import.
+- `company()->changelogs()` couvre les factures fournisseur et client, avec
+  leurs variantes `paginate*`.
+- `bin/coverage.php` mesure désormais les chemins *joignables*, plus seulement
+  les classes `Request`. Une requête partagée entre les deux connecteurs
+  comptait pour couverte partout dès qu'une seule ressource l'exposait ; six
+  opérations Firm étaient ainsi appelables par personne. `ResourceGraph` suit
+  les ressources depuis chaque connecteur et l'audit sort en 3 sur une
+  opération injoignable.
 - `eInvoices()->import()` : l'import générique `POST /e-invoices/imports`, où
   le sens de circulation est porté par un `EInvoiceImportType`
   (`customer`/`supplier`) plutôt que par la ressource appelée. Pennylane le
