@@ -13,11 +13,20 @@ stages:
 phpunit:
   extends: .php_setup
   stage: test
+  image: $PHP_IMAGE
+  parallel:
+    matrix:
+      - PHP_IMAGE: ["php:8.3-cli", "php:8.4-cli"]
+        DEPS: ["lowest", "stable"]
   before_script:
     - apt-get update && apt-get install -y unzip git
     - pecl install pcov && docker-php-ext-enable pcov
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - composer install --no-interaction --no-progress
+    - if [ "$DEPS" = "lowest" ]; then
+        composer update --no-interaction --no-progress --prefer-lowest --prefer-stable;
+      else
+        composer install --no-interaction --no-progress;
+      fi
   script:
     - composer test -- --coverage-text --coverage-cobertura=coverage.xml
   coverage: '/^\s*Lines:\s*(\d+\.\d+)%/'
