@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\EInvoices\CreateEInvoiceImport;
 use Noneo\Sdk\Pennylane\Tests\Dto\CustomerInvoice\EInvoiceImportDtoTest;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,9 +17,9 @@ final class EInvoicesTest extends TestCase
 {
     public function testImportReturnsAnEInvoiceImportDtoAndSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(EInvoiceImportDtoTest::documentedGenericImportPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $import = $pennylane->eInvoices()->import('%PDF-1.4 fake content', EInvoiceImportType::Supplier, 'facture.pdf');
 

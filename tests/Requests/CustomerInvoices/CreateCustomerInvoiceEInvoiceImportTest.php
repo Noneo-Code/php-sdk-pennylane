@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceEInvoiceImport;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -22,11 +21,11 @@ final class CreateCustomerInvoiceEInvoiceImportTest extends TestCase
 {
     public function testSendsAMultipartPostRequestWithTheFile(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/x'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateCustomerInvoiceEInvoiceImport('%PDF-1.4 fake content', 'invoice.pdf'));
+        $pennylane->connector()->send(new CreateCustomerInvoiceEInvoiceImport('%PDF-1.4 fake content', 'invoice.pdf'));
 
         $mockClient->assertSent(function (CreateCustomerInvoiceEInvoiceImport $sent): bool {
             $parts = $sent->body()->all();
@@ -42,11 +41,11 @@ final class CreateCustomerInvoiceEInvoiceImportTest extends TestCase
 
     public function testSendsTheMultipartContentType(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/x'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf'));
+        $pennylane->connector()->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf'));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             $contentType = $response->getPendingRequest()->headers()->get('Content-Type');
@@ -57,11 +56,11 @@ final class CreateCustomerInvoiceEInvoiceImportTest extends TestCase
 
     public function testSendsTheSendToPaFlagAsAMultipartPart(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/x'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf', sendToPa: true));
+        $pennylane->connector()->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf', sendToPa: true));
 
         $mockClient->assertSent(function (CreateCustomerInvoiceEInvoiceImport $sent): bool {
             $parts = $sent->body()->all();
@@ -78,16 +77,16 @@ final class CreateCustomerInvoiceEInvoiceImportTest extends TestCase
 
     public function testSendsInvoiceOptionsAsAJsonEncodedMultipartPart(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/x'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $options = new EInvoiceImportOptions(
             customerId: 12,
             invoiceLines: [new EInvoiceLineOptions(eInvoiceLineId: 'BT-126-1', ledgerAccountId: 123)],
         );
 
-        $pennylane->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf', invoiceOptions: $options));
+        $pennylane->connector()->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf', invoiceOptions: $options));
 
         $mockClient->assertSent(function (CreateCustomerInvoiceEInvoiceImport $sent): bool {
             $parts = $sent->body()->all();
@@ -106,9 +105,9 @@ final class CreateCustomerInvoiceEInvoiceImportTest extends TestCase
 
     public function testSendsOverrideInvoiceLinesAsAJsonEncodedMultipartPart(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/x'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $lines = [new OverrideInvoiceLine(
             currencyAmount: '50.00',
@@ -119,7 +118,7 @@ final class CreateCustomerInvoiceEInvoiceImportTest extends TestCase
             rawCurrencyUnitPrice: '50.00',
         )];
 
-        $pennylane->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf', overrideInvoiceLines: $lines));
+        $pennylane->connector()->send(new CreateCustomerInvoiceEInvoiceImport('content', 'invoice.pdf', overrideInvoiceLines: $lines));
 
         $mockClient->assertSent(function (CreateCustomerInvoiceEInvoiceImport $sent): bool {
             $parts = $sent->body()->all();

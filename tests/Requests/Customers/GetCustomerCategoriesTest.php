@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Customers\GetCustomerCategories;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -19,11 +18,11 @@ final class GetCustomerCategoriesTest extends TestCase
 {
     public function testSendsAGetRequestToTheCustomerCategoriesEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetCustomerCategories(42));
+        $pennylane->connector()->send(new GetCustomerCategories(42));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()
@@ -34,11 +33,11 @@ final class GetCustomerCategoriesTest extends TestCase
 
     public function testForwardsCursorAndLimitAsQueryParameters(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetCustomerCategories(42, cursor: 'dXBkYXRlZF9hdDoxNjc0MTIzNDU2', limit: 50));
+        $pennylane->connector()->send(new GetCustomerCategories(42, cursor: 'dXBkYXRlZF9hdDoxNjc0MTIzNDU2', limit: 50));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return [

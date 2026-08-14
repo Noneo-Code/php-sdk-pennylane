@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Quotes\PostQuoteAppendices;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -18,11 +17,11 @@ final class PostQuoteAppendicesTest extends TestCase
 {
     public function testSendsAMultipartPostRequestWithTheFile(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostQuoteAppendices(42, '%PDF-1.4 fake content', 'quote.pdf'));
+        $pennylane->connector()->send(new PostQuoteAppendices(42, '%PDF-1.4 fake content', 'quote.pdf'));
 
         $mockClient->assertSent(function (PostQuoteAppendices $sent): bool {
             $part = $sent->body()->all()[0];
@@ -37,11 +36,11 @@ final class PostQuoteAppendicesTest extends TestCase
 
     public function testSendsTheMultipartContentType(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostQuoteAppendices(42, 'content', 'quote.pdf'));
+        $pennylane->connector()->send(new PostQuoteAppendices(42, 'content', 'quote.pdf'));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             $contentType = $response->getPendingRequest()->headers()->get('Content-Type');

@@ -13,7 +13,6 @@ use Noneo\Sdk\Pennylane\Requests\Categories\GetCategories;
 use Noneo\Sdk\Pennylane\Requests\Categories\PostCategories;
 use Noneo\Sdk\Pennylane\Requests\Categories\UpdateCategory;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Response;
@@ -36,8 +35,8 @@ final class CategoriesTest extends TestCase
 
     public function testListReturnsACursorPageOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryPayload()],
                 'has_more' => true,
@@ -57,11 +56,11 @@ final class CategoriesTest extends TestCase
 
     public function testListForwardsFilterAndSort(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->categories()->list(filters: FilterSet::make()->eq('category_group_id', 42));
 
@@ -72,8 +71,8 @@ final class CategoriesTest extends TestCase
 
     public function testGetReturnsACategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedCategoryPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedCategoryPayload())]));
 
         $category = $pennylane->categories()->get(42);
 
@@ -84,9 +83,9 @@ final class CategoriesTest extends TestCase
 
     public function testCreateReturnsACategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedCategoryPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $category = $pennylane->categories()->create(label: 'Alimentaire', categoryGroupId: 348);
 
@@ -101,9 +100,9 @@ final class CategoriesTest extends TestCase
 
     public function testUpdateReturnsACategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedCategoryPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $category = $pennylane->categories()->update(42, direction: CategoryDirection::CashOut);
 
@@ -115,8 +114,8 @@ final class CategoriesTest extends TestCase
 
     public function testPaginateYieldsCategoryDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryPayload()],
                 'has_more' => true,

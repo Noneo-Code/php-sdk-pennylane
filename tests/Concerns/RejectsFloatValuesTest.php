@@ -10,7 +10,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Connector;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
@@ -43,7 +42,7 @@ final class RejectsFloatValuesTest extends TestCase
 
     public function testRefusesAFloatNestedInInvoiceLines(): void
     {
-        $connector = new Pennylane(new TokenAuthenticator('a-token'));
+        $connector = (new Pennylane('a-token'))->connector();
         $connector->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
 
         $this->expectException(\InvalidArgumentException::class);
@@ -56,7 +55,7 @@ final class RejectsFloatValuesTest extends TestCase
 
     public function testRefusesAFloatInTheQueryString(): void
     {
-        $connector = new Pennylane(new TokenAuthenticator('a-token'));
+        $connector = (new Pennylane('a-token'))->connector();
         $connector->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
 
         $this->expectException(\InvalidArgumentException::class);
@@ -67,7 +66,7 @@ final class RejectsFloatValuesTest extends TestCase
 
     public function testLetsDecimalStringsAndIntegersThrough(): void
     {
-        $connector = new Pennylane(new TokenAuthenticator('a-token'));
+        $connector = (new Pennylane('a-token'))->connector();
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
         $connector->withMockClient($mockClient);
 
@@ -81,8 +80,8 @@ final class RejectsFloatValuesTest extends TestCase
      */
     public static function provideConnectors(): iterable
     {
-        yield 'company' => [new Pennylane(new TokenAuthenticator('a-token'))];
-        yield 'firm' => [new PennylaneFirm(new TokenAuthenticator('a-token'))];
+        yield 'company' => [(new Pennylane('a-token'))->connector()];
+        yield 'firm' => [(new PennylaneFirm('a-token'))->connector()];
     }
 
     /** @param array<string, mixed> $fields */

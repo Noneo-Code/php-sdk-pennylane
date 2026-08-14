@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\Exports\PostFecExport;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class PostFecExportTest extends TestCase
 {
     public function testSendsAPostRequestWithThePeriodBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'status' => 'pending', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new PostFecExport('2023-01-01', '2023-01-31'));
+        $firm->connector()->send(new PostFecExport('2023-01-01', '2023-01-31'));
 
         $mockClient->assertSent(function (PostFecExport $sent): bool {
             return Method::POST === $sent->getMethod()

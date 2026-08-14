@@ -19,7 +19,6 @@ use Noneo\Sdk\Pennylane\Requests\Customers\PutCompanyCustomer;
 use Noneo\Sdk\Pennylane\Requests\Customers\PutCustomerCategories;
 use Noneo\Sdk\Pennylane\Requests\Customers\PutIndividualCustomer;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -74,8 +73,8 @@ final class CustomersTest extends TestCase
 
     public function testGetCompanyReturnsACompanyCustomerDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedCompanyCustomerPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedCompanyCustomerPayload())]));
 
         $customer = $pennylane->customers()->getCompany(42);
 
@@ -85,9 +84,9 @@ final class CustomersTest extends TestCase
 
     public function testCreateCompanyReturnsACompanyCustomerDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedCompanyCustomerPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $customer = $pennylane->customers()->createCompany(
             name: 'My Company',
@@ -105,9 +104,9 @@ final class CustomersTest extends TestCase
 
     public function testUpdateCompanyReturnsACompanyCustomerDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedCompanyCustomerPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $customer = $pennylane->customers()->updateCompany(42, name: 'My Renamed Company');
 
@@ -119,8 +118,8 @@ final class CustomersTest extends TestCase
 
     public function testGetIndividualReturnsAnIndividualCustomerDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedIndividualCustomerPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedIndividualCustomerPayload())]));
 
         $customer = $pennylane->customers()->getIndividual(43);
 
@@ -130,9 +129,9 @@ final class CustomersTest extends TestCase
 
     public function testCreateIndividualReturnsAnIndividualCustomerDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedIndividualCustomerPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $customer = $pennylane->customers()->createIndividual(
             firstName: 'John',
@@ -152,9 +151,9 @@ final class CustomersTest extends TestCase
 
     public function testUpdateIndividualReturnsAnIndividualCustomerDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedIndividualCustomerPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $customer = $pennylane->customers()->updateIndividual(43, lastName: 'Smith');
 
@@ -171,8 +170,8 @@ final class CustomersTest extends TestCase
         $individualPayload = $this->documentedIndividualCustomerPayload();
         $individualPayload['customer_type'] = 'individual';
 
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$companyPayload, $individualPayload],
                 'has_more' => false,
@@ -195,8 +194,8 @@ final class CustomersTest extends TestCase
         $companyPayload = $this->documentedCompanyCustomerPayload();
         $companyPayload['customer_type'] = 'company';
 
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$companyPayload], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -211,11 +210,11 @@ final class CustomersTest extends TestCase
         $companyPayload = $this->documentedCompanyCustomerPayload();
         $companyPayload['customer_type'] = 'company';
 
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make(['items' => [$companyPayload], 'has_more' => false, 'next_cursor' => null]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         iterator_to_array($pennylane->customers()->paginate(perPage: 100));
 
@@ -227,8 +226,8 @@ final class CustomersTest extends TestCase
         $individualPayload = $this->documentedIndividualCustomerPayload();
         $individualPayload['customer_type'] = 'individual';
 
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($individualPayload)]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($individualPayload)]));
 
         $customer = $pennylane->customers()->get(43);
 
@@ -237,8 +236,8 @@ final class CustomersTest extends TestCase
 
     public function testContactsReturnsACursorPageOfContactDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [[
                     'id' => 421,
@@ -265,8 +264,8 @@ final class CustomersTest extends TestCase
 
     public function testPaginateContactsYieldsContactDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [[
                     'id' => 421,
@@ -306,8 +305,8 @@ final class CustomersTest extends TestCase
 
     public function testCategoriesReturnsACursorPageOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryPayload()],
                 'has_more' => false,
@@ -324,8 +323,8 @@ final class CustomersTest extends TestCase
 
     public function testPaginateCategoriesYieldsCategoryDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryPayload()],
                 'has_more' => false,
@@ -341,9 +340,9 @@ final class CustomersTest extends TestCase
 
     public function testCategorizeReturnsCategoryDtoListAndSendsTheAllocations(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([$this->documentedCategoryPayload()])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $categories = $pennylane->customers()->categorize(42, [new CategoryAllocation(421, '0.25')]);
 

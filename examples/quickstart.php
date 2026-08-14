@@ -12,7 +12,6 @@ declare(strict_types=1);
 use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Filter\Sort;
 use Noneo\Sdk\Pennylane\Pennylane;
-use Saloon\Http\Auth\TokenAuthenticator;
 
 require __DIR__.'/../vendor/autoload.php';
 
@@ -23,7 +22,7 @@ if (!is_string($token) || '' === $token) {
     exit(1);
 }
 
-$pennylane = new Pennylane(new TokenAuthenticator($token));
+$pennylane = new Pennylane($token);
 
 // 1. À qui appartient ce jeton, et que permet-il ?
 $me = $pennylane->me()->get();

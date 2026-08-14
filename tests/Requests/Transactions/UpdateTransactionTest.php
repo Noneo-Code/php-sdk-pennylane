@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Transactions\UpdateTransaction;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class UpdateTransactionTest extends TestCase
 {
     public function testSendsAPutRequestWithTheCustomerId(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new UpdateTransaction(42, customerId: 7));
+        $pennylane->connector()->send(new UpdateTransaction(42, customerId: 7));
 
         $mockClient->assertSent(function (UpdateTransaction $sent): bool {
             return Method::PUT === $sent->getMethod()
@@ -31,11 +30,11 @@ final class UpdateTransactionTest extends TestCase
 
     public function testSendsAPutRequestWithTheSupplierId(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new UpdateTransaction(42, supplierId: 9));
+        $pennylane->connector()->send(new UpdateTransaction(42, supplierId: 9));
 
         $mockClient->assertSent(function (UpdateTransaction $sent): bool {
             return ['supplier_id' => 9] === $sent->body()->all();

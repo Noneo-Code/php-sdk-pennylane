@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntries\GetLedgerEntriesLedgerEntryLines;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -20,11 +19,11 @@ final class GetLedgerEntriesLedgerEntryLinesTest extends TestCase
 {
     public function testSendsAGetRequestToTheLedgerEntryLinesOfALedgerEntry(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetLedgerEntriesLedgerEntryLines(123001));
+        $pennylane->connector()->send(new GetLedgerEntriesLedgerEntryLines(123001));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()
@@ -35,11 +34,11 @@ final class GetLedgerEntriesLedgerEntryLinesTest extends TestCase
 
     public function testForwardsCursorLimitAndFilterAsQueryParameters(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetLedgerEntriesLedgerEntryLines(
+        $pennylane->connector()->send(new GetLedgerEntriesLedgerEntryLines(
             123001,
             cursor: 'MjAyNS0wMS0wOVQwODoyNDozOC44MTI0NTha',
             limit: 10,

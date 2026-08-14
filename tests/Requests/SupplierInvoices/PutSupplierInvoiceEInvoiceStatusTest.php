@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\PutSupplierInvoiceEInvoiceStatus;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,11 +17,11 @@ final class PutSupplierInvoiceEInvoiceStatusTest extends TestCase
 {
     public function testSendsADisputeWithItsReason(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 12345])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplierInvoiceEInvoiceStatus(12345, EInvoiceStatusTransition::Disputed, SupplierEInvoiceDisputeReason::IncorrectVatRate));
+        $pennylane->connector()->send(new PutSupplierInvoiceEInvoiceStatus(12345, EInvoiceStatusTransition::Disputed, SupplierEInvoiceDisputeReason::IncorrectVatRate));
 
         $mockClient->assertSent(function (PutSupplierInvoiceEInvoiceStatus $sent): bool {
             return Method::PUT === $sent->getMethod()
@@ -33,11 +32,11 @@ final class PutSupplierInvoiceEInvoiceStatusTest extends TestCase
 
     public function testSendsAnUndisputeWithoutAReason(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 12345])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplierInvoiceEInvoiceStatus(12345, EInvoiceStatusTransition::Approved));
+        $pennylane->connector()->send(new PutSupplierInvoiceEInvoiceStatus(12345, EInvoiceStatusTransition::Approved));
 
         $mockClient->assertSent(function (PutSupplierInvoiceEInvoiceStatus $sent): bool {
             return ['status' => 'approved'] === $sent->body()->all();

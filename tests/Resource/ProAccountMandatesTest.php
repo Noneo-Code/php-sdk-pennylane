@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Dto\Mandate\MandateType;
 use Noneo\Sdk\Pennylane\Dto\Mandate\ProAccountMandateDto;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -53,9 +52,9 @@ final class ProAccountMandatesTest extends TestCase
 
     public function testListReturnsACursorPageOfProAccountMandateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedMandatePayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->proAccountMandates()->list();
 
@@ -66,9 +65,9 @@ final class ProAccountMandatesTest extends TestCase
 
     public function testMigrationCandidatesReturnsACursorPageOfMandateMigrationCandidateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedMigrationCandidatePayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->proAccountMandates()->migrationCandidates();
 
@@ -79,7 +78,7 @@ final class ProAccountMandatesTest extends TestCase
 
     public function testMigrateReturnsAMandateMigrationDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'mandate_migration' => [
                 'id' => 42,
@@ -99,7 +98,7 @@ final class ProAccountMandatesTest extends TestCase
                 ],
             ],
         ], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $migration = $pennylane->proAccountMandates()->migrate(MandateType::SepaMandate, 42);
 
@@ -108,9 +107,9 @@ final class ProAccountMandatesTest extends TestCase
 
     public function testSendMandateRequestSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->proAccountMandates()->sendMandateRequest(42);
 

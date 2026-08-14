@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Customers\PutCompanyCustomer;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PutCompanyCustomerTest extends TestCase
 {
     public function testSendsAPutRequestToTheCompanyCustomerEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutCompanyCustomer(id: 42, name: 'My Renamed Company'));
+        $pennylane->connector()->send(new PutCompanyCustomer(id: 42, name: 'My Renamed Company'));
 
         $mockClient->assertSent(function (PutCompanyCustomer $sent): bool {
             return Method::PUT === $sent->getMethod()
@@ -32,11 +31,11 @@ final class PutCompanyCustomerTest extends TestCase
 
     public function testSendsTheOptionalAddressFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutCompanyCustomer(
+        $pennylane->connector()->send(new PutCompanyCustomer(
             id: 42,
             billingAddress: new Address('8 rue de la paix', '75002', 'Paris', 'FR'),
         ));

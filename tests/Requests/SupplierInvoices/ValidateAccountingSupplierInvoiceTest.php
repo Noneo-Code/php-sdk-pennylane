@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\ValidateAccountingSupplierInvoice;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -17,11 +16,11 @@ final class ValidateAccountingSupplierInvoiceTest extends TestCase
 {
     public function testSendsAPutRequestToTheValidateAccountingEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 12345])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new ValidateAccountingSupplierInvoice(12345));
+        $pennylane->connector()->send(new ValidateAccountingSupplierInvoice(12345));
 
         $mockClient->assertSent(function (Request $sent): bool {
             return Method::PUT === $sent->getMethod() && '/supplier_invoices/12345/validate_accounting' === $sent->resolveEndpoint();

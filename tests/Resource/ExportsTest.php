@@ -11,7 +11,6 @@ use Noneo\Sdk\Pennylane\Dto\Export\ExportStatus;
 use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Exports\ExportAnalyticalGeneralLedger;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -42,8 +41,8 @@ final class ExportsTest extends TestCase
 
     public function testExportFecReturnsAnExportDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedCreationPayload(), 201)]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedCreationPayload(), 201)]));
 
         $export = $pennylane->exports()->exportFec(periodStart: '2023-08-30', periodEnd: '2023-08-30');
 
@@ -54,8 +53,8 @@ final class ExportsTest extends TestCase
 
     public function testGetFecExportReturnsAnExportFileDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedReadyPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedReadyPayload())]));
 
         $export = $pennylane->exports()->getFecExport(124);
 
@@ -65,8 +64,8 @@ final class ExportsTest extends TestCase
 
     public function testExportGeneralLedgerReturnsAnExportDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedCreationPayload(), 201)]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedCreationPayload(), 201)]));
 
         $export = $pennylane->exports()->exportGeneralLedger(periodStart: '2023-08-30', periodEnd: '2023-08-30');
 
@@ -76,8 +75,8 @@ final class ExportsTest extends TestCase
 
     public function testGetGeneralLedgerExportReturnsAnExportFileDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedReadyPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedReadyPayload())]));
 
         $export = $pennylane->exports()->getGeneralLedgerExport(124);
 
@@ -86,9 +85,9 @@ final class ExportsTest extends TestCase
 
     public function testExportAnalyticalGeneralLedgerReturnsAnExportDtoAndForwardsMode(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedCreationPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $export = $pennylane->exports()->exportAnalyticalGeneralLedger(
             periodStart: '2023-08-30',
@@ -104,8 +103,8 @@ final class ExportsTest extends TestCase
 
     public function testGetAnalyticalGeneralLedgerExportReturnsAnExportFileDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedReadyPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedReadyPayload())]));
 
         $export = $pennylane->exports()->getAnalyticalGeneralLedgerExport(124);
 

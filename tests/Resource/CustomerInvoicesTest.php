@@ -32,7 +32,6 @@ use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\SendToPaCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\UpdateCustomerInvoice;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\UpdateImportedCustomerInvoice;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -46,8 +45,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testListReturnsACursorPageOfCustomerInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoicePayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -60,8 +59,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateYieldsCustomerInvoiceDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoicePayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -73,8 +72,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testGetReturnsACustomerInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedInvoicePayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedInvoicePayload())]));
 
         $invoice = $pennylane->customerInvoices()->get(42);
 
@@ -84,9 +83,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testCreateReturnsACustomerInvoiceDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->customerInvoices()->create(
             date: '2023-08-30',
@@ -102,9 +101,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testImportReturnsACustomerInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->customerInvoices()->import(
             fileAttachmentId: 42,
@@ -123,9 +122,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testCreateFromQuoteReturnsACustomerInvoiceDtoAndSendsTheQuoteId(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->customerInvoices()->createFromQuote(42, true);
 
@@ -137,9 +136,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testImportEInvoiceReturnsAnEInvoiceImportDtoAndSendsTheFile(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/x'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $result = $pennylane->customerInvoices()->importEInvoice('%PDF-1.4 fake content', 'invoice.pdf');
 
@@ -150,9 +149,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testUpdateReturnsACustomerInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->customerInvoices()->update(42, label: 'Renamed invoice');
 
@@ -162,9 +161,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testUpdateImportedReturnsACustomerInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->customerInvoices()->updateImported(42, invoiceNumber: 'F20230001');
 
@@ -174,9 +173,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testLinkCreditNoteReturnsACustomerInvoiceDtoAndSendsTheCreditNoteId(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->customerInvoices()->linkCreditNote(42, 7);
 
@@ -188,9 +187,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testMarkAsPaidSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->customerInvoices()->markAsPaid(42);
 
@@ -199,8 +198,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testFinalizeReturnsACustomerInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedInvoicePayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedInvoicePayload())]));
 
         $invoice = $pennylane->customerInvoices()->finalize(42);
 
@@ -209,9 +208,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testSendByEmailSendsTheRecipients(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->customerInvoices()->sendByEmail(42, ['jane@example.com']);
 
@@ -222,9 +221,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testSendToPaSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->customerInvoices()->sendToPa(42);
 
@@ -233,9 +232,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testDeleteSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->customerInvoices()->delete(1234);
 
@@ -257,8 +256,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testInvoiceLineSectionsReturnsACursorPageOfInvoiceLineSectionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoiceLineSectionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -269,8 +268,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateInvoiceLineSectionsYieldsInvoiceLineSectionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoiceLineSectionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -288,8 +287,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testInvoiceLinesReturnsACursorPageOfInvoiceLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoiceLinePayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -300,8 +299,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateInvoiceLinesYieldsInvoiceLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoiceLinePayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -327,8 +326,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaymentsReturnsACursorPageOfPaymentDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedPaymentPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -339,8 +338,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginatePaymentsYieldsPaymentDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedPaymentPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -358,8 +357,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testMatchedTransactionsReturnsACursorPageOfMatchedTransactionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedMatchedTransactionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -370,8 +369,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateMatchedTransactionsYieldsMatchedTransactionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedMatchedTransactionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -395,8 +394,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testAppendicesReturnsACursorPageOfAppendixDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedAppendixPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -407,8 +406,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateAppendicesYieldsAppendixDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedAppendixPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -420,9 +419,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testUploadAppendixReturnsAnAppendixDtoAndSendsTheFile(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedAppendixPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $appendix = $pennylane->customerInvoices()->uploadAppendix(42, 'file-content', 'invoice.pdf');
 
@@ -446,8 +445,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testCategoriesReturnsACursorPageOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedCategoryPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -458,8 +457,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateCategoriesYieldsCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedCategoryPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -471,9 +470,9 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testCategorizeReturnsCategoryDtoListAndSendsTheAllocations(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([$this->documentedCategoryPayload()])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $categories = $pennylane->customerInvoices()->categorize(42, [new CategoryAllocation(421, '0.25')]);
 
@@ -499,8 +498,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testCustomHeaderFieldsReturnsACursorPageOfCustomHeaderFieldDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedCustomHeaderFieldPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -511,8 +510,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateCustomHeaderFieldsYieldsCustomHeaderFieldDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedCustomHeaderFieldPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -535,8 +534,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testTemplatesReturnsACursorPageOfCustomerInvoiceTemplateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedTemplatePayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -547,8 +546,8 @@ final class CustomerInvoicesTest extends TestCase
 
     public function testPaginateTemplatesYieldsCustomerInvoiceTemplateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedTemplatePayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 

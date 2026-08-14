@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Suppliers\PutSupplier;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,11 +17,11 @@ final class PutSupplierTest extends TestCase
 {
     public function testSendsAPutRequestToTheSupplierEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplier(id: 42, name: 'Renamed Pennylane'));
+        $pennylane->connector()->send(new PutSupplier(id: 42, name: 'Renamed Pennylane'));
 
         $mockClient->assertSent(function (PutSupplier $sent): bool {
             return Method::PUT === $sent->getMethod()
@@ -33,11 +32,11 @@ final class PutSupplierTest extends TestCase
 
     public function testSendsTheOptionalAddressFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplier(
+        $pennylane->connector()->send(new PutSupplier(
             id: 42,
             postalAddress: new Address('8 rue de la paix', '75002', 'Paris', 'FR'),
         ));
@@ -49,11 +48,11 @@ final class PutSupplierTest extends TestCase
 
     public function testOmitsFieldsThatWereNotProvided(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplier(id: 42, name: 'ACME', externalReference: null));
+        $pennylane->connector()->send(new PutSupplier(id: 42, name: 'ACME', externalReference: null));
 
         $mockClient->assertSent(function (PutSupplier $sent): bool {
             return ['name' => 'ACME'] === $sent->body()->all();
@@ -62,11 +61,11 @@ final class PutSupplierTest extends TestCase
 
     public function testSendsAnExplicitNullForAClearedField(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplier(id: 42, establishmentNo: Clear::value()));
+        $pennylane->connector()->send(new PutSupplier(id: 42, establishmentNo: Clear::value()));
 
         $mockClient->assertSent(function (PutSupplier $sent): bool {
             return ['establishment_no' => null] === $sent->body()->all();

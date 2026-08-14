@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource;
 use Noneo\Sdk\Pennylane\Dto\BankEstablishment\BankEstablishmentDto;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -15,7 +14,7 @@ final class BankEstablishmentsTest extends TestCase
 {
     public function testListReturnsACursorPageOfBankEstablishmentDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [
                 ['id' => 1, 'name' => 'Bank 1', 'created_at' => '2023-08-30T10:08:08.146343Z', 'updated_at' => '2023-08-30T10:08:08.146343Z'],
@@ -23,7 +22,7 @@ final class BankEstablishmentsTest extends TestCase
             'has_more' => false,
             'next_cursor' => null,
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->bankEstablishments()->list();
 

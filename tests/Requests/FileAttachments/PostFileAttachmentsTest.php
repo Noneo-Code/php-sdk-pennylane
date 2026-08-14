@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\FileAttachments\PostFileAttachments;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -18,11 +17,11 @@ final class PostFileAttachmentsTest extends TestCase
 {
     public function testSendsAMultipartPostRequestWithTheFile(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostFileAttachments('%PDF-1.4 fake content', 'invoice.pdf'));
+        $pennylane->connector()->send(new PostFileAttachments('%PDF-1.4 fake content', 'invoice.pdf'));
 
         $mockClient->assertSent(function (PostFileAttachments $sent): bool {
             $part = $sent->body()->all()[0];
@@ -42,11 +41,11 @@ final class PostFileAttachmentsTest extends TestCase
         fwrite($resource, '%PDF-1.4 fake content');
         rewind($resource);
 
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostFileAttachments($resource, 'invoice.pdf'));
+        $pennylane->connector()->send(new PostFileAttachments($resource, 'invoice.pdf'));
 
         $mockClient->assertSent(function (PostFileAttachments $sent) use ($resource): bool {
             $part = $sent->body()->all()[0];
@@ -57,11 +56,11 @@ final class PostFileAttachmentsTest extends TestCase
 
     public function testSendsTheMultipartContentType(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostFileAttachments('content', 'invoice.pdf'));
+        $pennylane->connector()->send(new PostFileAttachments('content', 'invoice.pdf'));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             $contentType = $response->getPendingRequest()->headers()->get('Content-Type');

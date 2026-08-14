@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateDto;
 use Noneo\Sdk\Pennylane\Dto\Mandate\SepaMandateSequenceType;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -33,9 +32,9 @@ final class SepaMandatesTest extends TestCase
 
     public function testListReturnsACursorPageOfSepaMandateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->sepaMandates()->list();
 
@@ -46,9 +45,9 @@ final class SepaMandatesTest extends TestCase
 
     public function testCreateReturnsASepaMandateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $mandate = $pennylane->sepaMandates()->create(
             bic: 'BNPAFRPP',
@@ -63,9 +62,9 @@ final class SepaMandatesTest extends TestCase
 
     public function testGetReturnsASepaMandateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $mandate = $pennylane->sepaMandates()->get(12345);
 
@@ -74,9 +73,9 @@ final class SepaMandatesTest extends TestCase
 
     public function testUpdateReturnsASepaMandateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $mandate = $pennylane->sepaMandates()->update(12345, sequenceType: SepaMandateSequenceType::Rcur);
 
@@ -85,9 +84,9 @@ final class SepaMandatesTest extends TestCase
 
     public function testDeleteSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->sepaMandates()->delete(12345);
 

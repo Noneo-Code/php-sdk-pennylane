@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\FileAttachments\PostFileAttachments;
 use Noneo\Sdk\Pennylane\Tests\Dto\FileAttachment\FileAttachmentDtoTest;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,9 +16,9 @@ final class FileAttachmentsTest extends TestCase
 {
     public function testUploadReturnsAFileAttachmentDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(FileAttachmentDtoTest::documentedPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $fileAttachment = $pennylane->fileAttachments()->upload('%PDF-1.4 fake content', 'invoice.pdf');
 

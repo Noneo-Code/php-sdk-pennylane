@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\ProAccountMandates\PostProAccountMandateMailRequests;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class PostProAccountMandateMailRequestsTest extends TestCase
 {
     public function testSendsAPostRequestWithTheCustomerId(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostProAccountMandateMailRequests(42));
+        $pennylane->connector()->send(new PostProAccountMandateMailRequests(42));
 
         $mockClient->assertSent(function (PostProAccountMandateMailRequests $sent): bool {
             return Method::POST === $sent->getMethod()

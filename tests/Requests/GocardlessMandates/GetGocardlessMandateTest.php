@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\GocardlessMandates\GetGocardlessMandate;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class GetGocardlessMandateTest extends TestCase
 {
     public function testSendsAGetRequestToTheGocardlessMandateEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetGocardlessMandate(42));
+        $pennylane->connector()->send(new GetGocardlessMandate(42));
 
         $mockClient->assertSent(function (GetGocardlessMandate $sent): bool {
             return Method::GET === $sent->getMethod()

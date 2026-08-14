@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntryLines\GetLedgerEntryLinesCategories;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -20,11 +19,11 @@ final class GetLedgerEntryLinesCategoriesTest extends TestCase
 {
     public function testSendsAGetRequestToTheCategoriesOfALedgerEntryLine(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetLedgerEntryLinesCategories(42));
+        $pennylane->connector()->send(new GetLedgerEntryLinesCategories(42));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()
@@ -35,11 +34,11 @@ final class GetLedgerEntryLinesCategoriesTest extends TestCase
 
     public function testForwardsCursorLimitAndSortAsQueryParameters(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetLedgerEntryLinesCategories(42, cursor: 'MjAyNS0wMS0wOVQwODoyNDozOC44MTI0NTha', limit: 10, sort: Sort::desc('id')));
+        $pennylane->connector()->send(new GetLedgerEntryLinesCategories(42, cursor: 'MjAyNS0wMS0wOVQwODoyNDozOC44MTI0NTha', limit: 10, sort: Sort::desc('id')));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return [

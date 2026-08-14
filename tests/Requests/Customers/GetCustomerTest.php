@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Customers\GetCustomer;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -17,11 +16,11 @@ final class GetCustomerTest extends TestCase
 {
     public function testSendsAGetRequestToTheCustomerEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'customer_type' => 'company'])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetCustomer(42));
+        $pennylane->connector()->send(new GetCustomer(42));
 
         $mockClient->assertSent(function (Request $sent): bool {
             return Method::GET === $sent->getMethod()

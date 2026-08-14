@@ -99,19 +99,19 @@ final class RespectsPennylaneRateLimitsTest extends TestCase
 
     public function testHonoursTheMaxRetriesGivenToTheConnectorConstructor(): void
     {
-        self::assertSame(1, (new Pennylane(new TokenAuthenticator('a-token'), maxRetries: 1))->getMaxRetries());
-        self::assertSame(0, (new PennylaneFirm(new TokenAuthenticator('a-token'), maxRetries: 0))->getMaxRetries());
+        self::assertSame(1, (new Pennylane('a-token', maxRetries: 1))->connector()->getMaxRetries());
+        self::assertSame(0, (new PennylaneFirm('a-token', maxRetries: 0))->connector()->getMaxRetries());
         self::assertSame(
             Pennylane::DEFAULT_MAX_RETRIES,
-            (new Pennylane(new TokenAuthenticator('a-token')))->getMaxRetries(),
+            (new Pennylane('a-token'))->connector()->getMaxRetries(),
         );
     }
 
     public function testPropagatesTheFirmMaxRetriesToItsCompanyScope(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('a-token'), maxRetries: 0);
+        $firm = new PennylaneFirm('a-token', maxRetries: 0);
 
-        self::assertSame(0, $firm->company(42)->getMaxRetries());
+        self::assertSame(0, $firm->company(42)->connector()->getMaxRetries());
     }
 
     public function testCapsAnAbsurdRetryAfterHeader(): void

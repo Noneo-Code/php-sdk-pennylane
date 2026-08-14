@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Transactions\CreateTransaction;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class CreateTransactionTest extends TestCase
 {
     public function testSendsAPostRequestToTheTransactionsEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateTransaction(
+        $pennylane->connector()->send(new CreateTransaction(
             bankAccountId: 42,
             label: 'test label',
             date: '2025-07-30',
@@ -43,11 +42,11 @@ final class CreateTransactionTest extends TestCase
 
     public function testOmitsTheOptionalFeeFromTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateTransaction(bankAccountId: 42, label: 'test label', date: '2025-07-30', amount: '120.00'));
+        $pennylane->connector()->send(new CreateTransaction(bankAccountId: 42, label: 'test label', date: '2025-07-30', amount: '120.00'));
 
         $mockClient->assertSent(function (CreateTransaction $sent): bool {
             return [

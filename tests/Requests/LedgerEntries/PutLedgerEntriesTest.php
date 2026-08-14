@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntries\PutLedgerEntries;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,11 +17,11 @@ final class PutLedgerEntriesTest extends TestCase
 {
     public function testSendsAPutRequestWithOnlyTheProvidedFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutLedgerEntries(id: 1, label: 'Nouveau libellé'));
+        $pennylane->connector()->send(new PutLedgerEntries(id: 1, label: 'Nouveau libellé'));
 
         $mockClient->assertSent(function (PutLedgerEntries $sent): bool {
             return Method::PUT === $sent->getMethod()
@@ -33,11 +32,11 @@ final class PutLedgerEntriesTest extends TestCase
 
     public function testForwardsCreateUpdateAndDeleteLedgerEntryLines(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutLedgerEntries(
+        $pennylane->connector()->send(new PutLedgerEntries(
             id: 1,
             createLines: [new NewLedgerEntryLine(debit: '50.00', credit: '0.00', ledgerAccountId: 987)],
             updateLines: [new UpdateLedgerEntryLine(id: 42, debit: '150.00')],

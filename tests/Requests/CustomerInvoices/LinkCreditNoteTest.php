@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\LinkCreditNote;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class LinkCreditNoteTest extends TestCase
 {
     public function testSendsAPostRequestWithTheCreditNoteId(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new LinkCreditNote(42, 7));
+        $pennylane->connector()->send(new LinkCreditNote(42, 7));
 
         $mockClient->assertSent(function (LinkCreditNote $sent): bool {
             return Method::POST === $sent->getMethod()

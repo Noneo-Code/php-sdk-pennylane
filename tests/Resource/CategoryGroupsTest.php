@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Dto\Category\CategoryGroupDto;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -42,8 +41,8 @@ final class CategoryGroupsTest extends TestCase
 
     public function testListReturnsACursorPageOfCategoryGroupDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryGroupPayload()],
                 'has_more' => false,
@@ -61,8 +60,8 @@ final class CategoryGroupsTest extends TestCase
 
     public function testGetReturnsACategoryGroupDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedCategoryGroupPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedCategoryGroupPayload())]));
 
         $group = $pennylane->categoryGroups()->get(989);
 
@@ -72,8 +71,8 @@ final class CategoryGroupsTest extends TestCase
 
     public function testCategoriesReturnsACursorPageOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryInGroupPayload()],
                 'has_more' => false,
@@ -91,8 +90,8 @@ final class CategoryGroupsTest extends TestCase
 
     public function testPaginateYieldsCategoryGroupDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryGroupPayload()],
                 'has_more' => true,
@@ -113,8 +112,8 @@ final class CategoryGroupsTest extends TestCase
 
     public function testPaginateCategoriesYieldsCategoryDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCategoryInGroupPayload()],
                 'has_more' => false,

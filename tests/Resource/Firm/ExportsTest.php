@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Dto\Export\SoftwareSpecificExportType;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\Exports\PostSoftwareSpecificEntriesExport;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -18,9 +17,9 @@ final class ExportsTest extends TestCase
 {
     public function testExportFecSendsAPostRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'status' => 'pending', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $export = $firm->company(1234)->exports()->exportFec('2023-01-01', '2023-01-31');
 
@@ -33,9 +32,9 @@ final class ExportsTest extends TestCase
 
     public function testGetFecExportSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'file_url' => 'https://example.com/fec.txt', 'status' => 'ready', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->exports()->getFecExport(1);
 
@@ -46,9 +45,9 @@ final class ExportsTest extends TestCase
 
     public function testExportAnalyticalGeneralLedgerSendsAPostRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'status' => 'pending', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->exports()->exportAnalyticalGeneralLedger('2023-01-01', '2023-01-31');
 
@@ -59,9 +58,9 @@ final class ExportsTest extends TestCase
 
     public function testGetAnalyticalGeneralLedgerExportSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'file_url' => 'https://example.com/agl.csv', 'status' => 'ready', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->exports()->getAnalyticalGeneralLedgerExport(1);
 
@@ -72,9 +71,9 @@ final class ExportsTest extends TestCase
 
     public function testExportSoftwareSpecificEntriesSendsAPostRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'status' => 'pending', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $export = $firm->company(1234)->exports()->exportSoftwareSpecificEntries(SoftwareSpecificExportType::Acd, '2023-01-01', '2023-01-31');
 
@@ -88,9 +87,9 @@ final class ExportsTest extends TestCase
 
     public function testGetSoftwareSpecificEntriesExportSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 124, 'file_url' => 'https://example.com/export.txt', 'status' => 'ready', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->exports()->getSoftwareSpecificEntriesExport(124);
 

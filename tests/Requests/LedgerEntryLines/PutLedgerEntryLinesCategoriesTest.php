@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntryLines\PutLedgerEntryLinesCategories;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PutLedgerEntryLinesCategoriesTest extends TestCase
 {
     public function testSendsAPutRequestWithTheCategoryAllocations(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['ledger_entry_line' => ['id' => 2, 'label' => 'x', 'categories' => []]])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutLedgerEntryLinesCategories(2, [
+        $pennylane->connector()->send(new PutLedgerEntryLinesCategories(2, [
             new CategoryAllocation(394, '0.6575'),
             new CategoryAllocation(421, '0.3425'),
         ]));
@@ -38,11 +37,11 @@ final class PutLedgerEntryLinesCategoriesTest extends TestCase
 
     public function testAnEmptyArrayOfAllocationsRemovesAllCategories(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['ledger_entry_line' => ['id' => 2, 'label' => 'x', 'categories' => []]])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutLedgerEntryLinesCategories(2, []));
+        $pennylane->connector()->send(new PutLedgerEntryLinesCategories(2, []));
 
         $mockClient->assertSent(function (PutLedgerEntryLinesCategories $sent): bool {
             return [] === $sent->body()->all();

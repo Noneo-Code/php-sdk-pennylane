@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\MarkAsPaidCustomerInvoice;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -17,11 +16,11 @@ final class MarkAsPaidCustomerInvoiceTest extends TestCase
 {
     public function testSendsAPutRequestToTheMarkAsPaidEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new MarkAsPaidCustomerInvoice(42));
+        $pennylane->connector()->send(new MarkAsPaidCustomerInvoice(42));
 
         $mockClient->assertSent(function (Request $sent): bool {
             return Method::PUT === $sent->getMethod()

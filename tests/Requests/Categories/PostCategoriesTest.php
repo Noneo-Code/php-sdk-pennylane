@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Categories\PostCategories;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PostCategoriesTest extends TestCase
 {
     public function testSendsAPostRequestWithTheRequiredFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostCategories(label: 'Loyers', categoryGroupId: 23));
+        $pennylane->connector()->send(new PostCategories(label: 'Loyers', categoryGroupId: 23));
 
         $mockClient->assertSent(function (PostCategories $sent): bool {
             return Method::POST === $sent->getMethod()
@@ -35,11 +34,11 @@ final class PostCategoriesTest extends TestCase
 
     public function testSendsTheOptionalDirectionAndAnalyticalCode(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostCategories(
+        $pennylane->connector()->send(new PostCategories(
             label: 'Loyers',
             categoryGroupId: 23,
             direction: CategoryDirection::CashOut,

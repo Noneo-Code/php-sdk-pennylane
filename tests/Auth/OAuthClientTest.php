@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Tests\Auth;
 
 use GuzzleHttp\RequestOptions;
+use Noneo\Sdk\Pennylane\Auth\AccessToken;
 use Noneo\Sdk\Pennylane\Auth\OAuthClient;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\AccessTokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\OAuth2\GetAccessTokenRequest;
@@ -27,7 +27,7 @@ final class OAuthClientTest extends TestCase
         );
     }
 
-    public function testExchangesTheAuthorizationCodeForAnAccessTokenAuthenticator(): void
+    public function testExchangesTheAuthorizationCodeForAnAccessToken(): void
     {
         $client = new OAuthClient('client-id', 'client-secret', 'https://app.example.com/callback');
         $mockClient = new MockClient([
@@ -37,13 +37,14 @@ final class OAuthClientTest extends TestCase
                 'expires_in' => 3600,
             ]),
         ]);
-        $client->withMockClient($mockClient);
+        $client->connector()->withMockClient($mockClient);
 
-        $authenticator = $client->getAccessToken('the-code');
+        $token = $client->getAccessToken('the-code');
 
-        self::assertInstanceOf(AccessTokenAuthenticator::class, $authenticator);
-        self::assertSame('access-token', $authenticator->getAccessToken());
-        self::assertSame('refresh-token', $authenticator->getRefreshToken());
+        self::assertInstanceOf(AccessToken::class, $token);
+        self::assertSame('access-token', $token->token);
+        self::assertSame('refresh-token', $token->refreshToken);
+        self::assertInstanceOf(\DateTimeImmutable::class, $token->expiresAt);
 
         $mockClient->assertSent(function (GetAccessTokenRequest $request): bool {
             return 'oauth/oauth/token' === $request->resolveEndpoint()
@@ -67,13 +68,14 @@ final class OAuthClientTest extends TestCase
                 'expires_in' => 3600,
             ]),
         ]);
-        $client->withMockClient($mockClient);
+        $client->connector()->withMockClient($mockClient);
 
-        $expired = new AccessTokenAuthenticator('old-access-token', 'refresh-token', new \DateTimeImmutable('-1 hour'));
+        $expired = new AccessToken('old-access-token', 'refresh-token', new \DateTimeImmutable('-1 hour'));
 
         $refreshed = $client->refreshIfExpired($expired);
 
-        self::assertSame('new-access-token', $refreshed->getAccessToken());
+        self::assertSame('new-access-token', $refreshed->token);
+        self::assertSame('new-refresh-token', $refreshed->refreshToken);
         $mockClient->assertSent(function (GetRefreshTokenRequest $request): bool {
             return 'oauth/oauth/token' === $request->resolveEndpoint()
                 && 'refresh_token' === $request->body()->all()['grant_type'];
@@ -84,14 +86,23 @@ final class OAuthClientTest extends TestCase
     {
         $client = new OAuthClient('client-id', 'client-secret', 'https://app.example.com/callback');
         $mockClient = new MockClient([]);
-        $client->withMockClient($mockClient);
+        $client->connector()->withMockClient($mockClient);
 
-        $valid = new AccessTokenAuthenticator('access-token', 'refresh-token', new \DateTimeImmutable('+1 hour'));
+        $valid = new AccessToken('access-token', 'refresh-token', new \DateTimeImmutable('+1 hour'));
 
         $result = $client->refreshIfExpired($valid);
 
         self::assertSame($valid, $result);
         $mockClient->assertNothingSent();
+    }
+
+    public function testRefusesToRefreshWithoutARefreshToken(): void
+    {
+        $client = new OAuthClient('client-id', 'client-secret', 'https://app.example.com/callback');
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $client->refresh(new AccessToken('access-token'));
     }
 
     public function testAppliesTheDefaultTimeoutsToTheTokenRequest(): void
@@ -100,7 +111,7 @@ final class OAuthClientTest extends TestCase
         $mockClient = new MockClient([
             MockResponse::make(['access_token' => 'access-token', 'expires_in' => 3600]),
         ]);
-        $client->withMockClient($mockClient);
+        $client->connector()->withMockClient($mockClient);
 
         $client->getAccessToken('the-code');
 
@@ -122,7 +133,7 @@ final class OAuthClientTest extends TestCase
         $mockClient = new MockClient([
             MockResponse::make(['access_token' => 'access-token', 'expires_in' => 3600]),
         ]);
-        $client->withMockClient($mockClient);
+        $client->connector()->withMockClient($mockClient);
 
         $client->getAccessToken('the-code');
 

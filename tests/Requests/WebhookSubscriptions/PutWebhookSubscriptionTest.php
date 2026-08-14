@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\WebhookSubscriptions\PutWebhookSubscription;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PutWebhookSubscriptionTest extends TestCase
 {
     public function testSendsAPutRequestToTheWebhookSubscriptionEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutWebhookSubscription(
+        $pennylane->connector()->send(new PutWebhookSubscription(
             id: 42,
             callbackUrl: 'https://example.com/hooks-v2',
             events: [WebhookEventType::DmsFileCreated],
@@ -41,11 +40,11 @@ final class PutWebhookSubscriptionTest extends TestCase
 
     public function testOmittedFieldsAreNotSent(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutWebhookSubscription(id: 42, enabled: true));
+        $pennylane->connector()->send(new PutWebhookSubscription(id: 42, enabled: true));
 
         $mockClient->assertSent(fn (PutWebhookSubscription $sent): bool => ['enabled' => true] === $sent->body()->all());
     }

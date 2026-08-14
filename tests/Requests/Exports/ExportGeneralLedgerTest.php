@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Exports\ExportGeneralLedger;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,16 +15,16 @@ final class ExportGeneralLedgerTest extends TestCase
 {
     public function testSendsAPostRequestWithThePeriod(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'id' => 124,
             'status' => 'pending',
             'created_at' => '2023-08-30T10:08:08.146343Z',
             'updated_at' => '2023-08-30T10:08:08.146343Z',
         ], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new ExportGeneralLedger(periodStart: '2023-08-30', periodEnd: '2023-08-30'));
+        $pennylane->connector()->send(new ExportGeneralLedger(periodStart: '2023-08-30', periodEnd: '2023-08-30'));
 
         $mockClient->assertSent(function (ExportGeneralLedger $sent): bool {
             return Method::POST === $sent->getMethod()

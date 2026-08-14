@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Exception\UnauthorizedException;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -196,11 +195,11 @@ final class PennylaneExceptionTest extends TestCase
 
     private function sendAndCapture(MockResponse $response): PennylaneException
     {
-        $pennylane = new Pennylane(new TokenAuthenticator(self::TOKEN), maxRetries: 0);
-        $pennylane->withMockClient(new MockClient([$response]));
+        $pennylane = new Pennylane(self::TOKEN, maxRetries: 0);
+        $pennylane->connector()->withMockClient(new MockClient([$response]));
 
         try {
-            $pennylane->send(new class extends Request {
+            $pennylane->connector()->send(new class extends Request {
                 protected Method $method = Method::GET;
 
                 public function resolveEndpoint(): string

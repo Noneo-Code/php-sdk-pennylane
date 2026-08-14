@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\CreateSupplierInvoiceEInvoiceImport;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,11 +17,11 @@ final class CreateSupplierInvoiceEInvoiceImportTest extends TestCase
 {
     public function testSendsAMultipartPostRequestWithTheFile(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/api/external/v2/supplier_invoices/42'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateSupplierInvoiceEInvoiceImport('%PDF-1.4 fake content', 'invoice.pdf'));
+        $pennylane->connector()->send(new CreateSupplierInvoiceEInvoiceImport('%PDF-1.4 fake content', 'invoice.pdf'));
 
         $mockClient->assertSent(function (CreateSupplierInvoiceEInvoiceImport $sent): bool {
             $parts = $sent->body()->all();
@@ -38,11 +37,11 @@ final class CreateSupplierInvoiceEInvoiceImportTest extends TestCase
 
     public function testSendsTheInvoiceOptionsAsAJsonMultipartPart(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/api/external/v2/supplier_invoices/42'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateSupplierInvoiceEInvoiceImport(
+        $pennylane->connector()->send(new CreateSupplierInvoiceEInvoiceImport(
             'content',
             'invoice.pdf',
             new EInvoiceImportOptions(

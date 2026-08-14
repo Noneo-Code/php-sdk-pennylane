@@ -14,7 +14,6 @@ use Noneo\Sdk\Pennylane\Requests\LedgerAccounts\GetLedgerAccounts;
 use Noneo\Sdk\Pennylane\Requests\LedgerAccounts\PostLedgerAccounts;
 use Noneo\Sdk\Pennylane\Requests\LedgerAccounts\UpdateLedgerAccount;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Response;
@@ -40,8 +39,8 @@ final class LedgerAccountsTest extends TestCase
 
     public function testListReturnsACursorPageOfLedgerAccountDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedLedgerAccountPayload()],
                 'has_more' => true,
@@ -61,11 +60,11 @@ final class LedgerAccountsTest extends TestCase
 
     public function testListForwardsFilterAndSort(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->ledgerAccounts()->list(filters: FilterSet::make()->startWith('number', '411'));
 
@@ -76,8 +75,8 @@ final class LedgerAccountsTest extends TestCase
 
     public function testGetReturnsALedgerAccountDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedLedgerAccountPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedLedgerAccountPayload())]));
 
         $ledgerAccount = $pennylane->ledgerAccounts()->get(124);
 
@@ -87,9 +86,9 @@ final class LedgerAccountsTest extends TestCase
 
     public function testCreateReturnsALedgerAccountDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedLedgerAccountPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $ledgerAccount = $pennylane->ledgerAccounts()->create(
             number: '512',
@@ -111,9 +110,9 @@ final class LedgerAccountsTest extends TestCase
 
     public function testUpdateReturnsALedgerAccountDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedLedgerAccountPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $ledgerAccount = $pennylane->ledgerAccounts()->update(124, letterable: true);
 
@@ -125,8 +124,8 @@ final class LedgerAccountsTest extends TestCase
 
     public function testPaginateYieldsLedgerAccountDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedLedgerAccountPayload()],
                 'has_more' => true,

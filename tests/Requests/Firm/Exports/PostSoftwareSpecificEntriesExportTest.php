@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\Exports\PostSoftwareSpecificEntriesExport;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,11 +17,11 @@ final class PostSoftwareSpecificEntriesExportTest extends TestCase
 {
     public function testSendsAPostRequestWithTheMinimalRequiredBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'status' => 'pending', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new PostSoftwareSpecificEntriesExport(SoftwareSpecificExportType::Acd, '2023-01-01', '2023-01-31'));
+        $firm->connector()->send(new PostSoftwareSpecificEntriesExport(SoftwareSpecificExportType::Acd, '2023-01-01', '2023-01-31'));
 
         $mockClient->assertSent(function (PostSoftwareSpecificEntriesExport $sent): bool {
             return Method::POST === $sent->getMethod()
@@ -37,11 +36,11 @@ final class PostSoftwareSpecificEntriesExportTest extends TestCase
 
     public function testForwardsOptionalFieldsInTheBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1, 'status' => 'pending', 'created_at' => 'now', 'updated_at' => 'now'])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new PostSoftwareSpecificEntriesExport(
+        $firm->connector()->send(new PostSoftwareSpecificEntriesExport(
             SoftwareSpecificExportType::Agiris,
             '2023-01-01',
             '2023-01-31',

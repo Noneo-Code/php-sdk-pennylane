@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\UpdateImportedCustomerInvoice;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,11 +17,11 @@ final class UpdateImportedCustomerInvoiceTest extends TestCase
 {
     public function testSendsAPutRequestWithNoFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new UpdateImportedCustomerInvoice(42));
+        $pennylane->connector()->send(new UpdateImportedCustomerInvoice(42));
 
         $mockClient->assertSent(function (UpdateImportedCustomerInvoice $sent): bool {
             return Method::PUT === $sent->getMethod()
@@ -33,11 +32,11 @@ final class UpdateImportedCustomerInvoiceTest extends TestCase
 
     public function testSendsTheProvidedFieldsIncludingInvoiceLinePatches(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new UpdateImportedCustomerInvoice(
+        $pennylane->connector()->send(new UpdateImportedCustomerInvoice(
             id: 42,
             invoiceNumber: 'F20230001',
             invoiceLines: new ImportedInvoiceLinesPatch(

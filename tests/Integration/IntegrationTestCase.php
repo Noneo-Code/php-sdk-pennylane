@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Filter\FilterSet;
 use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Tests\Support\IntegrationEnvironment;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 
 /**
  * Socle des tests qui parlent à la vraie API Pennylane.
@@ -43,7 +42,7 @@ abstract class IntegrationTestCase extends TestCase
 
     protected static function pennylane(): Pennylane
     {
-        return self::$connector ??= new Pennylane(new TokenAuthenticator(self::environment()->token()));
+        return self::$connector ??= new Pennylane(self::environment()->token());
     }
 
     /**

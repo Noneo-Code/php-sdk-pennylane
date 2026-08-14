@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource;
 use Noneo\Sdk\Pennylane\Dto\Mandate\GocardlessMandateDto;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -30,9 +29,9 @@ final class GocardlessMandatesTest extends TestCase
 
     public function testListReturnsACursorPageOfGocardlessMandateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->gocardlessMandates()->list();
 
@@ -43,9 +42,9 @@ final class GocardlessMandatesTest extends TestCase
 
     public function testGetReturnsAGocardlessMandateDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $mandate = $pennylane->gocardlessMandates()->get(42);
 
@@ -54,9 +53,9 @@ final class GocardlessMandatesTest extends TestCase
 
     public function testSendMailRequestSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->gocardlessMandates()->sendMailRequest(customerId: 42, recipients: ['customer@example.com']);
 
@@ -65,9 +64,9 @@ final class GocardlessMandatesTest extends TestCase
 
     public function testAssociateSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 200)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->gocardlessMandates()->associate(42, 1234);
 
@@ -76,9 +75,9 @@ final class GocardlessMandatesTest extends TestCase
 
     public function testCancelSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->gocardlessMandates()->cancel(42);
 

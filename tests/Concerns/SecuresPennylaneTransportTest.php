@@ -15,7 +15,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Connector;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
@@ -30,11 +29,11 @@ final class SecuresPennylaneTransportTest extends TestCase
      */
     public function testDoesNotFollowRedirects(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send($this->probeRequest());
+        $pennylane->connector()->send($this->probeRequest());
 
         $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
 
@@ -43,15 +42,15 @@ final class SecuresPennylaneTransportTest extends TestCase
 
     public function testTurnsARedirectIntoAnExplicitException(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'), maxRetries: 0);
+        $pennylane = new Pennylane('a-token', maxRetries: 0);
         $mockClient = new MockClient([
             MockResponse::make('', 301, ['Location' => 'https://evil.example.com/api']),
             MockResponse::make(['id' => 1]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         try {
-            $pennylane->send($this->probeRequest());
+            $pennylane->connector()->send($this->probeRequest());
             self::fail('Expected a RedirectException to be thrown.');
         } catch (RedirectException $exception) {
             self::assertSame(301, $exception->status());
@@ -79,10 +78,10 @@ final class SecuresPennylaneTransportTest extends TestCase
      */
     public static function provideConnectors(): iterable
     {
-        yield 'company' => [new Pennylane(new TokenAuthenticator('a-token'))];
-        yield 'firm' => [new PennylaneFirm(new TokenAuthenticator('a-token'))];
-        yield 'company scope' => [(new PennylaneFirm(new TokenAuthenticator('a-token')))->company(42)];
-        yield 'oauth' => [new OAuthClient('id', 'secret', 'https://noneo.fr/callback')];
+        yield 'company' => [(new Pennylane('a-token'))->connector()];
+        yield 'firm' => [(new PennylaneFirm('a-token'))->connector()];
+        yield 'company scope' => [(new PennylaneFirm('a-token'))->company(42)->connector()];
+        yield 'oauth' => [(new OAuthClient('id', 'secret', 'https://noneo.fr/callback'))->connector()];
     }
 
     public function testTheVersionMatchesTheLatestPublishedChangelogEntry(): void

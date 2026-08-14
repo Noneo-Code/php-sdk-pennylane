@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -22,21 +21,21 @@ final class CompanyScopeTest extends TestCase
 {
     public function testResolvesTheCompanyScopedBaseUrl(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
 
         self::assertSame(
             'https://app.pennylane.com/api/external/firm/v1/companies/1234',
-            $firm->company(1234)->resolveBaseUrl(),
+            $firm->company(1234)->connector()->resolveBaseUrl(),
         );
     }
 
     public function testPrefixesTheRequestUrlWithTheCompanyId(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->company(1234)->send(new class extends Request {
+        $firm->company(1234)->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -58,11 +57,11 @@ final class CompanyScopeTest extends TestCase
 
     public function testInheritsTheAuthenticatorFromTheFirmConnector(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->company(1234)->send(new class extends Request {
+        $firm->company(1234)->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -78,14 +77,14 @@ final class CompanyScopeTest extends TestCase
 
     public function testThrowsAPennylaneExceptionOnErrorResponses(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
-        $firm->withMockClient(new MockClient([
+        $firm = new PennylaneFirm('firm-token');
+        $firm->connector()->withMockClient(new MockClient([
             MockResponse::make(['error' => 'Not Found', 'status' => 404], 404),
         ]));
 
         $this->expectException(NotFoundException::class);
 
-        $firm->company(1234)->send(new class extends Request {
+        $firm->company(1234)->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -100,10 +99,11 @@ final class CompanyScopeTest extends TestCase
         MemoryStore::clear();
 
         $store = new MemoryStore();
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'), $store);
-        $firm->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
+        $firm = new PennylaneFirm('firm-token');
+        $firm->connector()->useRateLimitStore($store);
+        $firm->connector()->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
 
-        $firm->company(1234)->send(new class extends Request {
+        $firm->company(1234)->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -122,18 +122,18 @@ final class CompanyScopeTest extends TestCase
      */
     public function testDoesNotPrefixTwiceWhenTheSameRequestInstanceIsSentAgain(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([
             MockResponse::make(['id' => 1]),
             MockResponse::make(['id' => 2]),
         ]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $scope = $firm->company(1234);
         $request = new LedgerEntriesProbe();
 
-        $scope->send($request);
-        $scope->send($request);
+        $scope->connector()->send($request);
+        $scope->connector()->send($request);
 
         self::assertSame(
             'https://app.pennylane.com/api/external/firm/v1/companies/1234/ledger_entries',
@@ -143,19 +143,19 @@ final class CompanyScopeTest extends TestCase
 
     public function testScopesEachCompanyIndependentlyForASharedRequestInstance(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([
             MockResponse::make(['id' => 1]),
             MockResponse::make(['id' => 2]),
         ]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $request = new LedgerEntriesProbe();
 
-        $firm->company(111)->send($request);
+        $firm->company(111)->connector()->send($request);
         $first = $mockClient->getLastResponse()?->getPendingRequest()->getUrl();
 
-        $firm->company(222)->send($request);
+        $firm->company(222)->connector()->send($request);
         $second = $mockClient->getLastResponse()?->getPendingRequest()->getUrl();
 
         self::assertSame('https://app.pennylane.com/api/external/firm/v1/companies/111/ledger_entries', $first);
@@ -170,14 +170,14 @@ final class CompanyScopeTest extends TestCase
      */
     public function testSharesTheLimiterKeyWithTheFirmConnector(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
 
         self::assertSame($this->limiterNames($firm), $this->limiterNames($firm->company(1234)));
     }
 
     public function testSharesTheLimiterKeyBetweenTwoCompanyScopes(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
 
         self::assertSame(
             $this->limiterNames($firm->company(111)),
@@ -187,25 +187,25 @@ final class CompanyScopeTest extends TestCase
 
     public function testInheritsTheDefaultTimeoutsFromTheFirmConnector(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
 
         $scope = $firm->company(1234);
 
-        self::assertSame(10.0, $scope->getConnectTimeout());
-        self::assertSame(60.0, $scope->getRequestTimeout());
+        self::assertSame(10.0, $scope->connector()->getConnectTimeout());
+        self::assertSame(60.0, $scope->connector()->getRequestTimeout());
     }
 
     public function testInheritsTheConfiguredTimeoutsFromTheFirmConnector(): void
     {
         $firm = new PennylaneFirm(
-            new TokenAuthenticator('firm-token'),
+            'firm-token',
             requestTimeout: 90,
             connectTimeout: 4,
         );
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->company(1234)->send(new LedgerEntriesProbe());
+        $firm->company(1234)->connector()->send(new LedgerEntriesProbe());
 
         $config = $mockClient->getLastResponse()?->getPendingRequest()->config()->all() ?? [];
 
@@ -220,7 +220,7 @@ final class CompanyScopeTest extends TestCase
     {
         return array_values(array_map(
             static fn (Limit $limit): string => $limit->getName(),
-            $connector->getLimits(),
+            $connector->connector()->getLimits(),
         ));
     }
 }

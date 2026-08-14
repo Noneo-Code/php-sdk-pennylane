@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\UpdateSupplierInvoicePaymentStatus;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class UpdateSupplierInvoicePaymentStatusTest extends TestCase
 {
     public function testSendsAPutRequestWithThePaymentStatus(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new UpdateSupplierInvoicePaymentStatus(123, PaymentStatusUpdate::Paid));
+        $pennylane->connector()->send(new UpdateSupplierInvoicePaymentStatus(123, PaymentStatusUpdate::Paid));
 
         $mockClient->assertSent(function (UpdateSupplierInvoicePaymentStatus $sent): bool {
             return Method::PUT === $sent->getMethod()

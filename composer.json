@@ -24,16 +24,19 @@
         }
     ],
     "require": {
-        "php": ">=8.4",
-        "saloonphp/saloon": "^4",
+        "php": ">=8.3",
+        "psr/simple-cache": "^3.0",
         "saloonphp/pagination-plugin": "^2",
-        "saloonphp/rate-limit-plugin": "^2"
+        "saloonphp/rate-limit-plugin": "^2",
+        "saloonphp/saloon": "^4"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.0",
         "phpstan/phpstan": "^2.2",
-        "friendsofphp/php-cs-fixer": "^3.0",
-        "psr/simple-cache": "^3.0"
+        "friendsofphp/php-cs-fixer": "^3.0"
+    },
+    "suggest": {
+        "phpunit/phpunit": "Nécessaire aux assertions de Noneo\\Sdk\\Pennylane\\Testing\\MockPennylane (^11)"
     },
     "scripts": {
         "test": "phpunit --testsuite=default",

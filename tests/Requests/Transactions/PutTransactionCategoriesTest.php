@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Transactions\PutTransactionCategories;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PutTransactionCategoriesTest extends TestCase
 {
     public function testSendsAPutRequestToTheTransactionCategoriesEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutTransactionCategories(42, [
+        $pennylane->connector()->send(new PutTransactionCategories(42, [
             new CategoryAllocation(59, '0.5'),
             new CategoryAllocation(33, '0.5'),
         ]));

@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Resource\Changelogs;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -32,9 +31,9 @@ final class ChangelogsTest extends TestCase
 
     private function pennylaneWith(mixed $body): Pennylane
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$body], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         return $pennylane;
     }
@@ -106,12 +105,12 @@ final class ChangelogsTest extends TestCase
 
     public function testPaginateCustomerInvoicesYieldsEveryItemAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make(['items' => [$this->uniformEntryPayload()], 'has_more' => true, 'next_cursor' => 'page-2']),
             MockResponse::make(['items' => [['id' => 2] + $this->uniformEntryPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $items = iterator_to_array($pennylane->changelogs()->paginateCustomerInvoices());
 
