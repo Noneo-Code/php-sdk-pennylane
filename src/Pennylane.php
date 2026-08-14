@@ -18,6 +18,7 @@ use Noneo\Sdk\Pennylane\Resource\Changelogs;
 use Noneo\Sdk\Pennylane\Resource\CommercialDocuments;
 use Noneo\Sdk\Pennylane\Resource\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Customers;
+use Noneo\Sdk\Pennylane\Resource\EInvoices;
 use Noneo\Sdk\Pennylane\Resource\Exports;
 use Noneo\Sdk\Pennylane\Resource\FileAttachments;
 use Noneo\Sdk\Pennylane\Resource\FiscalYears;
@@ -126,6 +127,11 @@ final class Pennylane extends Connector
     public function customerInvoices(): CustomerInvoices
     {
         return new CustomerInvoices($this);
+    }
+
+    public function eInvoices(): EInvoices
+    {
+        return new EInvoices($this);
     }
 
     public function exports(): Exports

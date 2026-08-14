@@ -26,7 +26,6 @@ foreach (array_keys(SpecSources::URLS) as $file) {
 // operationId => raison de l'exclusion explicite (endpoint volontairement non implémenté)
 $excludedOperationIds = [
     'postLedgerAttachments' => 'Déprécié au profit de postFileAttachments (ticket 18).',
-    'createEInvoiceImport' => 'Révélé par les specs officielles, à implémenter (ticket 31).',
 ];
 
 $signatures = RequestClassLocator::signatures(__DIR__.'/../src/Requests');
