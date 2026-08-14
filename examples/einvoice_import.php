@@ -12,7 +12,6 @@ declare(strict_types=1);
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\EInvoiceImportOptions;
 use Noneo\Sdk\Pennylane\Exception\PennylaneException;
 use Noneo\Sdk\Pennylane\Pennylane;
-use Saloon\Http\Auth\TokenAuthenticator;
 
 require __DIR__.'/../vendor/autoload.php';
 
@@ -30,7 +29,7 @@ if (!is_string($path) || !is_file($path)) {
     exit(1);
 }
 
-$pennylane = new Pennylane(new TokenAuthenticator($token));
+$pennylane = new Pennylane($token);
 
 try {
     // 1. L'état de l'entreprise auprès de la plateforme agréée. Sans

@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 use Noneo\Sdk\Pennylane\Filter\Sort;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
-use Saloon\Http\Auth\TokenAuthenticator;
 
 require __DIR__.'/../vendor/autoload.php';
 
@@ -25,7 +24,7 @@ if (!is_string($token) || '' === $token) {
     exit(1);
 }
 
-$firm = new PennylaneFirm(new TokenAuthenticator($token));
+$firm = new PennylaneFirm($token);
 
 // 1. Le portefeuille. `companies()` pagine par numéro de page, non par curseur :
 //    c'est la convention de la Firm API, et `paginate()` la masque.

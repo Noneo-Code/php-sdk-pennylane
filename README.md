@@ -12,30 +12,30 @@ ni de Laravel, et s'utilise par simple injection de dépendances.
 composer require noneo/sdk-pennylane
 ```
 
-Requiert PHP `>=8.4`.
+Requiert PHP `>=8.3` — la contrainte vient des constantes de classe typées
+(PHP 8.3) ; rien dans le SDK n'exige 8.4.
 
 ## Démarrage
 
-Le connecteur accepte n'importe quel `Saloon\Contracts\Authenticator`. Les
-méthodes de ressource rendent des DTO, jamais une réponse brute.
+Le client s'instancie avec le seul jeton d'API. Les méthodes de ressource
+rendent des DTO, jamais une réponse brute.
 
 ```php
 use Noneo\Sdk\Pennylane\Pennylane;
-use Saloon\Http\Auth\TokenAuthenticator;
 
-$pennylane = new Pennylane(new TokenAuthenticator($companyToken));
+$pennylane = new Pennylane($companyToken);
 
 $invoice = $pennylane->customerInvoices()->get(42);
 echo $invoice->amount;
 ```
 
-Sous Symfony, le connecteur se déclare comme n'importe quel service :
+Sous Symfony, le client se déclare comme n'importe quel service :
 
 ```yaml
 # services.yaml
 Noneo\Sdk\Pennylane\Pennylane:
     arguments:
-        $authenticator: '@app.pennylane.authenticator'
+        $apiToken: '%env(PENNYLANE_TOKEN)%'
 ```
 
 ## Pagination
@@ -381,8 +381,9 @@ Comparaison en temps constant (`hash_equals`) dans les deux cas.
 
 ## OAuth 2.0
 
-`Auth\OAuthClient` ne fait que le ballet OAuth et rend un authenticator à
-passer au connecteur métier :
+`Auth\OAuthClient` ne fait que le ballet OAuth et rend un
+`Auth\AccessToken` — un DTO du SDK (`token`, `refreshToken`, `expiresAt`) à
+persister tel quel côté application :
 
 ```php
 use Noneo\Sdk\Pennylane\Auth\OAuthClient;
@@ -393,10 +394,12 @@ $oauth = new OAuthClient($clientId, $clientSecret, $redirectUri);
 $url = $oauth->getAuthorizationUrl(scopes: ['customer_invoices:all'], state: $state);
 
 // 2. Échanger le code au retour
-$authenticator = $oauth->getAccessToken($code);
+$accessToken = $oauth->getAccessToken($code);
 
-// 3. Rafraîchir si besoin, puis consommer
-$pennylane = new Pennylane($oauth->refreshIfExpired($authenticator));
+// 3. Rafraîchir si besoin, puis consommer : un jeton OAuth est un Bearer
+//    comme un autre.
+$accessToken = $oauth->refreshIfExpired($accessToken);
+$pennylane = new Pennylane($accessToken->token);
 ```
 
 ## Exemples
@@ -419,6 +422,40 @@ PENNYLANE_FIRM_TOKEN=… php examples/firm_portfolio.php
 
 Les scripts d'écriture (`invoicing_lifecycle.php`, `einvoice_import.php`) créent
 de vraies données : réservez-les à un environnement de test.
+
+## Tester votre intégration
+
+`Testing\MockPennylane` simule l'API dans vos tests, sans réseau et sans
+qu'aucun symbole Saloon n'entre dans votre code. Les réponses s'associent par
+méthode HTTP et chemin — celui de la documentation Pennylane, wildcards `*`
+admis — ou se servent en file séquentielle (liste sans clés) :
+
+```php
+use Noneo\Sdk\Pennylane\Testing\MockPennylane;
+
+$mock = MockPennylane::create([
+    'GET /customer_invoices/42' => MockPennylane::json(['id' => 42, /* … */]),
+    'POST /customers'           => MockPennylane::json(['id' => 7, /* … */], 201),
+    'GET /suppliers/*'          => MockPennylane::error(404),
+]);
+
+$pennylane = $mock->pennylane();   // ou $mock->firm() côté cabinet
+$monService->facturer($pennylane); // le code sous test, inchangé
+
+$mock->assertSent('POST', '/customers');
+$mock->assertNothingElseSent();
+```
+
+Côté Firm, les chemins gardent le scope d'entreprise :
+`'GET /companies/12/ledger_entries'`. Une requête qu'aucune entrée ne couvre
+lève `UnexpectedRequestException` — le test décrit tout ce qui part, ou il
+échoue. Les assertions (`assertSent`, `assertNotSent`, `assertNothingSent`,
+`assertNothingElseSent`) s'appuient sur PHPUnit, présent dans les
+`require-dev` de tout projet qui teste.
+
+Les réponses d'erreur (`MockPennylane::error(404)`) lèvent les mêmes
+exceptions que l'API réelle (`NotFoundException`, etc.) : le chemin d'échec se
+teste comme le chemin nominal.
 
 ## Développement
 
@@ -601,17 +638,17 @@ partagé entre tous les process qui l'utilisent. Le SDK segmente son compteur
 par jeton (haché), afin que deux entreprises partageant un même store ne se
 disputent pas un unique quota.
 
-Par défaut, le SDK suit ce quota en mémoire (`MemoryStore`), ce qui ne suffit
-plus dès qu'un jeton est partagé entre plusieurs process. Injectez alors un
-store PSR-16 partagé, par exemple depuis Symfony :
+Par défaut, le SDK suit ce quota en mémoire, ce qui ne suffit plus dès qu'un
+jeton est partagé entre plusieurs process. Injectez alors n'importe quel cache
+PSR-16 (`Psr\SimpleCache\CacheInterface`) partagé — le SDK construit son store
+interne autour :
 
 ```php
-use Saloon\RateLimitPlugin\Stores\PsrStore;
 use Symfony\Component\Cache\Psr16Cache;
 
 $pennylane = new Noneo\Sdk\Pennylane\Pennylane(
-    $authenticator,
-    new PsrStore(new Psr16Cache($cachePool)),
+    $companyToken,
+    rateLimitCache: new Psr16Cache($cachePool),
 );
 ```
 
@@ -640,10 +677,10 @@ connecteurs ; `0` désactive tout rejeu. Un `CompanyScope` hérite du réglage d
 son `PennylaneFirm`.
 
 ```php
-$pennylane = new Noneo\Sdk\Pennylane\Pennylane($authenticator, maxRetries: 5);
+$pennylane = new Noneo\Sdk\Pennylane\Pennylane($companyToken, maxRetries: 5);
 
 // Aucun rejeu : à l'appelant de décider quoi faire de l'échec.
-$firm = new Noneo\Sdk\Pennylane\PennylaneFirm($authenticator, maxRetries: 0);
+$firm = new Noneo\Sdk\Pennylane\PennylaneFirm($firmToken, maxRetries: 0);
 $firm->company(42)->ledgerEntries()->list(); // hérite de maxRetries: 0
 ```
 
@@ -667,10 +704,10 @@ Les deux se règlent au constructeur de `Pennylane`, `PennylaneFirm` et
 
 ```php
 // Un export volumineux mérite plus que la minute par défaut.
-$pennylane = new Noneo\Sdk\Pennylane\Pennylane($authenticator, requestTimeout: 300);
+$pennylane = new Noneo\Sdk\Pennylane\Pennylane($companyToken, requestTimeout: 300);
 
 $firm = new Noneo\Sdk\Pennylane\PennylaneFirm(
-    $authenticator,
+    $firmToken,
     requestTimeout: 120,
     connectTimeout: 5,
 );
@@ -706,8 +743,8 @@ Trois invariants s'appliquent à tous les connecteurs (`Pennylane`,
 
 ### Secrets dans les traces
 
-Tout paramètre portant un secret — jeton, `clientSecret`, secret de webhook,
-`Authenticator` Saloon — est marqué `#[\SensitiveParameter]`. PHP remplace
+Tout paramètre portant un secret — jeton d'API, `clientSecret`, secret de
+webhook, `AccessToken` OAuth — est marqué `#[\SensitiveParameter]`. PHP remplace
 alors sa valeur par `Object(SensitiveParameterValue)` dans les arguments de
 trace. Un test relit `src/` à chaque exécution et refuse tout nouveau paramètre
 au nom évocateur qui oublierait l'attribut.
@@ -729,10 +766,20 @@ les deux cas.
 
 ## Dépendances et Guzzle
 
-Le SDK repose sur [Saloon](https://docs.saloon.dev/) v4, qui requiert
-`guzzlehttp/guzzle` en dur. Un projet Symfony consommant ce SDK aura donc
-Guzzle installé en plus de `symfony/http-client` — les deux coexistent sans
-conflit, ce sont simplement deux clients HTTP présents sur le disque.
+Le SDK repose sur [Saloon](https://docs.saloon.dev/) v4, mais en fait un
+**détail d'implémentation** : aucune classe publique n'expose de type
+`Saloon\*` — ni en signature, ni par héritage — et un test par réflexion
+(`PublicApiSurfaceTest`) le verrouille à chaque exécution. Une montée de
+version de Saloon, voire son remplacement, ne peut donc pas casser un projet
+consommateur. La migration vers un transport PSR-18 pur a été étudiée et
+écartée : réécrire les ~180 requêtes, la pagination et le rate-limit pour un
+bénéfice hypothétique ne se justifierait que si Saloon devenait un problème
+réel (abandon du projet, incompatibilité PHP).
+
+Saloon requiert `guzzlehttp/guzzle` en dur. Un projet Symfony consommant ce
+SDK aura donc Guzzle installé en plus de `symfony/http-client` — les deux
+coexistent sans conflit, ce sont simplement deux clients HTTP présents sur le
+disque.
 
 ## Licence
 

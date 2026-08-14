@@ -21,7 +21,6 @@ use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Substance;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\VatRate;
 use Noneo\Sdk\Pennylane\Exception\PennylaneException;
 use Noneo\Sdk\Pennylane\Pennylane;
-use Saloon\Http\Auth\TokenAuthenticator;
 
 require __DIR__.'/../vendor/autoload.php';
 
@@ -32,7 +31,7 @@ if (!is_string($token) || '' === $token) {
     exit(1);
 }
 
-$pennylane = new Pennylane(new TokenAuthenticator($token));
+$pennylane = new Pennylane($token);
 
 try {
     // 1. Le client destinataire. `createCompany()` et `createIndividual()` sont
