@@ -81,7 +81,7 @@ final class SecuresPennylaneTransportTest extends TestCase
         yield 'company' => [(new Pennylane('a-token'))->connector()];
         yield 'firm' => [(new PennylaneFirm('a-token'))->connector()];
         yield 'company scope' => [(new PennylaneFirm('a-token'))->company(42)->connector()];
-        yield 'oauth' => [new OAuthClient('id', 'secret', 'https://noneo.fr/callback')];
+        yield 'oauth' => [(new OAuthClient('id', 'secret', 'https://noneo.fr/callback'))->connector()];
     }
 
     public function testTheVersionMatchesTheLatestPublishedChangelogEntry(): void
