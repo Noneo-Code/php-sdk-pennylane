@@ -14,6 +14,7 @@ use Noneo\Sdk\Pennylane\Resource\FileAttachments;
 use Noneo\Sdk\Pennylane\Resource\Firm\BankAccounts;
 use Noneo\Sdk\Pennylane\Resource\Firm\Categories;
 use Noneo\Sdk\Pennylane\Resource\Firm\Changelogs;
+use Noneo\Sdk\Pennylane\Resource\Firm\CustomerInvoices;
 use Noneo\Sdk\Pennylane\Resource\Firm\Customers;
 use Noneo\Sdk\Pennylane\Resource\Firm\Dms;
 use Noneo\Sdk\Pennylane\Resource\Firm\Exports;
@@ -22,6 +23,7 @@ use Noneo\Sdk\Pennylane\Resource\Firm\Journals;
 use Noneo\Sdk\Pennylane\Resource\Firm\LedgerAccounts;
 use Noneo\Sdk\Pennylane\Resource\Firm\LedgerEntries;
 use Noneo\Sdk\Pennylane\Resource\Firm\LedgerEntryLines;
+use Noneo\Sdk\Pennylane\Resource\Firm\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Resource\Firm\Suppliers;
 use Noneo\Sdk\Pennylane\Resource\Firm\Transactions;
 use Noneo\Sdk\Pennylane\Resource\Firm\TrialBalance;
@@ -137,6 +139,16 @@ final class CompanyScope extends Connector
     public function customers(): Customers
     {
         return new Customers($this);
+    }
+
+    public function supplierInvoices(): SupplierInvoices
+    {
+        return new SupplierInvoices($this);
+    }
+
+    public function customerInvoices(): CustomerInvoices
+    {
+        return new CustomerInvoices($this);
     }
 
     public function exports(): Exports

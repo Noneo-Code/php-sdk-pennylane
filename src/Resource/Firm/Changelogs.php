@@ -9,8 +9,10 @@ use Noneo\Sdk\Pennylane\Dto\Changelog\ChangelogEntryDto;
 use Noneo\Sdk\Pennylane\Http\ChangelogPaginator;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Requests\Changelogs\ChangelogRequest;
+use Noneo\Sdk\Pennylane\Requests\Changelogs\GetCustomerInvoicesChanges;
 use Noneo\Sdk\Pennylane\Requests\Changelogs\GetDmsFilesChanges;
 use Noneo\Sdk\Pennylane\Requests\Changelogs\GetLedgerEntryLineChanges;
+use Noneo\Sdk\Pennylane\Requests\Changelogs\GetSupplierInvoicesChanges;
 use Saloon\Http\BaseResource;
 
 final class Changelogs extends BaseResource
@@ -37,6 +39,28 @@ final class Changelogs extends BaseResource
     public function paginateDmsFiles(?string $startDate = null, ?int $perPage = null): \Generator
     {
         yield from $this->paginateUniform(new GetDmsFilesChanges(startDate: $startDate), $perPage);
+    }
+
+    public function supplierInvoices(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
+    {
+        return $this->uniformPage(new GetSupplierInvoicesChanges($cursor, $limit, $startDate));
+    }
+
+    /** @return \Generator<int, ChangelogEntryDto> */
+    public function paginateSupplierInvoices(?string $startDate = null, ?int $perPage = null): \Generator
+    {
+        yield from $this->paginateUniform(new GetSupplierInvoicesChanges(startDate: $startDate), $perPage);
+    }
+
+    public function customerInvoices(?string $cursor = null, ?int $limit = null, ?string $startDate = null): CursorPage
+    {
+        return $this->uniformPage(new GetCustomerInvoicesChanges($cursor, $limit, $startDate));
+    }
+
+    /** @return \Generator<int, ChangelogEntryDto> */
+    public function paginateCustomerInvoices(?string $startDate = null, ?int $perPage = null): \Generator
+    {
+        yield from $this->paginateUniform(new GetCustomerInvoicesChanges(startDate: $startDate), $perPage);
     }
 
     private function uniformPage(ChangelogRequest $request): CursorPage

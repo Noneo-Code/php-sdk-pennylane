@@ -161,6 +161,26 @@ Le scope hérite du rate limit, des timeouts et de la politique de rejeu de son
 $firm->company(1234)->dms()->uploadFile($handle, name: 'bilan-2026.pdf');
 ```
 
+Les factures d'une entreprise se lisent depuis le scope. Ces deux ressources
+sont **en lecture seule** : la Firm API n'expose que la liste et le détail, là
+où la Company API accepte aussi la création, l'import ou la validation
+comptable.
+
+```php
+$firm->company(1234)->supplierInvoices()->list(limit: 50);
+$firm->company(1234)->customerInvoices()->get(4242);
+```
+
+Les changelogs du scope suivent les mêmes groupes, factures comprises :
+
+```php
+$firm->company(1234)->changelogs()->supplierInvoices(startDate: '2026-01-01T00:00:00Z');
+
+foreach ($firm->company(1234)->changelogs()->paginateCustomerInvoices() as $change) {
+    $change->id;
+}
+```
+
 ## Upload de fichiers
 
 `fileAttachments()->upload()` accepte indifféremment une **ressource stream** ou
@@ -509,6 +529,15 @@ sur **la méthode HTTP et le chemin**, pas sur le nom de classe : une requête
 bien nommée qui tape la mauvaise URL est signalée, et les `operationId` hors
 convention (`company-fiscal-years`) ne produisent plus de faux manquants. Les
 requêtes sans opération documentée correspondante sont listées à part.
+
+Une requête qui existe n'est pas pour autant appelable : le scope
+`/companies/{id}` est porté par `CompanyScope`, pas par la requête, donc une
+même classe sert les deux connecteurs et peut n'être exposée que d'un côté.
+`ResourceGraph` remonte donc, de ressource en ressource, ce que chaque
+connecteur atteint réellement, et l'audit distingue trois portées — `Pennylane`,
+`PennylaneFirm`, `CompanyScope`. Une opération couverte par une requête
+qu'aucune ressource n'expose est signalée « injoignable » et fait sortir
+`bin/coverage.php` en 3.
 
 ## Limites connues
 

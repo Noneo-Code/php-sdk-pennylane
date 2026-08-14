@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Tests\Tooling\Coverage;
 
 use Noneo\Sdk\Pennylane\Tooling\Coverage\CoverageReport;
+use Noneo\Sdk\Pennylane\Tooling\Coverage\RequestScope;
 use Noneo\Sdk\Pennylane\Tooling\Coverage\RequestSignature;
 use Noneo\Sdk\Pennylane\Tooling\Coverage\SpecOperation;
 use PHPUnit\Framework\TestCase;
@@ -239,5 +240,90 @@ final class CoverageReportTest extends TestCase
 
         self::assertTrue($report->isComplete());
         self::assertSame(0, $report->exitCode());
+    }
+
+    /**
+     * Le cas que l'audit par classes laissait passer : la requête existe et vise
+     * le bon chemin, mais aucune ressource du cabinet ne l'expose — l'opération
+     * Firm n'est déclenchable par aucun appel.
+     */
+    public function testReportsAnOperationWhoseRequestNoResourceExposesInThatScope(): void
+    {
+        $report = new CoverageReport(
+            [new SpecOperation('GET', '/api/external/firm/v1/companies/{company_id}/supplier_invoices', 'getSupplierInvoices')],
+            signatures: [new RequestSignature('GetSupplierInvoices', 'GET', '/supplier_invoices')],
+            reachableRequests: [
+                RequestScope::Company->value => ['GetSupplierInvoices'],
+                RequestScope::FirmCompany->value => [],
+            ],
+        );
+
+        self::assertSame([], $report->missing());
+        self::assertSame('getSupplierInvoices', $report->unreachable()[0]->operationId);
+        self::assertSame(0, $report->coveredCount());
+        self::assertFalse($report->isComplete());
+        self::assertSame(3, $report->exitCode());
+        self::assertSame(
+            'Endpoints injoignables : 1 opération couverte par une requête qu\'aucune ressource n\'expose.',
+            $report->failureSummary(),
+        );
+    }
+
+    public function testCountsAnOperationAsCoveredOnceItsRequestIsReachableInItsScope(): void
+    {
+        $report = new CoverageReport(
+            [new SpecOperation('GET', '/api/external/firm/v1/companies/{company_id}/supplier_invoices', 'getSupplierInvoices')],
+            signatures: [new RequestSignature('GetSupplierInvoices', 'GET', '/supplier_invoices')],
+            reachableRequests: [RequestScope::FirmCompany->value => ['GetSupplierInvoices']],
+        );
+
+        self::assertSame([], $report->unreachable());
+        self::assertSame(1, $report->coveredCount());
+        self::assertTrue($report->isComplete());
+    }
+
+    public function testTellsTheFirmRootScopeApartFromTheCompanyScope(): void
+    {
+        $report = new CoverageReport(
+            [new SpecOperation('GET', '/api/external/firm/v1/companies', 'getCompanies')],
+            signatures: [new RequestSignature('Companies', 'GET', '/companies')],
+            reachableRequests: [
+                RequestScope::Firm->value => ['Companies'],
+                RequestScope::FirmCompany->value => [],
+            ],
+        );
+
+        self::assertSame([], $report->unreachable());
+        self::assertSame(1, $report->coveredCount());
+    }
+
+    /**
+     * Une requête injoignable reste documentée : la signaler aussi comme « hors
+     * spec » enverrait sur une fausse piste.
+     */
+    public function testAnUnreachableRequestIsNotReportedAsUndocumented(): void
+    {
+        $report = new CoverageReport(
+            [new SpecOperation('GET', '/api/external/firm/v1/companies/{company_id}/supplier_invoices', 'getSupplierInvoices')],
+            signatures: [new RequestSignature('GetSupplierInvoices', 'GET', '/supplier_invoices')],
+            reachableRequests: [RequestScope::FirmCompany->value => []],
+        );
+
+        self::assertSame([], $report->undocumented());
+    }
+
+    /**
+     * Sans mesure d'atteignabilité fournie, le rapport se contente du
+     * rapprochement par chemin : `bin/coverage.php` reste utilisable seul.
+     */
+    public function testSkipsTheReachabilityCheckWhenNoGraphIsProvided(): void
+    {
+        $report = new CoverageReport(
+            [new SpecOperation('GET', '/api/external/firm/v1/companies/{company_id}/supplier_invoices', 'getSupplierInvoices')],
+            signatures: [new RequestSignature('GetSupplierInvoices', 'GET', '/supplier_invoices')],
+        );
+
+        self::assertSame([], $report->unreachable());
+        self::assertSame(1, $report->coveredCount());
     }
 }
