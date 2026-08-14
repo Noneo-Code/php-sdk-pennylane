@@ -73,9 +73,7 @@ final class OAuthClient
     public function refresh(#[\SensitiveParameter] AccessToken $token): AccessToken
     {
         if (null === $token->refreshToken) {
-            throw new \InvalidArgumentException(
-                'Ce jeton ne porte pas de refresh token : impossible de le rafraîchir.',
-            );
+            throw new \InvalidArgumentException('Ce jeton ne porte pas de refresh token : impossible de le rafraîchir.');
         }
 
         return $this->toAccessToken($this->connector->refreshAccessToken($token->refreshToken));

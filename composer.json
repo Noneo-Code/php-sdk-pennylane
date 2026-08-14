@@ -35,6 +35,9 @@
         "phpstan/phpstan": "^2.2",
         "friendsofphp/php-cs-fixer": "^3.0"
     },
+    "suggest": {
+        "phpunit/phpunit": "Nécessaire aux assertions de Noneo\\Sdk\\Pennylane\\Testing\\MockPennylane (^11)"
+    },
     "scripts": {
         "test": "phpunit --testsuite=default",
         "test:integration": "phpunit --testsuite=integration",
