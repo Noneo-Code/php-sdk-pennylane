@@ -22,8 +22,9 @@
 
 declare(strict_types=1);
 
+use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
+use Noneo\Sdk\Pennylane\Exception\InvalidWebhookSignatureException;
 use Noneo\Sdk\Pennylane\Webhook\SignatureVerifier;
-use Noneo\Sdk\Pennylane\Webhook\WebhookEvent;
 
 require __DIR__.'/../vendor/autoload.php';
 
@@ -37,31 +38,24 @@ if (!is_string($secret) || '' === $secret) {
 // Le corps *brut* : re-sérialiser un tableau décodé changerait un espace ou
 // l'ordre des clés, et l'empreinte ne correspondrait plus.
 $rawBody = (string) file_get_contents('php://input');
-$signature = $_SERVER['HTTP_X_PENNYLANE_SIGNATURE'] ?? '';
+
+// `SignatureVerifier::HEADER` porte le nom de l'en-tête ; PHP le présente dans
+// $_SERVER sous sa forme CGI (majuscules, tirets en soulignés, préfixe HTTP_).
+$signature = $_SERVER['HTTP_'.strtoupper(str_replace('-', '_', SignatureVerifier::HEADER))] ?? '';
 
 // Fenêtre anti-rejeu de 300 s par défaut : une requête capturée puis rejouée
 // plus tard est refusée, même avec une signature valide.
 $verifier = new SignatureVerifier($secret);
 
-if (!is_string($signature) || !$verifier->verify($rawBody, $signature)) {
-    http_response_code(401);
-    echo "Signature invalide.\n";
-
-    exit;
-}
-
-$payload = json_decode($rawBody, true);
-
-if (!is_array($payload)) {
-    http_response_code(400);
-    echo "Corps illisible.\n";
-
-    exit;
-}
-
 try {
-    $event = WebhookEvent::fromArray($payload);
-} catch (InvalidArgumentException $e) {
+    // Vérifie *puis* décode : impossible d'oublier la première moitié.
+    $event = $verifier->constructEvent($rawBody, is_string($signature) ? $signature : '');
+} catch (InvalidWebhookSignatureException $e) {
+    http_response_code(401);
+    echo $e->getMessage()."\n";
+
+    exit;
+} catch (JsonException|InvalidArgumentException $e) {
     http_response_code(400);
     echo $e->getMessage()."\n";
 
@@ -75,14 +69,16 @@ http_response_code(200);
 
 error_log(sprintf(
     'Événement Pennylane %s #%d (tentative %d) pour l\'entreprise %s',
-    $event->event,
+    $event->eventName,
     $event->id,
     $event->retryCount,
     $event->companyId,
 ));
 
+// `$event->event` vaut `null` si Pennylane a publié un type postérieur à cette
+// version du SDK ; `$event->eventName` reste lisible dans ce cas.
 switch ($event->event) {
-    case 'customer_invoice.e_invoicing_status_updated':
+    case WebhookEventType::CustomerInvoiceEInvoicingStatusUpdated:
         // `previousAttributes` porte l'ancien état des champs modifiés : de quoi
         // distinguer une vraie transition d'un simple événement redondant.
         error_log(sprintf(
@@ -92,7 +88,7 @@ switch ($event->event) {
         ));
         break;
 
-    case 'dms_file.created':
+    case WebhookEventType::DmsFileCreated:
         error_log(sprintf('Nouveau fichier DMS : %s', json_encode($event->object['name'] ?? null, JSON_THROW_ON_ERROR)));
         break;
 }
