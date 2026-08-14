@@ -223,6 +223,21 @@ $import = $pennylane->customerInvoices()->importEInvoice(
 $pennylane->customerInvoices()->sendToPa($import->id);
 ```
 
+Pennylane garde un import générique, `eInvoices()->import()`, où le sens est
+porté par un `EInvoiceImportType` plutôt que par la ressource appelée. Il est
+**déprécié** et n'accepte aucune option d'import : préférez les deux méthodes
+spécialisées ci-dessus.
+
+```php
+use Noneo\Sdk\Pennylane\Dto\EInvoice\EInvoiceImportType;
+
+$import = $pennylane->eInvoices()->import(
+    fileContents: $handle,
+    type: EInvoiceImportType::Supplier,
+    filename: 'facture.pdf',
+);
+```
+
 Le statut vit ensuite sur la facture, dans `eInvoicingStatus` — un
 `EInvoicingStatus` : `submitted`, `sent`, `accepted`, `rejected`, `in_dispute`,
 `collected`… `eInvoicingReason` porte le motif d'un refus.

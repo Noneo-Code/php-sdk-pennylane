@@ -27,6 +27,15 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ### Ajouté
 
+- `eInvoices()->import()` : l'import générique `POST /e-invoices/imports`, où
+  le sens de circulation est porté par un `EInvoiceImportType`
+  (`customer`/`supplier`) plutôt que par la ressource appelée. Pennylane le
+  marque déprécié au profit des deux imports spécialisés — le SDK reprend
+  l'annotation. La couverture passe à 216/216 endpoints, l'exclusion explicite
+  disparaît.
+- `SchemaLocator` sait lire les corps de requête `multipart/form-data`, jusqu'ici
+  ignorés au profit du seul JSON : les énumérations d'un envoi de fichier sont
+  désormais confrontées à la spec comme les autres.
 - `SignatureVerifier::constructEvent()` : vérifie la signature **puis** décode
   l'enveloppe, et lève `InvalidWebhookSignatureException` sinon. L'ancien couple
   `verify()` + `WebhookEvent::fromArray()` laissait oublier la première moitié.

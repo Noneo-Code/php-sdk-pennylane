@@ -155,8 +155,10 @@ final class SchemaLocator
     }
 
     /**
-     * Le corps JSON, quel que soit le libellé exact du type de contenu — la
-     * spec écrit parfois `application/json; charset=utf-8`.
+     * Le corps structuré, quel que soit le libellé exact du type de contenu —
+     * la spec écrit parfois `application/json; charset=utf-8`. Les envois de
+     * fichiers passent en `multipart/form-data` : leur schéma décrit les
+     * champs du formulaire, ce qui se confronte aussi bien.
      *
      * @return mixed[]|null
      */
@@ -167,7 +169,13 @@ final class SchemaLocator
         }
 
         foreach ($content as $mediaType => $media) {
-            if (is_array($media) && is_array($media['schema'] ?? null) && str_contains((string) $mediaType, 'json')) {
+            $mediaType = (string) $mediaType;
+
+            if (!str_contains($mediaType, 'json') && !str_contains($mediaType, 'multipart/form-data')) {
+                continue;
+            }
+
+            if (is_array($media) && is_array($media['schema'] ?? null)) {
                 $schema = $media['schema'];
 
                 return $schema;

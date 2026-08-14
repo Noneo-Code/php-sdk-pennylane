@@ -78,6 +78,20 @@ final class SchemaLocatorTest extends TestCase
         self::assertSame(['label'], self::propertyNames($schema));
     }
 
+    /**
+     * Les envois de fichiers passent en `multipart/form-data` : leurs champs
+     * annexes — dont les énumérations que le SDK reprend en enum — n'ont pas
+     * d'autre schéma à confronter.
+     */
+    public function testItFindsTheRequestBodySchemaOfAMultipartOperation(): void
+    {
+        $locator = new SchemaLocator([self::spec()]);
+
+        $schema = $locator->locate('createEInvoiceImport', SchemaSource::Request, 'type');
+
+        self::assertSame(['customer', 'supplier'], $schema['enum']);
+    }
+
     public function testAPointerFindsAPropertyHiddenInsideAOneOfBranch(): void
     {
         $locator = new SchemaLocator([self::spec()]);
@@ -210,6 +224,18 @@ final class SchemaLocatorTest extends TestCase
                             'reason' => ['type' => 'string', 'enum' => ['bank_details_error']],
                         ]],
                     ]]]]],
+                ],
+            ],
+            '/api/external/v2/e-invoices/imports' => [
+                'post' => [
+                    'operationId' => 'createEInvoiceImport',
+                    'requestBody' => ['content' => ['multipart/form-data' => ['schema' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'file' => ['type' => 'string', 'format' => 'binary'],
+                            'type' => ['type' => 'string', 'enum' => ['customer', 'supplier']],
+                        ],
+                    ]]]],
                 ],
             ],
             '/api/external/v2/customers/{id}' => [
