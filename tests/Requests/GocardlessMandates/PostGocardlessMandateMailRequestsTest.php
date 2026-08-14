@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\GocardlessMandates\PostGocardlessMandateMailRequests;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class PostGocardlessMandateMailRequestsTest extends TestCase
 {
     public function testSendsAPostRequestWithTheEmailBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostGocardlessMandateMailRequests(
+        $pennylane->connector()->send(new PostGocardlessMandateMailRequests(
             customerId: 42,
             recipients: ['customer@example.com'],
             subject: 'Please authorize your direct debit mandate',
@@ -43,11 +42,11 @@ final class PostGocardlessMandateMailRequestsTest extends TestCase
 
     public function testOmitsOptionalSubjectAndBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostGocardlessMandateMailRequests(customerId: 42, recipients: ['customer@example.com']));
+        $pennylane->connector()->send(new PostGocardlessMandateMailRequests(customerId: 42, recipients: ['customer@example.com']));
 
         $mockClient->assertSent(function (PostGocardlessMandateMailRequests $sent): bool {
             return [

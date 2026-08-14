@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Dto\FiscalYear\FiscalYearDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\FiscalYears\PostFiscalYears;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -24,7 +23,7 @@ final class FiscalYearsTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [$this->documentedPayload()],
             'total_pages' => 1,
@@ -32,7 +31,7 @@ final class FiscalYearsTest extends TestCase
             'total_items' => 1,
             'per_page' => 20,
         ])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->fiscalYears()->list();
 
@@ -47,9 +46,9 @@ final class FiscalYearsTest extends TestCase
 
     public function testCreateSendsAPostRequestWithTheFiscalYearBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->fiscalYears()->create('2023-01-01', '2023-12-31');
 

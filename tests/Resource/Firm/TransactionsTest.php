@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Transactions\CreateTransaction;
 use Noneo\Sdk\Pennylane\Requests\Transactions\UpdateTransaction;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -45,9 +44,9 @@ final class TransactionsTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->transactions()->list();
 
@@ -62,9 +61,9 @@ final class TransactionsTest extends TestCase
 
     public function testCreateSendsAPostRequestWithTheTransactionBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->transactions()->create(53, 'VIR SEPA', '2023-08-30', '120.00');
 
@@ -76,9 +75,9 @@ final class TransactionsTest extends TestCase
 
     public function testUpdateSendsAPutRequestToTheTransactionEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->transactions()->update(42, customerId: 7);
 

@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\PurchaseRequests\CreatePurchaseRequestImport;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -20,11 +19,11 @@ final class CreatePurchaseRequestImportTest extends TestCase
 {
     public function testSendsAPostRequestWithTheRequiredFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreatePurchaseRequestImport(
+        $pennylane->connector()->send(new CreatePurchaseRequestImport(
             fileAttachmentId: 42,
             reason: 'I need a computer to be able to create purchase requests',
             supplierId: 456,
@@ -73,11 +72,11 @@ final class CreatePurchaseRequestImportTest extends TestCase
 
     public function testSendsTheOptionalFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreatePurchaseRequestImport(
+        $pennylane->connector()->send(new CreatePurchaseRequestImport(
             fileAttachmentId: 42,
             reason: 'I need a computer to be able to create purchase requests',
             supplierId: 456,

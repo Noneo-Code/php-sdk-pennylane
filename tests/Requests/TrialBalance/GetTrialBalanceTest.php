@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\TrialBalance\GetTrialBalance;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -19,11 +18,11 @@ final class GetTrialBalanceTest extends TestCase
 {
     public function testSendsAGetRequestWithTheRequiredPeriod(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetTrialBalance(periodStart: '2022-01-01', periodEnd: '2022-12-31'));
+        $pennylane->connector()->send(new GetTrialBalance(periodStart: '2022-01-01', periodEnd: '2022-12-31'));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()
@@ -37,11 +36,11 @@ final class GetTrialBalanceTest extends TestCase
 
     public function testForwardsIsAuxiliaryCursorAndLimitAsQueryParameters(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetTrialBalance(
+        $pennylane->connector()->send(new GetTrialBalance(
             periodStart: '2022-01-01',
             periodEnd: '2022-12-31',
             isAuxiliary: true,

@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\LedgerAccounts\PostLedgerAccounts;
 use Noneo\Sdk\Pennylane\Requests\LedgerAccounts\UpdateLedgerAccount;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -34,9 +33,9 @@ final class LedgerAccountsTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->ledgerAccounts()->list();
 
@@ -51,9 +50,9 @@ final class LedgerAccountsTest extends TestCase
 
     public function testGetSendsAGetRequestToTheLedgerAccountEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->ledgerAccounts()->get(124);
 
@@ -64,9 +63,9 @@ final class LedgerAccountsTest extends TestCase
 
     public function testCreateSendsAPostRequestWithTheLedgerAccountBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->ledgerAccounts()->create('512', 'Secondary Account');
 
@@ -78,9 +77,9 @@ final class LedgerAccountsTest extends TestCase
 
     public function testUpdateSendsAPutRequestToTheLedgerAccountEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->ledgerAccounts()->update(124, letterable: true);
 

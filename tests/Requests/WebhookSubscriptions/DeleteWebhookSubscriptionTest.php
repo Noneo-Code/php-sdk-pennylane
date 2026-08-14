@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\WebhookSubscriptions\DeleteWebhookSubscription;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -17,11 +16,11 @@ final class DeleteWebhookSubscriptionTest extends TestCase
 {
     public function testSendsADeleteRequestToTheWebhookSubscriptionEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(status: 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new DeleteWebhookSubscription(42));
+        $pennylane->connector()->send(new DeleteWebhookSubscription(42));
 
         $mockClient->assertSent(function (Request $sent): bool {
             return Method::DELETE === $sent->getMethod()

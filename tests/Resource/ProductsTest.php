@@ -11,7 +11,6 @@ use Noneo\Sdk\Pennylane\Requests\Products\PostProducts;
 use Noneo\Sdk\Pennylane\Requests\Products\PutProduct;
 use Noneo\Sdk\Pennylane\Tests\Dto\Product\ProductDtoTest;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -19,8 +18,8 @@ final class ProductsTest extends TestCase
 {
     public function testListReturnsACursorPageOfProductDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [ProductDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -33,8 +32,8 @@ final class ProductsTest extends TestCase
 
     public function testPaginateYieldsProductDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [ProductDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -46,8 +45,8 @@ final class ProductsTest extends TestCase
 
     public function testGetReturnsAProductDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make(ProductDtoTest::documentedPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make(ProductDtoTest::documentedPayload())]));
 
         $product = $pennylane->products()->get(1);
 
@@ -57,9 +56,9 @@ final class ProductsTest extends TestCase
 
     public function testCreateReturnsAProductDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(ProductDtoTest::documentedPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $product = $pennylane->products()->create(
             label: 'Product 1',
@@ -73,9 +72,9 @@ final class ProductsTest extends TestCase
 
     public function testUpdateReturnsAProductDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(ProductDtoTest::documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $product = $pennylane->products()->update(1, label: 'Renamed product');
 

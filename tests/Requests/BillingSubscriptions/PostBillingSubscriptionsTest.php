@@ -15,7 +15,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\BillingSubscriptions\PostBillingSubscriptions;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -23,11 +22,11 @@ final class PostBillingSubscriptionsTest extends TestCase
 {
     public function testSendsARequestWithTheRequiredFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostBillingSubscriptions(
+        $pennylane->connector()->send(new PostBillingSubscriptions(
             start: '2023-01-01',
             mode: NewMode::finalized(),
             paymentConditions: PaymentConditions::UponReceipt,
@@ -70,11 +69,11 @@ final class PostBillingSubscriptionsTest extends TestCase
 
     public function testSendsAnEmailModeWithRecipients(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostBillingSubscriptions(
+        $pennylane->connector()->send(new PostBillingSubscriptions(
             start: '2023-01-01',
             mode: NewMode::email(['customer@example.com']),
             paymentConditions: PaymentConditions::ThirtyDays,

@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\TrialBalance\GetTrialBalance;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Response;
@@ -30,8 +29,8 @@ final class TrialBalanceTest extends TestCase
 
     public function testListReturnsACursorPageOfTrialBalanceLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedTrialBalanceLinePayload()],
                 'has_more' => true,
@@ -51,11 +50,11 @@ final class TrialBalanceTest extends TestCase
 
     public function testListForwardsThePeriodAndIsAuxiliary(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->trialBalance()->list(periodStart: '2022-01-01', periodEnd: '2022-12-31', isAuxiliary: true);
 
@@ -70,8 +69,8 @@ final class TrialBalanceTest extends TestCase
 
     public function testPaginateYieldsTrialBalanceLineDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedTrialBalanceLinePayload()],
                 'has_more' => true,

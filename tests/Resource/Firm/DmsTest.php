@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Dto\Dms\DmsFolderDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\Dms\PostDmsFolders;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -47,9 +46,9 @@ final class DmsTest extends TestCase
 
     public function testFilesSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedFilePayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->dms()->files();
 
@@ -63,9 +62,9 @@ final class DmsTest extends TestCase
 
     public function testUploadFileSendsAMultipartPostRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedFilePayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $file = $firm->company(1234)->dms()->uploadFile('%PDF-1.4 content', 'file.pdf');
 
@@ -78,9 +77,9 @@ final class DmsTest extends TestCase
 
     public function testFoldersSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedFolderPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->dms()->folders();
 
@@ -94,9 +93,9 @@ final class DmsTest extends TestCase
 
     public function testCreateFolderSendsAPostRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedFolderPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $folder = $firm->company(1234)->dms()->createFolder('Folder 1');
 

@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Dto\BankAccount\BankAccountDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\BankAccounts\PostBankAccount;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -33,9 +32,9 @@ final class BankAccountsTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->bankAccounts()->list();
 
@@ -50,9 +49,9 @@ final class BankAccountsTest extends TestCase
 
     public function testCreateSendsAPostRequestWithTheBankAccountBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->bankAccounts()->create('Main account');
 

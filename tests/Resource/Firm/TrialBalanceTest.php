@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource\Firm;
 use Noneo\Sdk\Pennylane\Dto\TrialBalance\TrialBalanceLineDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -23,7 +22,7 @@ final class TrialBalanceTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompanyWithTheRequiredPeriod(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [$this->documentedPayload()],
             'total_pages' => 1,
@@ -31,7 +30,7 @@ final class TrialBalanceTest extends TestCase
             'total_items' => 1,
             'per_page' => 20,
         ])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->trialBalance()->list('2023-01-01', '2023-12-31');
 
@@ -46,7 +45,7 @@ final class TrialBalanceTest extends TestCase
 
     public function testPaginateTraversesEveryPage(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [$this->documentedPayload()],
             'total_pages' => 1,
@@ -54,7 +53,7 @@ final class TrialBalanceTest extends TestCase
             'total_items' => 1,
             'per_page' => 20,
         ])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $lines = iterator_to_array($firm->company(1234)->trialBalance()->paginate('2023-01-01', '2023-12-31'));
 

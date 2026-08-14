@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\TrialBalance\GetTrialBalance;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -24,11 +23,11 @@ final class GetTrialBalanceTest extends TestCase
 
     public function testSendsAGetRequestWithTheRequiredPeriodParameters(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->emptyPage())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new GetTrialBalance('2023-01-01', '2023-12-31'));
+        $firm->connector()->send(new GetTrialBalance('2023-01-01', '2023-12-31'));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()
@@ -39,11 +38,11 @@ final class GetTrialBalanceTest extends TestCase
 
     public function testForwardsIsAuxiliaryPageAndPerPageAsQueryParameters(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->emptyPage())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new GetTrialBalance('2023-01-01', '2023-12-31', isAuxiliary: true, page: 2, perPage: 40));
+        $firm->connector()->send(new GetTrialBalance('2023-01-01', '2023-12-31', isAuxiliary: true, page: 2, perPage: 40));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return [

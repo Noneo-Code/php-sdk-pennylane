@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntryLines\PostLedgerEntryLinesLetter;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PostLedgerEntryLinesLetterTest extends TestCase
 {
     public function testSendsAPostRequestWithTheLetteringStrategyAndLines(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([['id' => 3455], ['id' => 3456]])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostLedgerEntryLinesLetter(UnbalancedLetteringStrategy::None, [3455, 3456]));
+        $pennylane->connector()->send(new PostLedgerEntryLinesLetter(UnbalancedLetteringStrategy::None, [3455, 3456]));
 
         $mockClient->assertSent(function (PostLedgerEntryLinesLetter $sent): bool {
             return Method::POST === $sent->getMethod()

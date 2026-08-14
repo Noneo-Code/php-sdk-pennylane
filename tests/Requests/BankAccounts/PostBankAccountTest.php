@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\BankAccounts\PostBankAccount;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,7 +17,7 @@ final class PostBankAccountTest extends TestCase
 {
     public function testSendsAPostRequestToTheBankAccountsEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'id' => 42,
             'name' => 'Main Account',
@@ -30,9 +29,9 @@ final class PostBankAccountTest extends TestCase
             'journal' => null,
             'ledger_account' => ['id' => 42, 'url' => 'https://app.pennylane.com/api/external/v2/ledger_accounts/8'],
         ], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostBankAccount(
+        $pennylane->connector()->send(new PostBankAccount(
             name: 'Main Account',
             bankEstablishmentId: 25,
             iban: 'FR1420041010050500013M02606',
@@ -57,7 +56,7 @@ final class PostBankAccountTest extends TestCase
 
     public function testOmitsOptionalFieldsFromTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'id' => 42,
             'name' => 'Main Account',
@@ -69,9 +68,9 @@ final class PostBankAccountTest extends TestCase
             'journal' => null,
             'ledger_account' => ['id' => 42, 'url' => 'https://app.pennylane.com/api/external/v2/ledger_accounts/8'],
         ], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostBankAccount(name: 'Main Account'));
+        $pennylane->connector()->send(new PostBankAccount(name: 'Main Account'));
 
         $mockClient->assertSent(function (PostBankAccount $sent): bool {
             return ['name' => 'Main Account'] === $sent->body()->all();

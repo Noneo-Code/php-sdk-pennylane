@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\ProAccountMandates\PostProAccountMandateMigrations;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PostProAccountMandateMigrationsTest extends TestCase
 {
     public function testSendsAPostRequestWithTheMigrationBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['mandate_migration' => []], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostProAccountMandateMigrations(
+        $pennylane->connector()->send(new PostProAccountMandateMigrations(
             mandateType: MandateType::Mandate,
             mandateId: 12345,
             earlyExecutionDatePermitted: true,
@@ -40,11 +39,11 @@ final class PostProAccountMandateMigrationsTest extends TestCase
 
     public function testOmitsEarlyExecutionDatePermittedWhenNotProvided(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['mandate_migration' => []], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostProAccountMandateMigrations(mandateType: MandateType::SepaMandate, mandateId: 12345));
+        $pennylane->connector()->send(new PostProAccountMandateMigrations(mandateType: MandateType::SepaMandate, mandateId: 12345));
 
         $mockClient->assertSent(function (PostProAccountMandateMigrations $sent): bool {
             return [

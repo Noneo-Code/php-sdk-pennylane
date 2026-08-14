@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\WebhookSubscriptions\PostWebhookSubscriptions;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PostWebhookSubscriptionsTest extends TestCase
 {
     public function testSendsAPostRequestToTheWebhookSubscriptionsEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostWebhookSubscriptions(
+        $pennylane->connector()->send(new PostWebhookSubscriptions(
             callbackUrl: 'https://example.com/webhooks',
             events: [WebhookEventType::DmsFileCreated, WebhookEventType::CustomerInvoiceEInvoicingStatusUpdated],
             enabled: false,
@@ -40,11 +39,11 @@ final class PostWebhookSubscriptionsTest extends TestCase
 
     public function testEnabledDefaultsToNotBeingSentSoThePennylaneDefaultApplies(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostWebhookSubscriptions(
+        $pennylane->connector()->send(new PostWebhookSubscriptions(
             callbackUrl: 'https://example.com/webhooks',
             events: [WebhookEventType::DmsFileCreated],
         ));

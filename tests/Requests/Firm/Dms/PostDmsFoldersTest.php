@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\Dms\PostDmsFolders;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,7 +15,7 @@ final class PostDmsFoldersTest extends TestCase
 {
     public function testSendsAPostRequestWithTheFolderBody(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make([
             'id' => 124,
             'name' => 'Folder 1',
@@ -26,9 +25,9 @@ final class PostDmsFoldersTest extends TestCase
             'created_at' => 'now',
             'updated_at' => 'now',
         ])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new PostDmsFolders('Folder 1', 123));
+        $firm->connector()->send(new PostDmsFolders('Folder 1', 123));
 
         $mockClient->assertSent(function (PostDmsFolders $sent): bool {
             return Method::POST === $sent->getMethod()

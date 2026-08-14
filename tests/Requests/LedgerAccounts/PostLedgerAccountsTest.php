@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerAccounts\PostLedgerAccounts;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -18,11 +17,11 @@ final class PostLedgerAccountsTest extends TestCase
 {
     public function testSendsAPostRequestWithTheRequiredFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 124], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostLedgerAccounts(number: '512', label: 'Secondary Account'));
+        $pennylane->connector()->send(new PostLedgerAccounts(number: '512', label: 'Secondary Account'));
 
         $mockClient->assertSent(function (PostLedgerAccounts $sent): bool {
             return Method::POST === $sent->getMethod()
@@ -36,11 +35,11 @@ final class PostLedgerAccountsTest extends TestCase
 
     public function testSendsTheOptionalVatRateAndCountryAlpha2(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 124], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostLedgerAccounts(
+        $pennylane->connector()->send(new PostLedgerAccounts(
             number: '512',
             label: 'Secondary Account',
             vatRate: VatRate::FR_200,

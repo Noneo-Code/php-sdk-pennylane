@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Firm\Dms\GetDmsFiles;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -19,11 +18,11 @@ final class GetDmsFilesTest extends TestCase
 {
     public function testSendsAGetRequestToTheDmsFilesEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new GetDmsFiles());
+        $firm->connector()->send(new GetDmsFiles());
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()
@@ -34,11 +33,11 @@ final class GetDmsFilesTest extends TestCase
 
     public function testForwardsCursorLimitAndFilterAsQueryParameters(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new GetDmsFiles(cursor: 'abc', limit: 10, filters: FilterSet::make()->eq('parent_folder_id', '124')));
+        $firm->connector()->send(new GetDmsFiles(cursor: 'abc', limit: 10, filters: FilterSet::make()->eq('parent_folder_id', '124')));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return [

@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\PurchaseRequests\GetPurchaseRequests;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -21,11 +20,11 @@ final class GetPurchaseRequestsTest extends TestCase
 {
     public function testSendsAGetRequestToThePurchaseRequestsEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetPurchaseRequests());
+        $pennylane->connector()->send(new GetPurchaseRequests());
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()
@@ -36,11 +35,11 @@ final class GetPurchaseRequestsTest extends TestCase
 
     public function testForwardsCursorLimitFilterAndSortAsQueryParameters(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetPurchaseRequests(
+        $pennylane->connector()->send(new GetPurchaseRequests(
             cursor: 'dXBkYXRlZF9hdDoxNjc0MTIzNDU2',
             limit: 50,
             filters: FilterSet::make()->eq('user_id', '123'),

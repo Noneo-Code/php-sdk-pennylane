@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookEventType;
 use Noneo\Sdk\Pennylane\Dto\Webhook\WebhookSubscriptionDto;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -35,9 +34,9 @@ final class WebhookSubscriptionsTest extends TestCase
 
     public function testCreateReturnsACreatedWebhookSubscriptionDtoWithTheSecret(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload() + ['secret' => 'whsec_a1b2c3'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $dto = $pennylane->webhookSubscriptions()->create(
             callbackUrl: 'https://example.com/webhooks',
@@ -50,9 +49,9 @@ final class WebhookSubscriptionsTest extends TestCase
 
     public function testListReturnsACursorPageOfWebhookSubscriptionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->webhookSubscriptions()->list();
 
@@ -63,12 +62,12 @@ final class WebhookSubscriptionsTest extends TestCase
 
     public function testPaginateYieldsEveryItemAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => true, 'next_cursor' => 'page-2']),
             MockResponse::make(['items' => [['id' => 999] + $this->documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $items = iterator_to_array($pennylane->webhookSubscriptions()->paginate());
 
@@ -79,9 +78,9 @@ final class WebhookSubscriptionsTest extends TestCase
 
     public function testGetReturnsAWebhookSubscriptionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $dto = $pennylane->webhookSubscriptions()->get(12345);
 
@@ -91,9 +90,9 @@ final class WebhookSubscriptionsTest extends TestCase
 
     public function testUpdateReturnsAWebhookSubscriptionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['enabled' => false] + $this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $dto = $pennylane->webhookSubscriptions()->update(12345, enabled: false);
 
@@ -103,9 +102,9 @@ final class WebhookSubscriptionsTest extends TestCase
 
     public function testDeleteSendsTheDeleteRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(status: 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->webhookSubscriptions()->delete(12345);
 

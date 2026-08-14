@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Dto\BankAccount\BankAccountDto;
 use Noneo\Sdk\Pennylane\Dto\CustomerInvoice\Currency;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -33,9 +32,9 @@ final class BankAccountsTest extends TestCase
 
     public function testListReturnsACursorPageOfBankAccountDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->bankAccounts()->list();
 
@@ -47,9 +46,9 @@ final class BankAccountsTest extends TestCase
 
     public function testGetReturnsABankAccountDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $bankAccount = $pennylane->bankAccounts()->get(42);
 
@@ -59,9 +58,9 @@ final class BankAccountsTest extends TestCase
 
     public function testCreateReturnsABankAccountDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $bankAccount = $pennylane->bankAccounts()->create(
             name: 'Main account',

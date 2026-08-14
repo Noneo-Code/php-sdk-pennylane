@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource\Firm;
 use Noneo\Sdk\Pennylane\Dto\Customer\CompanyCustomerDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -52,9 +51,9 @@ final class CustomersTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedCompanyCustomerPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->customers()->list();
 
@@ -68,9 +67,9 @@ final class CustomersTest extends TestCase
 
     public function testPaginateTraversesEveryPage(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedCompanyCustomerPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $customers = iterator_to_array($firm->company(1234)->customers()->paginate());
 

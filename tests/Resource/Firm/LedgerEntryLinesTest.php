@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource\Firm;
 use Noneo\Sdk\Pennylane\Dto\LedgerEntryLine\LedgerEntryLineDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -39,9 +38,9 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->ledgerEntryLines()->list();
 
@@ -55,9 +54,9 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testGetSendsAGetRequestToTheLedgerEntryLineEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->ledgerEntryLines()->get(42);
 
@@ -68,11 +67,11 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testLetteredSendsAGetRequestToTheLetteredSubResource(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $payload = $this->documentedPayload();
         unset($payload['categories']);
         $mockClient = new MockClient([MockResponse::make(['items' => [$payload], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->ledgerEntryLines()->lettered(42);
 

@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource\Firm;
 use Noneo\Sdk\Pennylane\Dto\Category\CategoryGroupDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -29,9 +28,9 @@ final class CategoryGroupsTest extends TestCase
 
     public function testListSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedGroupPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->categoryGroups()->list();
 
@@ -45,9 +44,9 @@ final class CategoryGroupsTest extends TestCase
 
     public function testGetSendsAGetRequestToTheCategoryGroupEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedGroupPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->categoryGroups()->get(348);
 
@@ -58,9 +57,9 @@ final class CategoryGroupsTest extends TestCase
 
     public function testCategoriesSendsAGetRequestToTheCategoryGroupCategoriesEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $firm->company(1234)->categoryGroups()->categories(348);
 

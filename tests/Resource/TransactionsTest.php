@@ -10,7 +10,6 @@ use Noneo\Sdk\Pennylane\Dto\Transaction\MatchedInvoiceDto;
 use Noneo\Sdk\Pennylane\Dto\Transaction\TransactionDto;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -46,9 +45,9 @@ final class TransactionsTest extends TestCase
 
     public function testListReturnsACursorPageOfTransactionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->transactions()->list();
 
@@ -59,9 +58,9 @@ final class TransactionsTest extends TestCase
 
     public function testCreateReturnsATransactionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $transaction = $pennylane->transactions()->create(bankAccountId: 53, label: 'test label', date: '2025-07-30', amount: '120.00');
 
@@ -70,9 +69,9 @@ final class TransactionsTest extends TestCase
 
     public function testGetReturnsATransactionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $transaction = $pennylane->transactions()->get(42);
 
@@ -81,9 +80,9 @@ final class TransactionsTest extends TestCase
 
     public function testUpdateReturnsATransactionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $transaction = $pennylane->transactions()->update(42, customerId: 7);
 
@@ -92,7 +91,7 @@ final class TransactionsTest extends TestCase
 
     public function testCategoriesReturnsACursorPageOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [
                 ['id' => 421, 'label' => 'HR - Salaries', 'weight' => '0.25', 'category_group' => ['id' => 229], 'analytical_code' => 'CODE123', 'created_at' => '2023-08-30T10:08:08.146343Z', 'updated_at' => '2023-08-30T10:08:08.146343Z'],
@@ -100,7 +99,7 @@ final class TransactionsTest extends TestCase
             'has_more' => false,
             'next_cursor' => null,
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->transactions()->categories(42);
 
@@ -111,11 +110,11 @@ final class TransactionsTest extends TestCase
 
     public function testCategorizeReturnsAListOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             ['id' => 426, 'label' => 'HR - Salaries', 'weight' => '0.6575', 'category_group' => ['id' => 229], 'analytical_code' => null, 'created_at' => '2023-08-30T10:08:08.146343Z', 'updated_at' => '2023-08-30T10:08:08.146343Z'],
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $categories = $pennylane->transactions()->categorize(42, [new CategoryAllocation(426, '0.6575')]);
 
@@ -125,7 +124,7 @@ final class TransactionsTest extends TestCase
 
     public function testMatchedInvoicesReturnsACursorPageOfMatchedInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [
                 ['id' => 42, 'type' => 'customer', 'url' => 'https://app.pennylane.com/api/external/v2/customer_invoices/42'],
@@ -133,7 +132,7 @@ final class TransactionsTest extends TestCase
             'has_more' => false,
             'next_cursor' => null,
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->transactions()->matchedInvoices(42);
 
@@ -144,9 +143,9 @@ final class TransactionsTest extends TestCase
 
     public function testMatchCustomerInvoiceSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->transactions()->matchCustomerInvoice(1234, 42);
 
@@ -155,9 +154,9 @@ final class TransactionsTest extends TestCase
 
     public function testUnmatchCustomerInvoiceSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->transactions()->unmatchCustomerInvoice(1234, 42);
 
@@ -166,9 +165,9 @@ final class TransactionsTest extends TestCase
 
     public function testMatchSupplierInvoiceSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->transactions()->matchSupplierInvoice(1234, 42);
 
@@ -177,9 +176,9 @@ final class TransactionsTest extends TestCase
 
     public function testUnmatchSupplierInvoiceSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->transactions()->unmatchSupplierInvoice(1234, 42);
 

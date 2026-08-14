@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\PennylaneFirm;
 use Noneo\Sdk\Pennylane\Requests\Changelogs\GetDmsFilesChanges;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -18,11 +17,11 @@ final class GetDmsFilesChangesTest extends TestCase
 {
     public function testSendsAGetRequestToTheDmsFilesChangelogEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new GetDmsFilesChanges(cursor: 'abc', limit: 10, startDate: '2025-06-25T11:54:18Z'));
+        $firm->connector()->send(new GetDmsFilesChanges(cursor: 'abc', limit: 10, startDate: '2025-06-25T11:54:18Z'));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()

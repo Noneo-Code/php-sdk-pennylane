@@ -15,7 +15,6 @@ use Noneo\Sdk\Pennylane\Requests\Suppliers\PostSupplier;
 use Noneo\Sdk\Pennylane\Requests\Suppliers\PutSupplier;
 use Noneo\Sdk\Pennylane\Requests\Suppliers\PutSupplierCategories;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -59,8 +58,8 @@ final class SuppliersTest extends TestCase
 
     public function testListReturnsACursorPageOfSupplierDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedSupplierPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -73,8 +72,8 @@ final class SuppliersTest extends TestCase
 
     public function testPaginateYieldsSupplierDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedSupplierPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -86,8 +85,8 @@ final class SuppliersTest extends TestCase
 
     public function testGetReturnsASupplierDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedSupplierPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedSupplierPayload())]));
 
         $supplier = $pennylane->suppliers()->get(42);
 
@@ -97,9 +96,9 @@ final class SuppliersTest extends TestCase
 
     public function testCreateReturnsASupplierDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $supplier = $pennylane->suppliers()->create(
             name: 'Pennylane',
@@ -117,9 +116,9 @@ final class SuppliersTest extends TestCase
 
     public function testUpdateReturnsASupplierDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $supplier = $pennylane->suppliers()->update(42, name: 'Renamed Pennylane');
 
@@ -131,9 +130,9 @@ final class SuppliersTest extends TestCase
 
     public function testUpdateClearsAFieldWhenAskedTo(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->suppliers()->update(42, establishmentNo: Clear::value());
 
@@ -144,8 +143,8 @@ final class SuppliersTest extends TestCase
 
     public function testCategoriesReturnsACursorPageOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedCategoryPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -158,8 +157,8 @@ final class SuppliersTest extends TestCase
 
     public function testPaginateCategoriesYieldsCategoryDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedCategoryPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -171,9 +170,9 @@ final class SuppliersTest extends TestCase
 
     public function testCategorizeReturnsCategoryDtoListAndSendsTheAllocations(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([$this->documentedCategoryPayload()])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $categories = $pennylane->suppliers()->categorize(42, [new CategoryAllocation(421, '0.25')]);
 

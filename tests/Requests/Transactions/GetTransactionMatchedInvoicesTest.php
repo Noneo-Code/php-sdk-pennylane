@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Transactions\GetTransactionMatchedInvoices;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -18,11 +17,11 @@ final class GetTransactionMatchedInvoicesTest extends TestCase
 {
     public function testSendsAGetRequestToTheMatchedInvoicesEndpoint(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new GetTransactionMatchedInvoices(42, cursor: 'abc', limit: 10));
+        $pennylane->connector()->send(new GetTransactionMatchedInvoices(42, cursor: 'abc', limit: 10));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             return Method::GET === $sent->getMethod()

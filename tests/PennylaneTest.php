@@ -9,8 +9,6 @@ use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\AccessTokenAuthenticator;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -21,18 +19,18 @@ final class PennylaneTest extends TestCase
 {
     public function testResolvesTheCompanyBaseUrl(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
 
-        self::assertSame('https://app.pennylane.com/api/external/v2', $pennylane->resolveBaseUrl());
+        self::assertSame('https://app.pennylane.com/api/external/v2', $pennylane->connector()->resolveBaseUrl());
     }
 
-    public function testSetsTheBearerAuthorizationHeaderFromTheGivenAuthenticator(): void
+    public function testSetsTheBearerAuthorizationHeaderFromTheApiToken(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('company-token'));
+        $pennylane = new Pennylane('company-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new class extends Request {
+        $pennylane->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -46,13 +44,17 @@ final class PennylaneTest extends TestCase
         });
     }
 
-    public function testSetsTheBearerAuthorizationHeaderFromAnOAuthAccessTokenAuthenticator(): void
+    /**
+     * Un jeton d'accès OAuth est un Bearer comme un autre : le constructeur
+     * unique couvre les deux provenances de jeton.
+     */
+    public function testSetsTheBearerAuthorizationHeaderFromAnOAuthAccessToken(): void
     {
-        $pennylane = new Pennylane(new AccessTokenAuthenticator('oauth-access-token'));
+        $pennylane = new Pennylane('oauth-access-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new class extends Request {
+        $pennylane->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -68,14 +70,14 @@ final class PennylaneTest extends TestCase
 
     public function testThrowsAPennylaneExceptionOnErrorResponses(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['error' => 'Not Found', 'status' => 404], 404),
         ]));
 
         $this->expectException(NotFoundException::class);
 
-        $pennylane->send(new class extends Request {
+        $pennylane->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -90,10 +92,11 @@ final class PennylaneTest extends TestCase
         MemoryStore::clear();
 
         $store = new MemoryStore();
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'), $store);
-        $pennylane->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->useRateLimitStore($store);
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
 
-        $pennylane->send(new class extends Request {
+        $pennylane->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -107,11 +110,11 @@ final class PennylaneTest extends TestCase
 
     public function testAppliesTheDefaultTimeoutsToOutgoingRequests(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new class extends Request {
+        $pennylane->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -129,14 +132,14 @@ final class PennylaneTest extends TestCase
     public function testAppliesTheTimeoutsGivenToTheConstructor(): void
     {
         $pennylane = new Pennylane(
-            new TokenAuthenticator('a-token'),
+            'a-token',
             requestTimeout: 120,
             connectTimeout: 3,
         );
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new class extends Request {
+        $pennylane->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -153,9 +156,9 @@ final class PennylaneTest extends TestCase
 
     public function testKeepsTheDefaultTimeoutWhenOnlyOneOfThemIsOverridden(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'), requestTimeout: 5);
+        $pennylane = new Pennylane('a-token', requestTimeout: 5);
 
-        self::assertSame(5.0, $pennylane->getRequestTimeout());
-        self::assertSame(10.0, $pennylane->getConnectTimeout());
+        self::assertSame(5.0, $pennylane->connector()->getRequestTimeout());
+        self::assertSame(10.0, $pennylane->connector()->getConnectTimeout());
     }
 }

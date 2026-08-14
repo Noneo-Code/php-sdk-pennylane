@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Transactions\PostCustomerInvoiceMatchedTransactions;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class PostCustomerInvoiceMatchedTransactionsTest extends TestCase
 {
     public function testSendsAPostRequestWithTheTransactionId(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostCustomerInvoiceMatchedTransactions(customerInvoiceId: 1234, transactionId: 42));
+        $pennylane->connector()->send(new PostCustomerInvoiceMatchedTransactions(customerInvoiceId: 1234, transactionId: 42));
 
         $mockClient->assertSent(function (PostCustomerInvoiceMatchedTransactions $sent): bool {
             return Method::POST === $sent->getMethod()

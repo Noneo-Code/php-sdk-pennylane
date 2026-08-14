@@ -18,7 +18,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\PostCustomerInvoices;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -26,11 +25,11 @@ final class PostCustomerInvoicesTest extends TestCase
 {
     public function testSendsADraftInvoiceWithTheRequiredFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostCustomerInvoices(
+        $pennylane->connector()->send(new PostCustomerInvoices(
             date: '2023-08-30',
             deadline: '2023-09-30',
             customerId: 42,
@@ -53,11 +52,11 @@ final class PostCustomerInvoicesTest extends TestCase
 
     public function testSendsAFinalizedInvoiceWithOptionalFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostCustomerInvoices(
+        $pennylane->connector()->send(new PostCustomerInvoices(
             date: '2023-08-30',
             deadline: '2023-09-30',
             customerId: 42,

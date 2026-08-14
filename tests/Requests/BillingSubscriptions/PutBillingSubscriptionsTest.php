@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\BillingSubscriptions\PutBillingSubscriptions;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -20,11 +19,11 @@ final class PutBillingSubscriptionsTest extends TestCase
 {
     public function testSendsOnlyTheProvidedFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutBillingSubscriptions(42, stop: true));
+        $pennylane->connector()->send(new PutBillingSubscriptions(42, stop: true));
 
         $mockClient->assertSent(function (PutBillingSubscriptions $sent): bool {
             return Method::PUT === $sent->getMethod()
@@ -35,11 +34,11 @@ final class PutBillingSubscriptionsTest extends TestCase
 
     public function testSendsAFalseStopToResumeTheSubscription(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutBillingSubscriptions(42, stop: false));
+        $pennylane->connector()->send(new PutBillingSubscriptions(42, stop: false));
 
         $mockClient->assertSent(function (PutBillingSubscriptions $sent): bool {
             return ['stop' => false] === $sent->body()->all();
@@ -48,11 +47,11 @@ final class PutBillingSubscriptionsTest extends TestCase
 
     public function testSendsTheModeAndInvoiceLinesPatch(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutBillingSubscriptions(
+        $pennylane->connector()->send(new PutBillingSubscriptions(
             42,
             mode: NewMode::awaitingValidation(),
             customerInvoiceData: new UpdateInvoiceData(

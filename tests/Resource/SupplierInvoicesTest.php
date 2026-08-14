@@ -16,7 +16,6 @@ use Noneo\Sdk\Pennylane\Dto\SupplierInvoice\SupplierInvoiceDto;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -78,13 +77,13 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testListReturnsACursorPageOfSupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [$this->documentedSupplierInvoicePayload()],
             'has_more' => false,
             'next_cursor' => null,
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->supplierInvoices()->list();
 
@@ -95,9 +94,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testGetReturnsASupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->supplierInvoices()->get(123);
 
@@ -106,9 +105,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testCategorizeReturnsAListOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([$this->documentedCategoryPayload()])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $categories = $pennylane->supplierInvoices()->categorize(123, [new CategoryAllocation(421, '1')]);
 
@@ -118,7 +117,7 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testPaymentsReturnsACursorPageOfPaymentDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [[
                 'id' => 444,
@@ -132,7 +131,7 @@ final class SupplierInvoicesTest extends TestCase
             'has_more' => false,
             'next_cursor' => null,
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->supplierInvoices()->payments(123);
 
@@ -141,7 +140,7 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testMatchedTransactionsReturnsACursorPageOfMatchedTransactionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [[
                 'id' => 42,
@@ -166,7 +165,7 @@ final class SupplierInvoicesTest extends TestCase
             'has_more' => false,
             'next_cursor' => null,
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->supplierInvoices()->matchedTransactions(123);
 
@@ -175,9 +174,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testImportReturnsASupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->supplierInvoices()->import(
             fileAttachmentId: 123,
@@ -196,9 +195,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testUpdateReturnsASupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->supplierInvoices()->update(123, label: 'New label');
 
@@ -207,9 +206,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testLinkPurchaseRequestSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->supplierInvoices()->linkPurchaseRequest(123, 42);
 
@@ -218,9 +217,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testUpdatePaymentStatusSendsTheRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->supplierInvoices()->updatePaymentStatus(123, PaymentStatusUpdate::Paid);
 
@@ -229,9 +228,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testValidateAccountingReturnsASupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->supplierInvoices()->validateAccounting(123);
 
@@ -240,9 +239,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testDisputeEInvoiceReturnsASupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->supplierInvoices()->disputeEInvoice(123, SupplierEInvoiceDisputeReason::IncorrectVatRate);
 
@@ -251,9 +250,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testRefuseEInvoiceReturnsASupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->supplierInvoices()->refuseEInvoice(123, SupplierEInvoiceRefusalReason::DuplicateInvoice);
 
@@ -262,9 +261,9 @@ final class SupplierInvoicesTest extends TestCase
 
     public function testApproveEInvoiceReturnsASupplierInvoiceDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedSupplierInvoicePayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $invoice = $pennylane->supplierInvoices()->approveEInvoice(123);
 

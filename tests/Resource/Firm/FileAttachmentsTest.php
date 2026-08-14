@@ -6,7 +6,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource\Firm;
 
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -16,7 +15,7 @@ final class FileAttachmentsTest extends TestCase
 {
     public function testUploadSendsAPostRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make([
             'id' => 1,
             'url' => 'https://app.pennylane.com/files/1',
@@ -24,7 +23,7 @@ final class FileAttachmentsTest extends TestCase
             'created_at' => '2023-08-30T10:08:08.146343Z',
             'updated_at' => '2023-08-30T10:08:08.146343Z',
         ])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $attachment = $firm->company(1234)->fileAttachments()->upload('%PDF-1.4 content', 'invoice.pdf');
 

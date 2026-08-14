@@ -11,7 +11,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Customers\PostCompanyCustomer;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -19,11 +18,11 @@ final class PostCompanyCustomerTest extends TestCase
 {
     public function testSendsAPostRequestWithTheRequiredFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostCompanyCustomer(
+        $pennylane->connector()->send(new PostCompanyCustomer(
             name: 'My Company',
             billingAddress: new Address('8 rue de la paix', '75002', 'Paris', 'FR'),
         ));
@@ -40,11 +39,11 @@ final class PostCompanyCustomerTest extends TestCase
 
     public function testSendsTheOptionalFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostCompanyCustomer(
+        $pennylane->connector()->send(new PostCompanyCustomer(
             name: 'My Company',
             billingAddress: new Address('8 rue de la paix', '75002', 'Paris', 'FR'),
             vatNumber: 'FR12345678901',

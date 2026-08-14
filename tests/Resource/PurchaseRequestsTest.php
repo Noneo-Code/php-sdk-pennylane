@@ -11,7 +11,6 @@ use Noneo\Sdk\Pennylane\Dto\PurchaseRequest\PurchaseRequestDto;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -44,13 +43,13 @@ final class PurchaseRequestsTest extends TestCase
 
     public function testListReturnsACursorPageOfPurchaseRequestDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [$this->documentedPurchaseRequestPayload()],
             'has_more' => false,
             'next_cursor' => null,
         ])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $page = $pennylane->purchaseRequests()->list();
 
@@ -62,9 +61,9 @@ final class PurchaseRequestsTest extends TestCase
 
     public function testGetReturnsAPurchaseRequestDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPurchaseRequestPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $purchaseRequest = $pennylane->purchaseRequests()->get(1);
 
@@ -73,9 +72,9 @@ final class PurchaseRequestsTest extends TestCase
 
     public function testImportReturnsAPurchaseRequestDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedPurchaseRequestPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $purchaseRequest = $pennylane->purchaseRequests()->import(
             fileAttachmentId: 42,

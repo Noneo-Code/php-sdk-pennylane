@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\Exception\UnauthorizedException;
 use Noneo\Sdk\Pennylane\Exception\ValidationException;
 use Noneo\Sdk\Pennylane\Pennylane;
-use Saloon\Http\Auth\TokenAuthenticator;
 
 /**
  * La hiérarchie d'exceptions confrontée aux vraies réponses d'erreur.
@@ -41,7 +40,7 @@ final class ErrorHandlingTest extends IntegrationTestCase
 
     public function testAnInvalidTokenRaisesAnUnauthorizedException(): void
     {
-        $connector = new Pennylane(new TokenAuthenticator('invalide-'.$this->runTag()));
+        $connector = new Pennylane('invalide-'.$this->runTag());
 
         try {
             $connector->me()->get();

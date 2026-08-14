@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Dto\Changelog\ChangelogEntryDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -24,9 +23,9 @@ final class ChangelogsTest extends TestCase
 
     public function testLedgerEntryLinesSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedEntryPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->changelogs()->ledgerEntryLines();
 
@@ -40,9 +39,9 @@ final class ChangelogsTest extends TestCase
 
     public function testDmsFilesSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedEntryPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->changelogs()->dmsFiles();
 
@@ -56,9 +55,9 @@ final class ChangelogsTest extends TestCase
 
     public function testSupplierInvoicesSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedEntryPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->changelogs()->supplierInvoices(cursor: 'abc', limit: 50, startDate: '2026-01-01T00:00:00Z');
 
@@ -78,9 +77,9 @@ final class ChangelogsTest extends TestCase
 
     public function testCustomerInvoicesSendsAGetRequestScopedToTheCompany(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedEntryPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->company(1234)->changelogs()->customerInvoices();
 
@@ -95,9 +94,9 @@ final class ChangelogsTest extends TestCase
 
     public function testPaginateSupplierInvoicesTraversesEveryPage(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedEntryPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $entries = iterator_to_array($firm->company(1234)->changelogs()->paginateSupplierInvoices());
 
@@ -107,9 +106,9 @@ final class ChangelogsTest extends TestCase
 
     public function testPaginateCustomerInvoicesTraversesEveryPage(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [$this->documentedEntryPayload()], 'has_more' => false, 'next_cursor' => null])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $entries = iterator_to_array($firm->company(1234)->changelogs()->paginateCustomerInvoices());
 

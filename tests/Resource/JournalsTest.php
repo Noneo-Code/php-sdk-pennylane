@@ -11,7 +11,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\Journals\GetJournals;
 use Noneo\Sdk\Pennylane\Requests\Journals\PostJournals;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Response;
@@ -31,8 +30,8 @@ final class JournalsTest extends TestCase
 
     public function testListReturnsACursorPageOfJournalDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedJournalPayload()],
                 'has_more' => true,
@@ -52,11 +51,11 @@ final class JournalsTest extends TestCase
 
     public function testListForwardsFilterAndSort(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->journals()->list(filters: FilterSet::make()->eq('type', 'payroll'));
 
@@ -67,8 +66,8 @@ final class JournalsTest extends TestCase
 
     public function testGetReturnsAJournalDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedJournalPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedJournalPayload())]));
 
         $journal = $pennylane->journals()->get(42);
 
@@ -78,9 +77,9 @@ final class JournalsTest extends TestCase
 
     public function testCreateReturnsAJournalDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedJournalPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $journal = $pennylane->journals()->create(code: 'RB', label: 'Journal de Reprise Balance');
 
@@ -95,8 +94,8 @@ final class JournalsTest extends TestCase
 
     public function testPaginateYieldsJournalDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedJournalPayload()],
                 'has_more' => true,

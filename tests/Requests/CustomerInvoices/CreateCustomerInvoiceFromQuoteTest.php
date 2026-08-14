@@ -8,7 +8,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\CustomerInvoices\CreateCustomerInvoiceFromQuote;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -16,11 +15,11 @@ final class CreateCustomerInvoiceFromQuoteTest extends TestCase
 {
     public function testSendsAPostRequestWithTheQuoteIdAndDraft(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateCustomerInvoiceFromQuote(42, true));
+        $pennylane->connector()->send(new CreateCustomerInvoiceFromQuote(42, true));
 
         $mockClient->assertSent(function (CreateCustomerInvoiceFromQuote $sent): bool {
             return Method::POST === $sent->getMethod()
@@ -31,11 +30,11 @@ final class CreateCustomerInvoiceFromQuoteTest extends TestCase
 
     public function testSendsTheOptionalFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateCustomerInvoiceFromQuote(42, false, 'FR123', 9));
+        $pennylane->connector()->send(new CreateCustomerInvoiceFromQuote(42, false, 'FR123', 9));
 
         $mockClient->assertSent(function (CreateCustomerInvoiceFromQuote $sent): bool {
             return [

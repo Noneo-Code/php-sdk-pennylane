@@ -13,7 +13,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\PutSupplierInvoice;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -21,11 +20,11 @@ final class PutSupplierInvoiceTest extends TestCase
 {
     public function testSendsAPutRequestWithTheProvidedFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 123])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplierInvoice(
+        $pennylane->connector()->send(new PutSupplierInvoice(
             id: 123,
             supplierId: 456,
             date: '2021-01-30',
@@ -51,11 +50,11 @@ final class PutSupplierInvoiceTest extends TestCase
 
     public function testSendsTheInvoiceLinesPatch(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 123])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PutSupplierInvoice(
+        $pennylane->connector()->send(new PutSupplierInvoice(
             id: 123,
             invoiceLines: new SupplierInvoiceLinesPatch(
                 create: [new NewSupplierInvoiceLine(currencyAmount: '120.00', currencyTax: '20.00', vatRate: VatRate::Fr200, label: 'Demo label')],

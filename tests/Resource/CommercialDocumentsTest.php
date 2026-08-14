@@ -14,7 +14,6 @@ use Noneo\Sdk\Pennylane\Requests\CommercialDocuments\PostCommercialDocumentAppen
 use Noneo\Sdk\Pennylane\Tests\Dto\CommercialDocument\CommercialDocumentDtoTest;
 use Noneo\Sdk\Pennylane\Tests\Dto\CustomerInvoice\InvoiceLineDtoTest;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -22,8 +21,8 @@ final class CommercialDocumentsTest extends TestCase
 {
     public function testListReturnsACursorPageOfCommercialDocumentDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [CommercialDocumentDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -36,8 +35,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testPaginateYieldsCommercialDocumentDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [CommercialDocumentDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -49,8 +48,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testGetReturnsACommercialDocumentDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make(CommercialDocumentDtoTest::documentedPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make(CommercialDocumentDtoTest::documentedPayload())]));
 
         $document = $pennylane->commercialDocuments()->get(42);
 
@@ -85,8 +84,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testInvoiceLineSectionsReturnsACursorPageOfInvoiceLineSectionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [self::invoiceLineSectionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -97,8 +96,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testPaginateInvoiceLineSectionsYieldsInvoiceLineSectionDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [self::invoiceLineSectionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -110,8 +109,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testInvoiceLinesReturnsACursorPageOfInvoiceLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [InvoiceLineDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -122,8 +121,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testPaginateInvoiceLinesYieldsInvoiceLineDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [InvoiceLineDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -135,8 +134,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testAppendicesReturnsACursorPageOfAppendixDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [self::appendixPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -147,8 +146,8 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testPaginateAppendicesYieldsAppendixDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [self::appendixPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -160,9 +159,9 @@ final class CommercialDocumentsTest extends TestCase
 
     public function testUploadAppendixReturnsAnAppendixDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(self::appendixPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $appendix = $pennylane->commercialDocuments()->uploadAppendix(42, '%PDF-1.4 fake content', 'appendix.pdf');
 

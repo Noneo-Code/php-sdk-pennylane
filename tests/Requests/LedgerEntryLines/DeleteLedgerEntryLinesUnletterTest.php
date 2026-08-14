@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntryLines\DeleteLedgerEntryLinesUnletter;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class DeleteLedgerEntryLinesUnletterTest extends TestCase
 {
     public function testSendsADeleteRequestWithTheLetteringStrategyAndLines(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make('', 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new DeleteLedgerEntryLinesUnletter(UnbalancedLetteringStrategy::Partial, [3455]));
+        $pennylane->connector()->send(new DeleteLedgerEntryLinesUnletter(UnbalancedLetteringStrategy::Partial, [3455]));
 
         $mockClient->assertSent(function (DeleteLedgerEntryLinesUnletter $sent): bool {
             return Method::DELETE === $sent->getMethod()

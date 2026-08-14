@@ -169,7 +169,7 @@ final class ReadFlowTest extends IntegrationTestCase
      */
     public function testTheApiAnnouncesItsRateLimitHeaders(): void
     {
-        $response = self::pennylane()->send(new GetMe());
+        $response = self::pennylane()->connector()->send(new GetMe());
 
         $limit = $response->header('RateLimit-Limit') ?? $response->header('X-RateLimit-Limit');
 

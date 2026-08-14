@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Dto\LedgerEntryLine\UnbalancedLetteringStrategy;
 use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -42,8 +41,8 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testListReturnsACursorPageOfLedgerEntryLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedLedgerEntryLinePayload()],
                 'has_more' => false,
@@ -60,8 +59,8 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testGetReturnsALedgerEntryLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make($this->documentedLedgerEntryLinePayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make($this->documentedLedgerEntryLinePayload())]));
 
         $line = $pennylane->ledgerEntryLines()->get(42);
 
@@ -71,8 +70,8 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testCategoriesReturnsACursorPageOfCategoryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [[
                     'id' => 421,
@@ -96,7 +95,7 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testCategorizeReturnsACategorizedLedgerEntryLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make([
                 'ledger_entry_line' => [
@@ -114,7 +113,7 @@ final class LedgerEntryLinesTest extends TestCase
                 ],
             ]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $result = $pennylane->ledgerEntryLines()->categorize(2, [new CategoryAllocation(421, '0.25')]);
 
@@ -125,8 +124,8 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testLetterReturnsTheLetteredLedgerEntryLineIds(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make([['id' => 42], ['id' => 1271004]])]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make([['id' => 42], ['id' => 1271004]])]));
 
         $ids = $pennylane->ledgerEntryLines()->letter(UnbalancedLetteringStrategy::None, [42, 1271004]);
 
@@ -135,9 +134,9 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testUnletterSendsTheDeleteRequest(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make('', 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->ledgerEntryLines()->unletter(UnbalancedLetteringStrategy::None, [42]);
 
@@ -146,8 +145,8 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testLetteredReturnsACursorPageOfLedgerEntryLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedLedgerEntryLinePayload()],
                 'has_more' => false,
@@ -162,8 +161,8 @@ final class LedgerEntryLinesTest extends TestCase
 
     public function testPaginateYieldsLedgerEntryLineDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedLedgerEntryLinePayload()],
                 'has_more' => false,

@@ -11,7 +11,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SupplierInvoices\ImportSupplierInvoice;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -19,11 +18,11 @@ final class ImportSupplierInvoiceTest extends TestCase
 {
     public function testSendsAPostRequestWithTheRequiredFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 123], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new ImportSupplierInvoice(
+        $pennylane->connector()->send(new ImportSupplierInvoice(
             fileAttachmentId: 123,
             supplierId: 456,
             date: '2021-01-30',
@@ -58,11 +57,11 @@ final class ImportSupplierInvoiceTest extends TestCase
 
     public function testSendsTheOptionalFields(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 123], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new ImportSupplierInvoice(
+        $pennylane->connector()->send(new ImportSupplierInvoice(
             fileAttachmentId: 123,
             supplierId: 456,
             date: '2021-01-30',
@@ -89,12 +88,12 @@ final class ImportSupplierInvoiceTest extends TestCase
 
     public function testADuplicateFileAttachmentThrowsAConflictException(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['error' => 'Invoice already exists with id: 42', 'status' => 409], 409)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         try {
-            $pennylane->send(new ImportSupplierInvoice(
+            $pennylane->connector()->send(new ImportSupplierInvoice(
                 fileAttachmentId: 123,
                 supplierId: 456,
                 date: '2021-01-30',

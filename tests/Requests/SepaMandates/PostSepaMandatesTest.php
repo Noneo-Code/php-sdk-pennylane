@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\SepaMandates\PostSepaMandates;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -17,11 +16,11 @@ final class PostSepaMandatesTest extends TestCase
 {
     public function testSendsAPostRequestWithTheMandateBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostSepaMandates(
+        $pennylane->connector()->send(new PostSepaMandates(
             bic: 'BNPAFRPP',
             iban: 'FR3612739000506556687647Z31',
             signedAt: '2025-04-24',
@@ -48,11 +47,11 @@ final class PostSepaMandatesTest extends TestCase
 
     public function testOmitsOptionalFieldsWhenNotProvided(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new PostSepaMandates(
+        $pennylane->connector()->send(new PostSepaMandates(
             bic: 'BNPAFRPP',
             iban: 'FR3612739000506556687647Z31',
             signedAt: '2025-04-24',

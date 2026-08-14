@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Exception\NotFoundException;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -20,18 +19,18 @@ final class PennylaneFirmTest extends TestCase
 {
     public function testResolvesTheFirmBaseUrl(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('a-token'));
+        $firm = new PennylaneFirm('a-token');
 
-        self::assertSame('https://app.pennylane.com/api/external/firm/v1', $firm->resolveBaseUrl());
+        self::assertSame('https://app.pennylane.com/api/external/firm/v1', $firm->connector()->resolveBaseUrl());
     }
 
-    public function testSetsTheBearerAuthorizationHeaderFromTheGivenAuthenticator(): void
+    public function testSetsTheBearerAuthorizationHeaderFromTheApiToken(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new class extends Request {
+        $firm->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -47,14 +46,14 @@ final class PennylaneFirmTest extends TestCase
 
     public function testThrowsAPennylaneExceptionOnErrorResponses(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
-        $firm->withMockClient(new MockClient([
+        $firm = new PennylaneFirm('firm-token');
+        $firm->connector()->withMockClient(new MockClient([
             MockResponse::make(['error' => 'Not Found', 'status' => 404], 404),
         ]));
 
         $this->expectException(NotFoundException::class);
 
-        $firm->send(new class extends Request {
+        $firm->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -69,10 +68,11 @@ final class PennylaneFirmTest extends TestCase
         MemoryStore::clear();
 
         $store = new MemoryStore();
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'), $store);
-        $firm->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
+        $firm = new PennylaneFirm('firm-token');
+        $firm->connector()->useRateLimitStore($store);
+        $firm->connector()->withMockClient(new MockClient([MockResponse::make(['id' => 1])]));
 
-        $firm->send(new class extends Request {
+        $firm->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -86,11 +86,11 @@ final class PennylaneFirmTest extends TestCase
 
     public function testAppliesTheDefaultTimeoutsToOutgoingRequests(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new class extends Request {
+        $firm->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string
@@ -108,14 +108,14 @@ final class PennylaneFirmTest extends TestCase
     public function testAppliesTheTimeoutsGivenToTheConstructor(): void
     {
         $firm = new PennylaneFirm(
-            new TokenAuthenticator('firm-token'),
+            'firm-token',
             requestTimeout: 90,
             connectTimeout: 4,
         );
         $mockClient = new MockClient([MockResponse::make(['id' => 1])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
-        $firm->send(new class extends Request {
+        $firm->connector()->send(new class extends Request {
             protected Method $method = Method::GET;
 
             public function resolveEndpoint(): string

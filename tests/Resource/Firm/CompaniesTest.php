@@ -7,7 +7,6 @@ namespace Noneo\Sdk\Pennylane\Tests\Resource\Firm;
 use Noneo\Sdk\Pennylane\Dto\Company\CompanyDto;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -34,7 +33,7 @@ final class CompaniesTest extends TestCase
 
     public function testListSendsAGetRequestAndMapsThePageEnvelope(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make([
             'items' => [$this->documentedCompanyPayload()],
             'total_pages' => 3,
@@ -42,7 +41,7 @@ final class CompaniesTest extends TestCase
             'total_items' => 5,
             'per_page' => 2,
         ])]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $page = $firm->companies()->list(page: 1, perPage: 2);
 
@@ -61,7 +60,7 @@ final class CompaniesTest extends TestCase
 
     public function testPaginateTraversesEveryPage(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedCompanyPayload()],
@@ -78,7 +77,7 @@ final class CompaniesTest extends TestCase
                 'per_page' => 1,
             ]),
         ]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $companies = iterator_to_array($firm->companies()->paginate());
 
@@ -89,9 +88,9 @@ final class CompaniesTest extends TestCase
 
     public function testGetSendsAGetRequestToTheCompanyEndpoint(): void
     {
-        $firm = new PennylaneFirm(new TokenAuthenticator('firm-token'));
+        $firm = new PennylaneFirm('firm-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedCompanyPayload())]);
-        $firm->withMockClient($mockClient);
+        $firm->connector()->withMockClient($mockClient);
 
         $company = $firm->companies()->get(22938);
 

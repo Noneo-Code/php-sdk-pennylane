@@ -9,7 +9,6 @@ use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\EInvoices\CreateEInvoiceImport;
 use PHPUnit\Framework\TestCase;
 use Saloon\Enums\Method;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
@@ -19,11 +18,11 @@ final class CreateEInvoiceImportTest extends TestCase
 {
     public function testSendsAMultipartPostRequestWithTheFileAndTheType(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateEInvoiceImport('%PDF-1.4 fake content', EInvoiceImportType::Customer, 'facture.pdf'));
+        $pennylane->connector()->send(new CreateEInvoiceImport('%PDF-1.4 fake content', EInvoiceImportType::Customer, 'facture.pdf'));
 
         $mockClient->assertSent(function (CreateEInvoiceImport $sent): bool {
             [$file, $type] = $sent->body()->all();
@@ -40,11 +39,11 @@ final class CreateEInvoiceImportTest extends TestCase
 
     public function testSendsTheSupplierType(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateEInvoiceImport('content', EInvoiceImportType::Supplier, 'facture.xml'));
+        $pennylane->connector()->send(new CreateEInvoiceImport('content', EInvoiceImportType::Supplier, 'facture.xml'));
 
         $mockClient->assertSent(function (CreateEInvoiceImport $sent): bool {
             $type = $sent->body()->all()[1];
@@ -60,11 +59,11 @@ final class CreateEInvoiceImportTest extends TestCase
         fwrite($resource, '%PDF-1.4 fake content');
         rewind($resource);
 
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateEInvoiceImport($resource, EInvoiceImportType::Supplier, 'facture.pdf'));
+        $pennylane->connector()->send(new CreateEInvoiceImport($resource, EInvoiceImportType::Supplier, 'facture.pdf'));
 
         $mockClient->assertSent(function (CreateEInvoiceImport $sent) use ($resource): bool {
             $file = $sent->body()->all()[0];
@@ -75,11 +74,11 @@ final class CreateEInvoiceImportTest extends TestCase
 
     public function testSendsTheMultipartContentType(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['id' => 42, 'url' => 'https://app.pennylane.com/'], 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
-        $pennylane->send(new CreateEInvoiceImport('content', EInvoiceImportType::Customer, 'facture.pdf'));
+        $pennylane->connector()->send(new CreateEInvoiceImport('content', EInvoiceImportType::Customer, 'facture.pdf'));
 
         $mockClient->assertSent(function (Request $sent, Response $response): bool {
             $contentType = $response->getPendingRequest()->headers()->get('Content-Type');

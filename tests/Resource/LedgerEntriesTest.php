@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Http\CursorPage;
 use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\Requests\LedgerEntries\GetLedgerEntries;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Response;
@@ -42,8 +41,8 @@ final class LedgerEntriesTest extends TestCase
 
     public function testListReturnsACursorPageOfLedgerEntryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedListItemPayload()],
                 'has_more' => true,
@@ -62,9 +61,9 @@ final class LedgerEntriesTest extends TestCase
 
     public function testListForwardsFilterAndSort(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(['items' => [], 'has_more' => false, 'next_cursor' => null])]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->ledgerEntries()->list(filters: FilterSet::make()->eq('journal_id', 123));
 
@@ -75,8 +74,8 @@ final class LedgerEntriesTest extends TestCase
 
     public function testGetReturnsALedgerEntryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'id' => 1,
                 'label' => 'Payment for Services',
@@ -103,7 +102,7 @@ final class LedgerEntriesTest extends TestCase
 
     public function testCreateReturnsALedgerEntryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make([
                 'id' => 1,
@@ -131,7 +130,7 @@ final class LedgerEntriesTest extends TestCase
                 ],
             ], 201),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $ledgerEntry = $pennylane->ledgerEntries()->create(
             date: '2023-08-30',
@@ -147,7 +146,7 @@ final class LedgerEntriesTest extends TestCase
 
     public function testUpdateReturnsALedgerEntryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([
             MockResponse::make([
                 'id' => 1,
@@ -166,7 +165,7 @@ final class LedgerEntriesTest extends TestCase
                 'ledger_entry_lines' => [],
             ]),
         ]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $ledgerEntry = $pennylane->ledgerEntries()->update(1, label: 'Nouveau libellé');
 
@@ -175,8 +174,8 @@ final class LedgerEntriesTest extends TestCase
 
     public function testLinesReturnsACursorPageOfLedgerEntryLineSummaryDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [
                     [
@@ -201,8 +200,8 @@ final class LedgerEntriesTest extends TestCase
 
     public function testPaginateYieldsLedgerEntryDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make([
                 'items' => [$this->documentedListItemPayload()],
                 'has_more' => true,

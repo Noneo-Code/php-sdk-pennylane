@@ -19,7 +19,6 @@ use Noneo\Sdk\Pennylane\Requests\Quotes\UpdateStatusQuote;
 use Noneo\Sdk\Pennylane\Tests\Dto\Quote\QuoteDtoTest;
 use Noneo\Sdk\Pennylane\Tests\Dto\Quote\QuoteInvoiceLineDtoTest;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -27,8 +26,8 @@ final class QuotesTest extends TestCase
 {
     public function testListReturnsACursorPageOfQuoteDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [QuoteDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -41,8 +40,8 @@ final class QuotesTest extends TestCase
 
     public function testPaginateYieldsQuoteDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [QuoteDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -54,8 +53,8 @@ final class QuotesTest extends TestCase
 
     public function testGetReturnsAQuoteDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make(QuoteDtoTest::documentedPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make(QuoteDtoTest::documentedPayload())]));
 
         $quote = $pennylane->quotes()->get(42);
 
@@ -65,9 +64,9 @@ final class QuotesTest extends TestCase
 
     public function testCreateReturnsAQuoteDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(QuoteDtoTest::documentedPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $quote = $pennylane->quotes()->create(
             date: '2020-01-01',
@@ -82,9 +81,9 @@ final class QuotesTest extends TestCase
 
     public function testUpdateReturnsAQuoteDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(QuoteDtoTest::documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $quote = $pennylane->quotes()->update(42, externalReference: 'FR123');
 
@@ -94,9 +93,9 @@ final class QuotesTest extends TestCase
 
     public function testUpdateStatusReturnsAQuoteDtoAndSendsTheStatus(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(QuoteDtoTest::documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $quote = $pennylane->quotes()->updateStatus(42, QuoteStatus::Accepted);
 
@@ -108,9 +107,9 @@ final class QuotesTest extends TestCase
 
     public function testSendByEmailSendsTheRecipients(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make([], 204)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $pennylane->quotes()->sendByEmail(42, ['jane@example.com']);
 
@@ -133,8 +132,8 @@ final class QuotesTest extends TestCase
 
     public function testAppendicesReturnsACursorPageOfAppendixDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedAppendixPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -145,8 +144,8 @@ final class QuotesTest extends TestCase
 
     public function testPaginateAppendicesYieldsAppendixDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedAppendixPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -158,9 +157,9 @@ final class QuotesTest extends TestCase
 
     public function testUploadAppendixReturnsAnAppendixDtoAndSendsTheFile(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make($this->documentedAppendixPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $appendix = $pennylane->quotes()->uploadAppendix(42, 'file-content', 'quote.pdf');
 
@@ -182,8 +181,8 @@ final class QuotesTest extends TestCase
 
     public function testInvoiceLineSectionsReturnsACursorPageOfInvoiceLineSectionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoiceLineSectionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -194,8 +193,8 @@ final class QuotesTest extends TestCase
 
     public function testPaginateInvoiceLineSectionsYieldsInvoiceLineSectionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [$this->documentedInvoiceLineSectionPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -207,8 +206,8 @@ final class QuotesTest extends TestCase
 
     public function testInvoiceLinesReturnsACursorPageOfQuoteInvoiceLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [QuoteInvoiceLineDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -219,8 +218,8 @@ final class QuotesTest extends TestCase
 
     public function testPaginateInvoiceLinesYieldsQuoteInvoiceLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [QuoteInvoiceLineDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 

@@ -21,7 +21,6 @@ use Noneo\Sdk\Pennylane\Requests\BillingSubscriptions\PutBillingSubscriptions;
 use Noneo\Sdk\Pennylane\Tests\Dto\BillingSubscription\BillingSubscriptionDtoTest;
 use Noneo\Sdk\Pennylane\Tests\Dto\CustomerInvoice\InvoiceLineDtoTest;
 use PHPUnit\Framework\TestCase;
-use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
 
@@ -29,8 +28,8 @@ final class BillingSubscriptionsTest extends TestCase
 {
     public function testListReturnsACursorPageOfBillingSubscriptionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [BillingSubscriptionDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -43,8 +42,8 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testPaginateYieldsBillingSubscriptionDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [BillingSubscriptionDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -56,8 +55,8 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testGetReturnsABillingSubscriptionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([MockResponse::make(BillingSubscriptionDtoTest::documentedPayload())]));
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([MockResponse::make(BillingSubscriptionDtoTest::documentedPayload())]));
 
         $subscription = $pennylane->billingSubscriptions()->get(42);
 
@@ -67,9 +66,9 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testCreateReturnsABillingSubscriptionDtoAndSendsTheBody(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(BillingSubscriptionDtoTest::documentedPayload(), 201)]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $subscription = $pennylane->billingSubscriptions()->create(
             start: '2023-01-01',
@@ -89,9 +88,9 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testUpdateReturnsABillingSubscriptionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
+        $pennylane = new Pennylane('a-token');
         $mockClient = new MockClient([MockResponse::make(BillingSubscriptionDtoTest::documentedPayload())]);
-        $pennylane->withMockClient($mockClient);
+        $pennylane->connector()->withMockClient($mockClient);
 
         $subscription = $pennylane->billingSubscriptions()->update(42, stop: true);
 
@@ -101,8 +100,8 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testInvoiceLineSectionsReturnsACursorPageOfInvoiceLineSectionDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [[
                 'id' => 444,
                 'title' => 'Section #1',
@@ -120,8 +119,8 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testPaginateInvoiceLineSectionsYieldsInvoiceLineSectionDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [[
                 'id' => 444,
                 'title' => 'Section #1',
@@ -140,8 +139,8 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testInvoiceLinesReturnsACursorPageOfInvoiceLineDto(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [InvoiceLineDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
@@ -152,8 +151,8 @@ final class BillingSubscriptionsTest extends TestCase
 
     public function testPaginateInvoiceLinesYieldsInvoiceLineDtoAcrossPages(): void
     {
-        $pennylane = new Pennylane(new TokenAuthenticator('a-token'));
-        $pennylane->withMockClient(new MockClient([
+        $pennylane = new Pennylane('a-token');
+        $pennylane->connector()->withMockClient(new MockClient([
             MockResponse::make(['items' => [InvoiceLineDtoTest::documentedPayload()], 'has_more' => false, 'next_cursor' => null]),
         ]));
 
