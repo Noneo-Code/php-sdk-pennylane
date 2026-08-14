@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Noneo\Sdk\Pennylane;
 
-use Noneo\Sdk\Pennylane\Concerns\AppliesPennylaneTimeouts;
-use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
-use Noneo\Sdk\Pennylane\Concerns\RejectsFloatValues;
-use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
-use Noneo\Sdk\Pennylane\Concerns\SecuresPennylaneTransport;
+use Noneo\Sdk\Pennylane\Http\Connector\CompanyScopeConnector;
+use Noneo\Sdk\Pennylane\Http\Connector\FirmConnector;
 use Noneo\Sdk\Pennylane\Resource\CategoryGroups;
 use Noneo\Sdk\Pennylane\Resource\FileAttachments;
 use Noneo\Sdk\Pennylane\Resource\Firm\BankAccounts;
@@ -27,104 +24,84 @@ use Noneo\Sdk\Pennylane\Resource\Firm\SupplierInvoices;
 use Noneo\Sdk\Pennylane\Resource\Firm\Suppliers;
 use Noneo\Sdk\Pennylane\Resource\Firm\Transactions;
 use Noneo\Sdk\Pennylane\Resource\Firm\TrialBalance;
-use Saloon\Contracts\Authenticator;
-use Saloon\Http\Connector;
-use Saloon\Http\Faking\MockClient;
 
 /**
- * Décorateur d'entreprise pour la Firm API : préfixe `/companies/{id}` à
- * toutes les requêtes. C'est un `Connector` à part entière (et non un simple
- * relais) car `BaseResource` et `CursorPaginator` exigent tous deux un
- * `Saloon\Http\Connector` concret — hériter permet de réutiliser telles
- * quelles les `Resource\` et `Requests\` déjà écrites pour la Company API.
+ * Vue d'entreprise sur la Firm API : toutes les requêtes sont préfixées
+ * `/companies/{id}`. Façade sans héritage Saloon, obtenue via
+ * {@see PennylaneFirm::company()}.
  */
-final class CompanyScope extends Connector
+final class CompanyScope
 {
-    use AppliesPennylaneTimeouts;
-    use HandlesPennylaneErrors;
-    use RejectsFloatValues;
-    use RespectsPennylaneRateLimits;
-    use SecuresPennylaneTransport;
-
     /**
      * @see Pennylane::VERSION — même paquet, même version.
      */
     public const string VERSION = Pennylane::VERSION;
 
-    public function __construct(
-        private readonly PennylaneFirm $firm,
-        private readonly int $companyId,
-    ) {
-        $authenticator = $this->firm->getAuthenticator();
+    private readonly CompanyScopeConnector $connector;
 
-        if ($authenticator instanceof Authenticator) {
-            $this->authenticate($authenticator);
-        }
-
-        $this->useRateLimitStore($this->firm->getRateLimitStore());
-        $this->useMaxRetries($this->firm->getMaxRetries());
-        $this->useTimeouts($this->firm->getRequestTimeout(), $this->firm->getConnectTimeout());
-
-        $mockClient = $this->firm->getMockClient();
-
-        if ($mockClient instanceof MockClient) {
-            $this->withMockClient($mockClient);
-        }
+    public function __construct(FirmConnector $firm, int $companyId)
+    {
+        $this->connector = new CompanyScopeConnector($firm, $companyId);
     }
 
-    public function resolveBaseUrl(): string
+    /**
+     * Accès au transport Saloon sous-jacent, hors contrat de compatibilité.
+     *
+     * @internal réservé à `Testing\` et aux tests du SDK
+     */
+    public function connector(): CompanyScopeConnector
     {
-        return rtrim($this->firm->resolveBaseUrl(), '/').'/companies/'.$this->companyId;
+        return $this->connector;
     }
 
     public function journals(): Journals
     {
-        return new Journals($this);
+        return new Journals($this->connector);
     }
 
     public function ledgerAccounts(): LedgerAccounts
     {
-        return new LedgerAccounts($this);
+        return new LedgerAccounts($this->connector);
     }
 
     public function ledgerEntries(): LedgerEntries
     {
-        return new LedgerEntries($this);
+        return new LedgerEntries($this->connector);
     }
 
     public function ledgerEntryLines(): LedgerEntryLines
     {
-        return new LedgerEntryLines($this);
+        return new LedgerEntryLines($this->connector);
     }
 
     public function categories(): Categories
     {
-        return new Categories($this);
+        return new Categories($this->connector);
     }
 
     /**
-     * Réutilise directement la ressource `Categories` de la Company API :
+     * Réutilise directement la ressource `CategoryGroups` de la Company API :
      * la Firm API expose exactement les mêmes méthodes pour ce groupe
      * (`list`, `get`, `categories`), sans capacité supplémentaire à masquer.
      */
     public function categoryGroups(): CategoryGroups
     {
-        return new CategoryGroups($this);
+        return new CategoryGroups($this->connector);
     }
 
     public function suppliers(): Suppliers
     {
-        return new Suppliers($this);
+        return new Suppliers($this->connector);
     }
 
     public function bankAccounts(): BankAccounts
     {
-        return new BankAccounts($this);
+        return new BankAccounts($this->connector);
     }
 
     public function transactions(): Transactions
     {
-        return new Transactions($this);
+        return new Transactions($this->connector);
     }
 
     /**
@@ -133,46 +110,46 @@ final class CompanyScope extends Connector
      */
     public function fileAttachments(): FileAttachments
     {
-        return new FileAttachments($this);
+        return new FileAttachments($this->connector);
     }
 
     public function customers(): Customers
     {
-        return new Customers($this);
+        return new Customers($this->connector);
     }
 
     public function supplierInvoices(): SupplierInvoices
     {
-        return new SupplierInvoices($this);
+        return new SupplierInvoices($this->connector);
     }
 
     public function customerInvoices(): CustomerInvoices
     {
-        return new CustomerInvoices($this);
+        return new CustomerInvoices($this->connector);
     }
 
     public function exports(): Exports
     {
-        return new Exports($this);
+        return new Exports($this->connector);
     }
 
     public function fiscalYears(): FiscalYears
     {
-        return new FiscalYears($this);
+        return new FiscalYears($this->connector);
     }
 
     public function trialBalance(): TrialBalance
     {
-        return new TrialBalance($this);
+        return new TrialBalance($this->connector);
     }
 
     public function changelogs(): Changelogs
     {
-        return new Changelogs($this);
+        return new Changelogs($this->connector);
     }
 
     public function dms(): Dms
     {
-        return new Dms($this);
+        return new Dms($this->connector);
     }
 }
