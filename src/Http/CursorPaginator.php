@@ -11,6 +11,12 @@ use Saloon\Http\Request;
 use Saloon\Http\Response;
 use Saloon\PaginationPlugin\CursorPaginator as BaseCursorPaginator;
 
+/**
+ * Rouage de pagination : jamais rendu au consommateur, les `paginate()` des
+ * ressources rendent des `\Generator`.
+ *
+ * @internal
+ */
 final class CursorPaginator extends BaseCursorPaginator
 {
     public function __construct(

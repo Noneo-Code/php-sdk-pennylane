@@ -14,6 +14,11 @@ use Saloon\PaginationPlugin\PagedPaginator as BasePagedPaginator;
  * Une poignée d'endpoints Firm (`companies`, `fiscal_years`, `trial_balance`)
  * paginent par page plutôt que par curseur : `{items, total_pages,
  * current_page, total_items, per_page}`.
+ *
+ * Rouage de pagination : jamais rendu au consommateur, les `paginate()` des
+ * ressources rendent des `\Generator`.
+ *
+ * @internal
  */
 final class PagePaginator extends BasePagedPaginator
 {

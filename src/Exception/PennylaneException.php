@@ -72,6 +72,9 @@ abstract class PennylaneException extends \RuntimeException
      * `$response` est marquée sensible : elle donne accès au `PendingRequest`
      * et à sa requête PSR signée. L'attribut retire cette frame des arguments
      * de trace quand l'hôte les conserve.
+     *
+     * @internal factory du SDK — le consommateur reçoit l'exception, il ne la
+     *     construit pas
      */
     public static function fromResponse(#[\SensitiveParameter] Response $response): ?self
     {
