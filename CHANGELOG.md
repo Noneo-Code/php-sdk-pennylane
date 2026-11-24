@@ -9,6 +9,8 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ## [Non publié]
 
+## [1.0.0] - 2026-11-24
+
 ### Sécurité
 
 - `PennylaneException` ne retient plus aucun objet Saloon. La `Response`
@@ -183,5 +185,6 @@ Pennylane, sans dépendance à un framework.
 - `bin/spec-watch.php` : veille hebdomadaire des specs publiées, avec ouverture
   automatique d'une issue en cas de dérive.
 
-[Non publié]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/compare/v0.1.0...main
+[Non publié]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/compare/v1.0.0...main
+[1.0.0]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/compare/v0.1.0...v1.0.0
 [0.1.0]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/tags/v0.1.0
