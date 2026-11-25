@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Noneo\Sdk\Pennylane\Tests\Http\Connector;
 
 use Noneo\Sdk\Pennylane\Http\Connector\PennylaneConnector;
+use Noneo\Sdk\Pennylane\Http\Connector\Psr16RateLimitStore;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 use Saloon\Enums\Method;
@@ -13,7 +14,6 @@ use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
 use Saloon\Http\Response;
 use Saloon\RateLimitPlugin\Stores\MemoryStore;
-use Saloon\RateLimitPlugin\Stores\PsrStore;
 
 final class PennylaneConnectorTest extends TestCase
 {
@@ -44,13 +44,13 @@ final class PennylaneConnectorTest extends TestCase
         });
     }
 
-    public function testWrapsAPsr16CacheInAPsrStore(): void
+    public function testWrapsAPsr16CacheInAStoreWithPsr16Keys(): void
     {
         $cache = $this->createStub(CacheInterface::class);
 
         $connector = new PennylaneConnector('t', rateLimitCache: $cache);
 
-        self::assertInstanceOf(PsrStore::class, $connector->getRateLimitStore());
+        self::assertInstanceOf(Psr16RateLimitStore::class, $connector->getRateLimitStore());
     }
 
     public function testDefaultsToAMemoryStoreWithoutCache(): void

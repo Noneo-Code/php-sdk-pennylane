@@ -116,7 +116,7 @@ trait RespectsPennylaneRateLimits
      * `CompanyScope` tirent sur le même quota — les compter séparément
      * autoriserait un cabinet suivant trois entreprises à quatre fois le débit
      * réellement accordé. Symétriquement, sans le jeton dans la clé, deux
-     * entreprises partageant un store — le `PsrStore` recommandé dès qu'un
+     * entreprises partageant un store — le `Psr16RateLimitStore` recommandé dès qu'un
      * process est répliqué — se disputeraient un unique compteur.
      *
      * Le jeton est haché : il n'a rien à faire en clair dans une clé de cache.

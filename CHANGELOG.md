@@ -9,6 +9,19 @@ Chaque version publiée porte un tag Git `vX.Y.Z` correspondant à sa section.
 
 ## [Non publié]
 
+## [1.0.1] - 2026-11-25
+
+### Corrigé
+
+- Un cache PSR-16 passé au constructeur (`rateLimitCache`) faisait échouer
+  toute requête avec un cache strict, celui de Symfony par exemple : le
+  `PsrStore` de Saloon lui transmettait la clé de limitation telle quelle
+  (`pennylane:<identité>:25_every_5`), avec des `:`, caractère réservé par
+  PSR-16. Les clés passent désormais par `Psr16RateLimitStore`, qui ne garde
+  que `A-Z a-z 0-9 _ .` sur 64 caractères au plus.
+- Le faux cache des tests refuse désormais les clés invalides, comme un vrai
+  cache.
+
 ## [1.0.0] - 2026-11-24
 
 ### Sécurité
@@ -185,6 +198,7 @@ Pennylane, sans dépendance à un framework.
 - `bin/spec-watch.php` : veille hebdomadaire des specs publiées, avec ouverture
   automatique d'une issue en cas de dérive.
 
-[Non publié]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/compare/v1.0.0...main
+[Non publié]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/compare/v1.0.1...main
+[1.0.1]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/compare/v1.0.0...v1.0.1
 [1.0.0]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/compare/v0.1.0...v1.0.0
 [0.1.0]: https://gitlab.noneo.fr/noneo/php-packages/php-sdk-pennylane/-/tags/v0.1.0

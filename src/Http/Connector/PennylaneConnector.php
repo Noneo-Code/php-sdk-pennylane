@@ -12,7 +12,6 @@ use Noneo\Sdk\Pennylane\Concerns\SecuresPennylaneTransport;
 use Psr\SimpleCache\CacheInterface;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Connector;
-use Saloon\RateLimitPlugin\Stores\PsrStore;
 
 /**
  * Transport Saloon de la Company API. Détail d'implémentation : rien ici
@@ -39,7 +38,7 @@ final class PennylaneConnector extends Connector
         $this->authenticate(new TokenAuthenticator($apiToken));
 
         if ($rateLimitCache instanceof CacheInterface) {
-            $this->useRateLimitStore(new PsrStore($rateLimitCache));
+            $this->useRateLimitStore(new Psr16RateLimitStore($rateLimitCache));
         }
 
         $this->useMaxRetries($maxRetries);

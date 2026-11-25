@@ -8,11 +8,15 @@ use Noneo\Sdk\Pennylane\Concerns\HandlesPennylaneErrors;
 use Noneo\Sdk\Pennylane\Concerns\RespectsPennylaneRateLimits;
 use Noneo\Sdk\Pennylane\Exception\RateLimitException;
 use Noneo\Sdk\Pennylane\Exception\ServerException;
+use Noneo\Sdk\Pennylane\Http\Connector\FirmConnector;
+use Noneo\Sdk\Pennylane\Http\Connector\PennylaneConnector;
+use Noneo\Sdk\Pennylane\Http\Connector\Psr16RateLimitStore;
 use Noneo\Sdk\Pennylane\Pennylane;
 use Noneo\Sdk\Pennylane\PennylaneFirm;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException;
 use Saloon\Enums\Method;
 use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Connector;
@@ -21,7 +25,6 @@ use Saloon\Http\Faking\MockResponse;
 use Saloon\Http\Request;
 use Saloon\RateLimitPlugin\Limit;
 use Saloon\RateLimitPlugin\Stores\MemoryStore;
-use Saloon\RateLimitPlugin\Stores\PsrStore;
 
 final class RespectsPennylaneRateLimitsTest extends TestCase
 {
@@ -154,12 +157,39 @@ final class RespectsPennylaneRateLimitsTest extends TestCase
         $cache = new RecordingCache();
 
         $connector = new RateLimitedTestConnector();
-        $connector->useRateLimitStore(new PsrStore($cache));
+        $connector->useRateLimitStore(new Psr16RateLimitStore($cache));
         $connector->withMockClient(new MockClient([MockResponse::make(['id' => 1], 200)]));
 
         $connector->send($this->makeRequest());
 
         self::assertNotEmpty($cache->getCalls);
+        self::assertNotEmpty($cache->setCalls);
+    }
+
+    public function testTheCacheGivenToTheConstructorOnlyReceivesPsr16Keys(): void
+    {
+        $cache = new RecordingCache();
+
+        $connector = new PennylaneConnector('a-token', $cache);
+        $connector->withMockClient(new MockClient([MockResponse::make(['id' => 1], 200)]));
+
+        $connector->send($this->makeRequest());
+
+        self::assertNotEmpty($cache->setCalls);
+        foreach ([...$cache->getCalls, ...$cache->setCalls] as $key) {
+            self::assertMatchesRegularExpression('/^[A-Za-z0-9_.]{1,64}$/', $key);
+        }
+    }
+
+    public function testTheFirmConnectorAlsoOnlyGivesPsr16Keys(): void
+    {
+        $cache = new RecordingCache();
+
+        $connector = new FirmConnector('a-token', $cache);
+        $connector->withMockClient(new MockClient([MockResponse::make(['id' => 1], 200)]));
+
+        $connector->send($this->makeRequest());
+
         self::assertNotEmpty($cache->setCalls);
     }
 
@@ -378,6 +408,11 @@ final class RateLimitedTestConnector extends Connector
     }
 }
 
+/**
+ * Cache PSR-16 aussi strict sur les clés qu'un cache réel (Symfony refuse
+ * `{}()/\\@:`) : un faux cache permissif a laissé passer en 1.0.0 des clés
+ * `pennylane:…` refusées en production.
+ */
 final class RecordingCache implements CacheInterface
 {
     /** @var list<string> */
@@ -388,6 +423,7 @@ final class RecordingCache implements CacheInterface
 
     public function get(string $key, mixed $default = null): mixed
     {
+        self::valider($key);
         $this->getCalls[] = $key;
 
         return $default;
@@ -395,9 +431,17 @@ final class RecordingCache implements CacheInterface
 
     public function set(string $key, mixed $value, int|\DateInterval|null $ttl = null): bool
     {
+        self::valider($key);
         $this->setCalls[] = $key;
 
         return true;
+    }
+
+    private static function valider(string $key): void
+    {
+        if ('' === $key || false !== strpbrk($key, '{}()/\\@:')) {
+            throw new class(sprintf('Clé PSR-16 invalide : « %s ».', $key)) extends \InvalidArgumentException implements InvalidArgumentException {};
+        }
     }
 
     public function delete(string $key): bool
